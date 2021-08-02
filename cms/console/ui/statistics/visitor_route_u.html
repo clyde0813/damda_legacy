@@ -1,0 +1,166 @@
+<?
+	require('../../lib/page_header.php');
+$start_date = date("Y-m-d", strtotime(" - 7 day"));
+?>
+<script>
+    $(function () {
+        fnSetData();
+
+        function fnSetData() {
+            var search_start_date = $("#search_start_date").datebox('getValue');
+            var search_end_date = $("#search_end_date").datebox('getValue');
+
+            $.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=orgin_info&search_start_date="+search_start_date+"&search_end_date="+search_end_date,
+                type:"post",
+                dataType : "json",
+                success : function (data) {
+                    $("#search_count").text(data.search_count);
+                    $("#search_percent").html(data.search_percent+"<em>%</em>");
+                    $("#top_eng").html(data.top_eng+"<em>%</em>");
+                    $("#total_count").text(data.total_count);
+                }
+            });
+
+            $.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=weekend_orgin&search_start_date="+search_start_date+"&search_end_date="+search_end_date,
+                type:"post",
+                dataType : "json",
+                success : function (data) {
+                    $("#chart-area").empty();
+                    var widthSize = $('.Contents').width();
+                    var container = document.getElementById('chart-area'),
+                        chart_data = {
+                            categories: data.date,
+                            series: [
+                                    {
+                                        name: '네이버',
+                                        data: data.naver
+                                    },
+                                    {
+                                        name: '다음',
+                                        data: data.daum
+                                    },
+
+                                    {
+                                        name: '구글',
+                                        data: data.google
+                                    },
+                                    {
+                                        name: '기타',
+                                        data: data.etc
+                                    },
+                                    {
+                                        name: '네이트',
+                                        data: data.nate
+                                    },
+                                    {
+                                        name: '빙',
+                                        data: data.bing
+                                    },
+                            ]
+                        },
+                        options = {
+                            chart: {
+                                width: widthSize, height: 400 /*,title: ''*/
+                            },
+                            yAxis: {
+                                title: '', min: 0
+                            },
+                            xAxis: {
+                                title: ''
+                            },
+                            tooltip: {
+                                suffix: ''/* ,grouped: true*/
+                            },
+                            series: {
+                                showLabel: false, showDot: true
+                            },
+                            legend: {
+                                showCheckbox: true, align: 'bottom'
+                            }
+                        };
+                    tui.chart.lineChart(container, chart_data, options);
+                }
+            })
+        }
+
+        $("#search_btn").off().on('click', function () {
+            fnSetData();
+            var search_start_date = $("#search_start_date").datebox('getValue');
+            var search_end_date = $("#search_end_date").datebox('getValue');
+            $('#dg').datagrid('load', {
+                    search_start_date : encodeURIComponent(search_start_date),
+                    search_end_date : encodeURIComponent(search_end_date),
+                    emptyMsg:'데이터가 없습니다.'
+                }
+            );
+        });
+    });
+
+</script>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>기간검색</strong></dt>
+                    <dd>
+                        <input type="text" class="easyui-datebox" id="search_start_date" value="<?=date("Y-m-d", strtotime('- 7 day'));?>" data-options="formatter:myformatter,parser:myparser"> ~
+                        <input type="text" class="easyui-datebox" id="search_end_date" value="<?=date("Y-m-d");?>" data-options="formatter:myformatter,parser:myparser">
+                        <a onclick="DateSearch.getToday();" class="btn">오늘</a>
+                        <a onclick="DateSearch.getNextSevenDays()" class="btn">7일</a>
+                        <a onclick="DateSearch.getNextFiftheenDays()" class="btn">15일</a>
+                        <a onclick="DateSearch.getMonthAgo()" class="btn">1개월</a>
+                        <a onclick="DateSearch.getThreeMonthAgo()" class="btn">3개월</a>
+                    </dd>
+                </dl>
+            </div>
+             <button class="btn bt00" id="search_btn">검색</button>
+             <button class="btn" onclick="allList()">초기화</button>
+        </div>
+    </div>
+    
+    <div data-options="region:'center', border:false" class="Contents">
+        <div class="State">
+            <table class="tb">
+                <thead>
+                <tr>
+                    <th>검색유입수</th>
+                    <th>전체유입수</th>
+                    <th>검색유입율</th>
+                    <th>TOP검색엔진</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><strong id="search_count">10</strong></td>
+                    <td><strong id="total_count">15</strong></td>
+                    <td><strong id="search_percent">0<em>%</em></strong></td>
+                    <td><strong id="top_eng">37<em>%</em></strong></td>
+                </tr>
+                </tbody>
+            </table>
+            
+            <div id="chart-area" style="margin:20px -10px 20px -10px;"></div>
+
+            <table id="dg" class="easyui-datagrid" data-options="rownumbers:false,pagination:false, url:'<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=all_orgin&search_start_date=<?=$start_date?>&search_end_date=<?=date("Y-m-d");?>',method:'get', singleSelect:true,fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false"  fit="true" border="false" fit="true">
+                <thead>
+                <tr>
+                    <th data-options="field:'number',width:80,align:'center'">순위</th>
+                    <th data-options="field:'site',width:80,align:'center'">검색엔진</th>
+                    <th data-options="field:'count',width:80,align:'center'">유입수</th>
+                    <th data-options="field:'percent',width:80,align:'center'">비율</th>
+                </tr>
+                </thead>
+            </table>
+        </div>    
+    </div>
+</div>    
+
+<?
+	require('../../lib/page_bottom.php');
+?>

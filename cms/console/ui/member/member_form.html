@@ -1,0 +1,504 @@
+<?
+
+require('../../lib/page_header.php');
+$dm_id = isset($_REQUEST['dm_id']) ? $_REQUEST['dm_id'] : "";
+
+?>
+<script src="http://dmaps.daum.net/map_js_init/postcode.v2.js"></script>
+
+<div class="easyui-layout">
+    <form style="padding:10px 40px;" id="fm" name="fm" method="post">
+        <div class="title">
+            <h1>회원등록</h1>
+			<div class="btnWrap">
+                <button id="fnSave" type="button">저장</button>
+                <button id="fnCancel" class="bt09">취소</button>
+            </div>
+        </div>
+        <div class="page">
+            <h3>기본정보</h3>
+            <dl>
+                <dt>아이디</dt>
+                <dd>
+                    <input type="hidden" name="dm_no" value="" id="dm_no">
+                    <input type="hidden" name="confirm_id" value="0">
+                    <input type="hidden" name="dm_point"  />
+                    <input name="dm_id" type="text" id="dm_id" value="<?=$dm_id?>" class="wd30">
+                    <a href="#" class="easyui-linkbutton c4 l-btn l-btn-small" onclick="" id="confirm_id" group=""><span class="l-btn-left"><span class="l-btn-text">중복확인</span></span></a>
+                    <span style="display:none" id="confirm_text">사용할 수 있는 아이디입니다.</span>
+                </dd>
+            </dl>
+            <dl>
+                <dt>비밀번호</dt>
+                <dd><input name="dm_password" id="dm_password" type="password" ></dd>
+            </dl>
+            <dl>
+                <dt>비밀번호 확인</dt>
+                <dd><input name="dm_password_re" id="dm_password_re" type="password"></dd>
+            </dl>
+            <div class="half">
+                <dl>
+                    <dt>이름</dt>
+                    <dd><input name="dm_name" id="dm_name" type="text" ></dd>
+                </dl>
+                <dl>
+                    <dt>닉네임</dt>
+                    <dd><input name="dm_nick" id="dm_nick" type="text" ></dd>
+                </dl>
+            <dl>
+                <dt>회원레벨</dt>
+                <dd>
+                    <select id="dm_level" name="dm_level" class="easyui-combobox" panelHeight="auto"
+                            data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1002',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'">
+                    </select>
+                </dd>
+            </dl>
+            <dl>
+                <dt>회원그룹</dt>
+                <dd class="group_cert_check">
+                    <select id="dm_group_id" name="dm_group_id" class="easyui-combobox" panelHeight="auto"
+                            data-options="url: '<?=$_VAR_PATH_BIZ ?>app/mng_group.php?type=select_code',
+                                                method: 'get',
+                                                valueField: 'dm_group_id',
+                                                textField: 'dm_group_name', editable:false">
+                    </select>
+                </dd>
+            </dl>
+            </div>
+            <dl>
+                <dt>포인트</dt>
+                <dd id="dm_point"></dd>
+            </dl>
+            <div class="half">
+                <dl>
+                    <dt>이메일</dt>
+                    <dd><input name="dm_email" id="dm_email" type="text" ></dd>
+                </dl>
+                <dl>
+                    <dt>홈페이지</dt>
+                    <dd><input name="dm_homepage" id="dm_homepage" type="text" ></dd>
+                </dl>
+                <dl>
+                    <dt>휴대폰번호</dt>
+                    <dd><input name="dm_hp" id="dm_hp" type="text" ></dd>
+                </dl>
+                <dl>
+                    <dt>전화번호</dt>
+                    <dd><input name="dm_tel" id="dm_tel" type="text" ></dd>
+                </dl>
+            </div>
+            <dl class="address">
+                <dt>주소</dt>
+                <dd>
+                    <label for="dm_zip" class="sound_only">우편번호</label>
+                    <input type="text" name="dm_zip" value="" id="dm_zip" class="readonly" size="5" maxlength="6">
+                    <button type="button" class="btn" onclick="win_zip('fm', 'dm_zip', 'dm_addr1', 'dm_addr2', 'dm_addr3', 'dm_addr_jibeon');">주소 검색</button><br>
+                    <input type="text" name="dm_addr1" value="" id="dm_addr1" class="readonly" placeholder="기본주소">
+                    <label for="dm_addr1">기본주소</label>
+                    <input type="text" name="dm_addr2" value="" id="dm_addr2" class="" placeholder="상세주소">
+                    <label for="dm_addr2">상세주소</label>
+                    <br>
+                    <input type="text" name="dm_addr3" value="" id="dm_addr3" class="" placeholder="참고항목">
+                    <label for="dm_addr3">참고항목</label>
+                    <input type="hidden" name="dm_addr_jibeon" value="" id="dm_addr_jibeon"><br>
+                </dd>
+            </dl>
+            <h3>부가정보</h3>
+			<div class="half">
+                <dl>
+                    <dt>성별</dt>
+                    <dd>
+                        <input type="radio" name="dm_sex" id="dm_sex_man" value="M"><label for="dm_sex_man">남</label>
+                        <input type="radio" name="dm_sex" id="dm_sex_woman" value="F"><label for="dm_sex_woman">여</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>생일</dt>
+                    <dd>
+                        <select id="dm_birth_type" name="dm_birth_type"><option value="양력">양력</option><option value="음력">음력</option></select>
+                        <input type="text" class="easyui-datebox" name="dm_birth" data-options="formatter:myformatter,parser:myparser" id="dm_birth"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>개인정보유효기간</dt>
+                    <dd>
+                        <label><input type="radio" name="dm_private_expire" id="dm_private_expire1" value="1">1년</label>
+                        <label><input type="radio" name="dm_private_expire" id="dm_private_expire3" value="3">3년</label>
+                        <label><input type="radio" name="dm_private_expire" id="dm_private_expire5" value="5">5년</label>
+                        <label><input type="radio" name="dm_private_expire" id="dm_private_expire" value="leave">탈퇴 시</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>본인확인</dt>
+                    <dd>
+                        <input type="radio" name="dm_certify" id="dm_certify_yes" value="1"><label for="dm_certify_yes">예</label>
+                        <input type="radio" name="dm_certify" id="dm_certify_no" value="2"><label for="dm_certify_no">아니오</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>본인확인방법</dt>
+                    <dd>
+                        <input type="radio" name="dm_certify_case" id="dm_certify_ipin" value="ipin" /><label for="dm_certify_ipin">아이핀</label>
+                        <input type="radio" name="dm_certify_case" id="dm_certify_hp" value="hp" /><label for="dm_certify_hp">휴대폰</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>성인인증여부</dt>
+                    <dd>
+                        <input type="radio" name="dm_adult" id="dm_adult_yes" value="1" /><label for="dm_adult_yes">예</label>
+                        <input type="radio" name="dm_adult" id="dm_adult_no" value="2"  /><label for="dm_adult_no">아니오</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>메일수신</dt>
+                    <dd>
+                        <input type="radio" name="dm_mailling" id="dm_mailling_yes" value="1" /><label for="dm_mailling_yes">예</label>
+                        <input type="radio" name="dm_mailling" id="dm_mailling_no" value="2" /><label for="dm_mailling_no">아니오</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>SMS 수신</dt>
+                    <dd>
+                        <input type="radio" name="dm_sms" id="dm_sms_yes" value="1" /><label for="dm_sms_yes">예</label>
+                        <input type="radio" name="dm_sms" id="dm_sms_no" value="2" /><label for="dm_sms_no">아니오</label>
+                    </dd>
+                </dl>
+			</div>
+            <dl>
+                <dt>남기는 말씀</dt>
+                <dd><textarea name="dm_memo" style="width:100%; height:150px;" id="dm_memo"></textarea></dd>
+            </dl>
+            <div class="half">
+                <dl>
+                    <dt>탈퇴일자</dt>
+                    <dd><input type="text" class="easyui-datebox" name="dm_leave_date" data-options="formatter:myformatter,parser:myparser" id="dm_leave_date"/></dd>
+                </dl>
+                <dl>
+                    <dt>접근차단일자</dt>
+                    <dd><input type="text" class="easyui-datebox" name="dm_intercept_date" data-options="formatter:myformatter,parser:myparser" id="dm_intercept_date" /></dd>
+                </dl>
+            </div>
+        </div>
+    </form>
+</div>
+
+    <script language="javascript">
+        <!--
+        $(document).ready(function(){
+            var dm_id = $.trim($("#dm_id").val());
+
+            if (dm_id != "") {
+                $.ajax({
+                    url : "<?=$_VAR_PATH_BIZ?>app/mng_member.php",
+                    type : "POST",
+                    cache : false,
+                    async : true,
+                    dataType : "json",
+                    data : "dm_id="+dm_id+"&type=select_member",
+                    success : function (data) {
+						//console.log(data);
+                        if(data.result == "success") {
+                            $("input:radio[name='dm_sex']:input[value='"+data.rows.dm_sex+"']").prop("checked", true);
+                            $("input:radio[name='dm_adult']:input[value='"+data.rows.dm_adult+"']").prop("checked", true);
+                            $("input:radio[name='dm_certify_case']:input[value='"+data.rows.dm_certify+"']").prop("checked", true);
+                            $("input:radio[name='dm_mailling']:input[value='"+data.rows.dm_mailling+"']").prop("checked", true);
+                            $("input:radio[name='dm_sms']:input[value='"+data.rows.dm_sms+"']").prop("checked", true);
+
+                            if (data.rows.dm_certify) {
+                                $("input:radio[name='dm_certify']:input[value='1']").prop("checked", true);
+                            } else {
+                                $("input:radio[name='dm_certify']:input[value='2']").prop("checked", true);
+                            }
+
+                            $("input:radio[name='dm_private_expire']:input[value='"+data.rows.dm_private_expire+"']").prop("checked", true);
+
+
+                            $("#confirm_id").hide();
+                            $("#dm_no").val(data.rows.dm_no);
+                            $("#dm_id").attr("readonly", true);
+                            $("#dm_name").val(data.rows.dm_name);
+                            $("#dm_nick").val(data.rows.dm_nick);
+                            $("#dm_email").val(data.rows.dm_email);
+                            $("#dm_hp").val(data.rows.dm_hp);
+                            $("#dm_tel").val(data.rows.dm_tel);
+                            $("#dm_homepage").val(data.rows.dm_homepage);
+                            $("#dm_zip").val(data.rows.dm_zip1+data.rows.dm_zip2);
+                            $("#dm_addr1").val(data.rows.dm_addr1);
+                            $("#dm_addr2").val(data.rows.dm_addr2);
+                            $("#dm_addr3").val(data.rows.dm_addr3);
+                            $("#dm_addr_jibeon").val(data.rows.dm_addr_jibeon);
+                            $("#dm_signature").val(data.rows.dm_signature);
+                            $("#dm_memo").val(data.rows.dm_memo);
+                            $('#dm_level').combobox('setValue', data.rows.dm_level);
+                            $('#dm_birth').datebox('setValue', data.rows.dm_birth);
+                            $('#dm_point').html(data.rows.dm_point + " P <br><br> *포인트관련 기능은 회원관리 > 포인트관리를 이용해주세요");
+                            $('input[name="dm_point"]').val(data.rows.dm_point);
+
+                            if (data.rows.dm_leave_date != "")
+                            {
+                                $("#dm_leave_date").datebox("setValue", data.rows.dm_leave_date);
+                            }
+
+                            if (data.rows.dm_intercept_date != "")
+                            {
+                                $("#dm_intercept_date").datebox("setValue", data.rows.dm_intercept_date);
+                            }
+                            $("#dm_group_id").combobox('setValue', data.rows.dm_group_id);
+                            $("#saveBtn").linkbutton({text:"수정"});
+							
+							var dm_3 = data.rows.dm_3 == "" ? 0 : data.rows.dm_3 * 1;
+							var dm_6 = data.rows.dm_6;
+							if (dm_3 > 1 && dm_6 == "") {
+								$(".group_cert_check > select").remove();
+								$(".group_cert_check").text("회원가입 신청중입니다.");
+							}
+                        } else if(data.result == "fail") {
+                            $.messager.alert('이력없음','회원이 존재하지 않습니다.','warning');
+                        }
+                    }, error:function(request,status,error) {
+                        alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                    }
+                });
+            }
+
+            $("#confirm_id").off().on('click', function () {
+                var dm_id = $("#dm_id").val();
+
+                if (dm_id != "" ) {
+                    $.ajax({
+                        url: "<?=$_VAR_PATH_BIZ?>app/mng_member.php",
+                        type: "POST",
+                        data:'type=select_member&dm_id='+dm_id,
+                        dataType:'json',
+                        success:function (data) {
+                            if (data.result == 'fail') {
+                                $.messager.alert('정보','사용할 수 있는 아이디입니다.','info');
+                                $("#confirm_id").hide();
+                                $("input[name='confirm_id']").val(1);
+                                $("#dm_id").attr("readonly", true);
+                                $("#confirm_text").text('사용할 수 있는 아이디입니다.').css('color', 'blue').show();
+
+                            } else if (data.result == 'success') {
+                                $.messager.alert('경고','사용할 수 없는 아이디입니다.','warning');
+                                $("input[name='confirm_id']").val(0);
+                                $("#confirm_text").text('사용할 수 없는 아이디입니다.').css('color', 'red').show();
+                            }
+                        } , error:function(request,status,error) {
+                            alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                        }
+                    });
+                } else {
+                    $.messager.alert('오류','아이디를 입력해주세요.','warning');
+                }
+
+            });
+
+            $("#fnSave").off().on('click', function () {
+                fnSave();
+            });
+
+            $("#fnCancel").off().on('click', function () {
+                self.close();
+            });
+        });
+
+        function win_zip(frm_name, frm_zip, frm_addr1, frm_addr2, frm_addr3, frm_jibeon) {
+            if(typeof daum === 'undefined'){
+                alert("다음 우편번호 postcode.v2.js 파일이 로드되지 않았습니다.");
+                return false;
+            }
+
+            var zip_case = 1;   //0이면 레이어, 1이면 페이지에 끼워 넣기, 2이면 새창
+
+            var complete_fn = function(data){
+                // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
+
+                // 각 주소의 노출 규칙에 따라 주소를 조합한다.
+                // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
+                var fullAddr = ''; // 최종 주소 변수
+                var extraAddr = ''; // 조합형 주소 변수
+
+                // 사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+                if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+                    fullAddr = data.roadAddress;
+
+                } else { // 사용자가 지번 주소를 선택했을 경우(J)
+                    fullAddr = data.jibunAddress;
+                }
+
+                // 사용자가 선택한 주소가 도로명 타입일때 조합한다.
+                if(data.userSelectedType === 'R'){
+                    //법정동명이 있을 경우 추가한다.
+                    if(data.bname !== ''){
+                        extraAddr += data.bname;
+                    }
+                    // 건물명이 있을 경우 추가한다.
+                    if(data.buildingName !== ''){
+                        extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                    }
+                    // 조합형주소의 유무에 따라 양쪽에 괄호를 추가하여 최종 주소를 만든다.
+                    extraAddr = (extraAddr !== '' ? ' ('+ extraAddr +')' : '');
+                }
+
+                // 우편번호와 주소 정보를 해당 필드에 넣고, 커서를 상세주소 필드로 이동한다.
+                var of = document[frm_name];
+
+                of[frm_zip].value = data.zonecode;
+
+                of[frm_addr1].value = fullAddr;
+                of[frm_addr3].value = extraAddr;
+
+                if(of[frm_jibeon] !== undefined){
+                    of[frm_jibeon].value = data.userSelectedType;
+                }
+
+                setTimeout(function(){
+                    // console.log(of[frm_addr2]);
+                    of[frm_addr2].focus();
+                } , 100);
+            };
+
+            switch(zip_case) {
+                case 1 :    //iframe을 이용하여 페이지에 끼워 넣기
+                    var daum_pape_id = 'daum_juso_page'+frm_zip,
+                        element_wrap = document.getElementById(daum_pape_id),
+                        currentScroll = Math.max(document.body.scrollTop, document.documentElement.scrollTop);
+                    if (element_wrap == null) {
+                        element_wrap = document.createElement("div");
+                        element_wrap.setAttribute("id", daum_pape_id);
+                        element_wrap.style.cssText = 'display:none;border:1px solid;left:0;width:100%;height:300px;margin:5px 0;position:relative;-webkit-overflow-scrolling:touch;';
+                        element_wrap.innerHTML = '<img src="//i1.daumcdn.net/localimg/localimages/07/postcode/320/close.png" id="btnFoldWrap" style="cursor:pointer;position:absolute;right:0px;top:-21px;z-index:1" class="close_daum_juso" alt="접기 버튼">';
+                        jQuery('form[name="'+frm_name+'"]').find('input[name="'+frm_addr1+'"]').before(element_wrap);
+                        jQuery("#"+daum_pape_id).off("click", ".close_daum_juso").on("click", ".close_daum_juso", function(e){
+                            e.preventDefault();
+                            jQuery(this).parent().hide();
+                        });
+                    }
+
+                    new daum.Postcode({
+                        oncomplete: function(data) {
+                            complete_fn(data);
+                            // iframe을 넣은 element를 안보이게 한다.
+                            element_wrap.style.display = 'none';
+                            // 우편번호 찾기 화면이 보이기 이전으로 scroll 위치를 되돌린다.
+                            document.body.scrollTop = currentScroll;
+                        },
+                        // 우편번호 찾기 화면 크기가 조정되었을때 실행할 코드를 작성하는 부분.
+                        // iframe을 넣은 element의 높이값을 조정한다.
+                        onresize : function(size) {
+                            element_wrap.style.height = size.height + "px";
+                        },
+                        maxSuggestItems :10,
+                        width : '100%',
+                        height : '100%'
+                    }).embed(element_wrap);
+
+                    // iframe을 넣은 element를 보이게 한다.
+                    element_wrap.style.display = 'block';
+                    break;
+                case 2 :    //새창으로 띄우기
+                    new daum.Postcode({
+                        oncomplete: function(data) {
+                            complete_fn(data);
+                        }
+                    }).open();
+                    break;
+                default :   //iframe을 이용하여 레이어 띄우기
+                    var rayer_id = 'daum_juso_rayer'+frm_zip,
+                        element_layer = document.getElementById(rayer_id);
+                    if (element_layer == null) {
+                        element_layer = document.createElement("div");
+                        element_layer.setAttribute("id", rayer_id);
+                        element_layer.style.cssText = 'display:none;border:5px solid;position:fixed;width:300px;height:460px;left:50%;margin-left:-155px;top:50%;margin-top:-235px;overflow:hidden;-webkit-overflow-scrolling:touch;z-index:10000';
+                        element_layer.innerHTML = '<img src="//i1.daumcdn.net/localimg/localimages/07/postcode/320/close.png" id="btnCloseLayer" style="cursor:pointer;position:absolute;right:-3px;top:-3px;z-index:1" class="close_daum_juso" alt="닫기 버튼">';
+                        document.body.appendChild(element_layer);
+                        jQuery("#"+rayer_id).off("click", ".close_daum_juso").on("click", ".close_daum_juso", function(e){
+                            e.preventDefault();
+                            jQuery(this).parent().hide();
+                        });
+                    }
+
+                    new daum.Postcode({
+                        oncomplete: function(data) {
+                            complete_fn(data);
+                            // iframe을 넣은 element를 안보이게 한다.
+                            element_layer.style.display = 'none';
+                        },
+                        maxSuggestItems : 10,
+                        width : '100%',
+                        height : '100%'
+                    }).embed(element_layer);
+
+                    // iframe을 넣은 element를 보이게 한다.
+                    element_layer.style.display = 'block';
+            }
+        }
+
+        function fnSave() {
+            var dm_id = $.trim($("#dm_id").val());
+            var dm_password = $.trim($("#dm_password").val());
+            var dm_name = $.trim($("#dm_name").val());
+            var dm_no = $.trim($("#dm_no").val());
+            var dm_confirm_id = $.trim($("input[name='confirm_id']").val());
+
+            var url = "";
+			
+			var check_id = "<?=$dm_id?>";
+			if (check_id != "") {
+				url = "<?=$_VAR_PATH_BIZ?>app/mng_member.php?type=update";
+			} else {
+				url = "<?=$_VAR_PATH_BIZ?>app/mng_member.php?type=insert";
+			}           
+			
+			if(dm_id == "") {
+                alert('아이디를 입력해주세요.');
+                $('#dm_id').focus();
+                return;
+            }
+
+            if(dm_name == "") {
+                alert('이름을 입력해주세요.');
+                $('#dm_name').focus();
+                return;
+            }
+
+            if (dm_no == "") {
+                if(dm_password == "") {
+                    alert('비밀번호를 입력해주세요.');
+                    $('#dm_password').focus();
+                    return;
+                }
+
+                if (dm_confirm_id == 0) {
+                    alert('아이디 중복확인을 해주세요.');
+                    $('#dm_id').focus();
+                    return;
+                }
+            }
+
+            var param = $("#fm").serialize();
+
+            $.ajax({
+                url: url,
+                dataType:"json",
+                type:"post",
+                data:param,
+                success: function(response){
+					//console.log(response);
+                    if(response.result == "success")
+                    {
+                        window.opener.$("#dg").datagrid('reload');
+                        self.close();
+                    }
+                }
+
+            });
+        }
+        //-->
+    </script>
+<?
+require('../../lib/page_bottom.php');
+?>

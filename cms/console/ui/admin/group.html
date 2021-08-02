@@ -1,0 +1,306 @@
+<?
+require('../../lib/page_header.php');
+?>
+    <script LANGUAGE="JavaScript">
+        <!--
+        $(document).ready(function(){
+            function doSearch() {
+                var search_type = $('#search_type').val();
+                var search_value = $('#stx').val();
+
+                $('#dg').datagrid('load',
+                    {
+                        search_type : encodeURIComponent(search_type),
+                        search_value : encodeURIComponent(search_value),
+                        emptyMsg:'데이터가 없습니다.'
+                    })
+            }
+
+            function closeDialog()
+            {
+                $("#dlg").dialog('close');
+            }
+
+            function fnNew() {
+                $("#dm_id").val('');
+                $("#dm_group_id").val('');
+                $("#dm_group_name").val('');
+                $("#dm_group_desc").val('');
+                $(".modify").hide();
+                $("#dm_create_dt").text('');
+                $('#dm_create_id').text('');
+                $("#dm_modify_dt").text('');
+                $("#dm_modify_id").text('');
+
+                $("#dm_mode").val("insert");
+                $("#dialog_title").text("그룹 등록");
+                $("#dlg").dialog({
+                    title : "&nbsp;&nbsp;"
+                }).dialog('open');
+            }
+
+            function fnSave() {
+                var dm_group_name = $("#dm_group_name").val();
+                var dm_group_desc = $("#dm_group_desc").val();
+
+                var dm_mode = $("#dm_mode").val();
+
+                var url = "<?=$_VAR_PATH_BIZ?>app/mng_group.php?type="+dm_mode;
+
+                if (dm_mode != 'delete') {
+                    if(dm_group_name == "")
+                    {
+                        $.messager.alert('입력오류','그룹 이름을 입력해주세요.','warning');
+                        return;
+                    }
+                    if(dm_group_desc == "")
+                    {
+                        $.messager.alert('입력오류','그룹 설명을 입력해주세요.','warning');
+                        return;
+                    }
+                }
+
+                var form = $("#fm")[0];
+                var formData = new FormData(form);
+
+                $.ajax({
+                    url : url,
+                    data : formData,
+                    dataType: "json",
+                    type : "post",
+                    contentType: false,
+                    processData: false,
+                    success : function (data) {
+                        var icon = 'warning';
+                        if(data.result == "success") {
+                            $('#dg').datagrid('reload');
+                            $("#dm_mode").val('');
+                            fnNew();
+                            icon = 'info';
+                        }
+                        $.messager.alert('알림',data.notice,icon);
+                        closeDialog();
+                    }
+                });
+            }
+
+            function fnDelete() {
+                $.messager.confirm("", "정말 삭제하시겠습니까?", function (r) {
+                    if (r) {
+                        var ids = [];
+                        var rows = $('#dg').datagrid('getChecked');
+                        for(var i=0; i<rows.length; i++){
+                            ids.push(rows[i].dm_id);
+                        }
+
+                        $.each(ids, function (index, value) {
+                                $.post('<?=$_VAR_PATH_BIZ?>app/mng_group.php?type=delete',{dm_id:value},function(result){
+                                    if (result.success){
+                                        console.log(result);
+                                    }
+                                },'json')
+                            }
+                        );
+                        $('#dg').datagrid('reload');    // reload the user data
+                    }
+                });
+            }
+
+            $("#stx").keypress(function(e){
+                if(e.keyCode === 13){
+                    e.preventDefault();
+                    doSearch();
+                }
+            });
+
+            $("#fnNew").off().on('click', function () {
+                fnNew();
+            });
+
+            $("#fnRemove").off().on('click', function () {
+                fnDelete();
+            });
+
+            $("#fnSave").off().on('click', function () {
+                fnSave();
+            });
+
+            $("#search_btn").off().on('click', function () {
+                doSearch();
+            });
+
+            $("#fnClose").off().on('click', function () {
+                closeDialog();
+            });
+
+            closeDialog();
+
+            var pager = $('#dg').datagrid('getPager');
+            pager.pagination ({
+                showPageList: true,
+                layout:['info','sep','first','prev','links','next','last','list'],
+                displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+            });
+
+            $(document).on('click', ".open_form", function () {
+                $('#dg').datagrid('getSelected');
+                var currentRow =$("#dg").datagrid("getSelected");
+                if (currentRow)
+                {
+                    $("#dm_id").val(currentRow.dm_id);
+                    $("#dm_group_id").val(currentRow.dm_group_id);
+                    $("#dm_group_name").val(currentRow.dm_group_name);
+                    $("#dm_group_desc").val(currentRow.dm_group_desc);
+                    $(".modify").show();
+                    $("#dm_create_dt").text(currentRow.dm_create_dt);
+                    $('#dm_create_id').text(currentRow.dm_create_id);
+                    $("#dm_modify_dt").text(currentRow.dm_modify_dt);
+                    $("#dm_modify_id").text(currentRow.dm_modify_id);
+
+                    $("#dm_mode").val("update");
+                    $("#dialog_title").text("그룹 수정");
+                    $("#dlg").dialog({
+                        title : "&nbsp;&nbsp;"
+                    }).dialog('open');
+                }
+            });
+
+            $(document).on('click', ".private_delete", function () {
+                var dm_id = $(this).data("id");
+                $.messager.confirm("", "정말 삭제하시겠습니까?", function (r) {
+                    $.post('<?=$_VAR_PATH_BIZ?>app/mng_group.php?type=delete',{dm_id:dm_id},function(result){
+                        if (result.result == 'success'){
+                            $('#dg').datagrid('reload');    // reload the user data
+                        }
+                    },'json')
+                });
+            });
+
+        });
+
+        function allList() {
+            $("#search_type").val('all');
+            $("#stx").val('');
+
+            $("#dg").datagrid('load', {
+                search_type: '',
+                search_value : ''
+            });
+        }
+        // -->
+        function formatDetail(value,row){
+            return '<a data-id="'+row.dm_id+'" class="btn bt08 open_form" target="_blank">수정</a> <a data-id="'+row.dm_id+'" class="btn private_delete" target="_blank">삭제</a>';
+        }
+    </script>
+    <script type="text/javascript" src="<?=$_VAR_PATH_JS?>easyui/datagrid-export/datagrid-export.js"></script>
+    <div class="easyui-layout" fit="true">
+        <div data-options="region:'north', border:false">
+            <div class="title">
+                <h1><?=$current_page_info['dm_view_title']?></h1>
+                <div class="btnWrap">
+                    <button id="fnNew" class="bt08">+ 그룹등록</button>
+                </div>
+            </div>
+            <div class="Srchbox">
+                <div>
+                    <dl>
+                        <dt><strong>통합검색</strong></dt>
+                        <dd>
+                            <select name="search_type" id="search_type">
+                                <option value="all">통합검색</option>
+                                <option value="dm_group_id">그룹아이디</option>
+                                <option value="dm_group_name">그룹이름</option>
+                                <option value="dm_group_desc">그룹설명</option>
+                                <option value="dm_create_dt">생성일자</option>
+                                <option value="dm_create_id">생성자</option>
+                                <option value="dm_modify_dt">수정일자</option>
+                                <option value="dm_modify_id">수정자</option>
+                            </select>
+                            <input type="text" name="search_value" value="" id="stx">
+                        </dd>
+                    </dl>
+                </div>
+                <button class="btn bt00" id="search_btn">검색</button>
+                <button class="btn" onclick="allList()">초기화</button>
+            </div>
+        </div>
+        <div data-options="region:'center', border:false" class="Contents">
+            <table id="dg"
+                   class="easyui-datagrid" fit="true" border="false"
+                   data-options="pagePosition:'top',rownumbers:true,pagination:true,singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_group.php?type=select',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false" pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+                <thead>
+                <tr>
+                    <th data-options="field:'ck',width:100,align:'center',checkbox:true,
+                editor:{
+                    type:'checkbox',
+                    options:{
+                        on:'Y',
+                        off:'N'
+                    }
+                }"></th>
+                    <th data-options="field:'dm_group_id',width:150,align:'center'">그룹아이디</th>
+                    <th data-options="field:'dm_group_name',width:100,align:'center'">그룹이름</th>
+                    <th data-options="field:'dm_group_desc',width:100,align:'center'">그룹설명</th>
+                    <th data-options="field:'dm_create_dt',width:100,align:'center'">생성일자</th>
+                    <th data-options="field:'dm_create_id',width:100,align:'center'">생성자</th>
+                    <th data-options="field:'dm_modify_dt',width:100,align:'center'">수정일자</th>
+                    <th data-options="field:'dm_modify_id',width:100,align:'center'">수정자</th>
+                    <th field ="detail" width = "80" formatter="formatDetail" align="center">관리</th>
+                </tr>
+                </thead>
+            </table>
+            <div id="dlg" class="easyui-dialog" style="width:600px; height: 700px;">
+                <form id="fm" method="post" novalidate>
+                    <input type="hidden" name="dm_mode" id="dm_mode" value="insert"/>
+                    <input type="hidden" name="dm_id" value="" id="dm_id" />
+                    <div class="page">
+                        <h3 id="dialog_title">그룹 등록</h3>
+                        <dl>
+                            <dt>그룹아이디</dt>
+                            <dd><input type="text" name="dm_group_id" id="dm_group_id" readonly placeholder="자동으로 생성됩니다." /></dd>
+                        </dl>
+                        <dl>
+                            <dt>그룹이름</dt>
+                            <dd><input type="text" name="dm_group_name" id="dm_group_name" value="" /></dd>
+                        </dl>
+                        <dl>
+                            <dt>그룹설명</dt>
+                            <dd>
+                                <input type="text" name="dm_group_desc" id="dm_group_desc" value=""  />
+                            </dd>
+                        </dl>
+                        <dl class="modify">
+                            <dt>생성일자</dt>
+                            <dd id="dm_create_dt"></dd>
+                        </dl>
+                        <dl class="modify">
+                            <dt>생성자</dt>
+                            <dd id="dm_create_id"></dd>
+                        </dl>
+                        <dl class="modify">
+                            <dt>수정일자</dt>
+                            <dd id="dm_modify_dt"></dd>
+                        </dl>
+                        <dl class="modify">
+                            <dt>수정자</dt>
+                            <dd id="dm_modify_id"></dd>
+                        </dl>
+                    </div>
+                    <div style="text-align: center;">
+                        <a href="javascript:void(0);" id="fnClose" class="easyui-linkbutton" style="width:120px;height:30px">취소</a>
+                        <a href="javascript:void(0);" id="fnSave" class="easyui-linkbutton" style="width:120px;height:30px">저장</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div data-options="region:'south'">
+            <dl class="Tbottom">
+                <dd>
+                    <button class="btn" id="fnRemove">선택삭제</button>
+                </dd>
+            </dl>
+        </div>
+    </div>
+<?
+require('../../lib/page_bottom.php');
+?>

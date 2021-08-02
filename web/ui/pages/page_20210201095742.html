@@ -1,0 +1,23 @@
+<? include "mytop.html"; ?>
+<div class="findId">
+    <h2>비밀번호 찾기</h2>
+    <p class="glores-A-find-txt">띄어쓰기 및 대소문자 구분해서 정확하게 입력해주세요.</p>
+    <fieldset>
+        <form id="fm" name="fm" method="post">
+            <input type="hidden" name="command" value="lost" />
+        <ul class="glores-A-find-form">
+            <li>
+                <label>아이디</label>
+                <input type="text" name="dm_id" id="dm_id" class="glores-A-input-txt">
+            </li>
+            <li>
+                <label for="email">이메일</label>
+                <input type="text" name="dm_email1" id="dm_email1" class="glores-A-input-txt">
+            </li>
+        </ul>
+        </form>
+    </fieldset>
+    <div class="btnWrap">
+        <a href="#" class="btn04" onclick="find_info('lost_pw')">비밀번호 찾기</a>
+    </div>
+</div><!--//findId-->

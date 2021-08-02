@@ -1,0 +1,408 @@
+<?
+require('../../lib/page_header.php');
+include "../../lib/smarteditor2/editor.lib.php";
+$db = new DBSQL();
+$query = "SELECT * FROM dm_config WHERE dm_domain_id = '".$dm_domain_id."'";
+
+$db->ExecSql($query, "S");
+
+$row = $db->Fetch();
+
+$editor_html = editor_html('dm_private_text', $row['dm_private_text'], true);
+$editor_js = '';
+$editor_js .= get_editor_js('dm_private_text', true);
+$editor_js .= chk_editor_js('dm_private_text', true);
+
+$policy_html = editor_html('dm_policy_text', $row['dm_policy_text'], true);
+$policy_js = '';
+$policy_js .= get_editor_js('dm_policy_text', true);
+$policy_js .= chk_editor_js('dm_policy_text', true);
+?>
+
+<script src="http://dmaps.daum.net/map_js_init/postcode.v2.js"></script>
+<div class="easyui-layout" style="width:700px;height:350px;" fit="true">
+    <div data-options="region:'north', border:false" class="title">
+        <h1><?=$current_page_info['dm_view_title']?></h1>
+        <div class="btnWrap">
+        	<button id="fnSave">저장</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false">
+        <form id="fm" name="fm" enctype="multipart/form-data">
+            <input type="hidden" name="dm_id" value="<?=getSession('site_id');?>" />
+            <input type="hidden" name="dm_mode" id='dm_mode' value="insert" />
+        <div class="page">
+            <h3>기본정보</h3>
+            <dl>
+                <dt>도메인주소</dt>
+                <dd><input name="dm_url" id="dm_url" type="text" ></dd>
+            </dl>
+            <dl>
+                <dt>사이트명</dt>
+                <dd><input name="dm_site_name" id="dm_site_name" type="text"></dd>
+            </dl>
+            <dl>
+                <dt>상단타이틀</dt>
+                <dd><input name="dm_title" id="dm_title" type="text" ></dd>
+            </dl>
+            <h3>회사 정보</h3>
+            <dl>
+            	<dt>상호명</dt>
+                <dd><input name="dm_company_name" id="dm_company_name" type="text"></dd>
+            </dl>
+            <div class="half">
+                <dl>
+                    <dt>사업자등록번호</dt>
+                    <dd>
+                        <input type="text" name="dm_company_number1" id="dm_company_number1" value="" maxlength="3" class="wd15"> -
+                        <input type="text" name="dm_company_number2" id="dm_company_number2" value="" maxlength="2" class="wd15"> -
+                        <input type="text" name="dm_company_number3" id="dm_company_number3" value="" maxlength="5" class="wd15">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>통신판매신고번호</dt>
+                    <dd>
+                        <input type="text" name="dm_tel_company_number" id="dm_tel_company_number" value="" class="wd50">
+                        </dd>
+                </dl>
+            </div>
+            <dl>
+            	<dt>대표자명</dt>
+                <dd><input name="dm_ceo" id="dm_ceo" type="text"></dd>
+            </dl>
+            <dl>
+            	<dt>대표이메일</dt>
+                <dd>
+                <input name="dm_ceo_email1" id="dm_ceo_email1" type="text" class="wd30"> @ <input name="dm_ceo_email2" id="dm_ceo_email2" type="text" class="wd30">
+                <select id="dm_ceo_email3" name="dm_ceo_email3">
+                    <option value="self">직접입력</option>
+                    <option value="naver.com">naver.com</option>
+                    <option value="hanmail.net">hanmail.net</option>
+                    <option value="daum.net">daum.net</option>
+                    <option value="nate.com">nate.com</option>
+                    <option value="hotmail.com">hotmail.com</option>
+                    <option value="gmail.com">gmail.com</option>
+                    <option value="icloud.com">icloud.com</option>
+                </select>
+                </dd>
+            </dl>
+            <dl>
+            	<dt>사업장 주소</dt>
+                <dd class="address">
+                    <label for="dm_zip" class="sound_only">우편번호</label>
+                    <input type="text" name="dm_zip" value="" id="dm_zip" class="readonly" size="5" maxlength="6">
+                    <button type="button" class="btn" onclick="win_zip('fm', 'dm_zip', 'dm_addr1', 'dm_addr2', 'dm_addr3', 'dm_addr_jibeon');">주소 검색</button><br>
+                    <input type="text" name="dm_addr1" value="" id="dm_addr1" class="readonly">
+                    <label for="dm_addr1">기본주소</label>
+                    <input type="text" name="dm_addr2" value="" id="dm_addr2">
+                    <label for="dm_addr2">상세주소</label>
+                    <br>
+                    <input type="text" name="dm_addr3" value="" id="dm_addr3" class="" size="60">
+                    <label for="dm_addr3">참고항목</label>
+                    <input type="hidden" name="dm_addr_jibeon" value="" id="dm_addr_jibeon"><br>
+                </dd>
+            </dl>
+            <div class="half">
+            <dl>
+            	<dt>대표전화</dt>
+                <dd>
+                <input name="dm_tel" id="dm_tel" type="text">
+                </dd>
+            </dl>
+            <dl>
+            	<dt>팩스번호</dt>
+                <dd>
+                <input name="dm_fax" id="dm_fax" type="text">
+                </dd>
+            </dl>
+            </div>
+
+            <h3>개인정보보호책임자</h3>
+            <dl>
+                <dt>성명</dt>
+                <dd><input name="dm_private_name" id="dm_private_name" type="text" ></dd>
+            </dl>
+            <dl>
+                <dt>소속</dt>
+                <dd><input name="dm_private_group" id="dm_private_group" type="text"></dd>
+            </dl>
+            <dl>
+                <dt>전화번호</dt>
+                <dd><input name="dm_private_tel" id="dm_private_tel" type="text" ></dd>
+            </dl>
+            <dl>
+                <dt>이메일</dt>
+                <dd><input name="dm_private_email" id="dm_private_email" type="text" ></dd>
+            </dl>
+
+            <h3>주요 페이지 SEO 태그 설정</h3>
+            <dl>
+                <dt>메타태그 설명 <span>(Description)</span></dt>
+                <dd><input name="dm_meta_desc" id="dm_meta_desc" type="text"></dd>
+            </dl>
+            <dl>
+                <dt>메타태그 키워드 <span>(Keywords)</span></dt>
+                <dd><input name="dm_meta_keyword" id="dm_meta_keyword" type="text"></dd>
+            </dl>
+            <dl>
+                <dt>네이버 사이트 인증키</dt>
+                <dd><input name="dm_naver_site_verification" id="dm_naver_site_verification" type="text" ></dd>
+            </dl>
+            <dl>
+                <dt>대표이미지</dt>
+                <dd id="dm_personal_image">
+                    <input name="dm_personal_image" id="dm_personal_image" type="file">
+                </dd>
+            </dl>
+            <dl>
+                <dt>개인정보처리방침</dt>
+                <dd>
+                    <?=$editor_html?>
+                </dd>
+            </dl>
+            <dl>
+                <dt>이용약관</dt>
+                <dd>
+                    <?=$policy_html?>
+                </dd>
+            </dl>
+        </div>
+        </form>
+    </div>
+</div>
+<script>
+    function win_zip(frm_name, frm_zip, frm_addr1, frm_addr2, frm_addr3, frm_jibeon) {
+        if(typeof daum === 'undefined'){
+            alert("다음 우편번호 postcode.v2.js 파일이 로드되지 않았습니다.");
+            return false;
+        }
+
+        var zip_case = 1;   //0이면 레이어, 1이면 페이지에 끼워 넣기, 2이면 새창
+
+        var complete_fn = function(data){
+            // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
+
+            // 각 주소의 노출 규칙에 따라 주소를 조합한다.
+            // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
+            var fullAddr = ''; // 최종 주소 변수
+            var extraAddr = ''; // 조합형 주소 변수
+
+            // 사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+            if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+                fullAddr = data.roadAddress;
+
+            } else { // 사용자가 지번 주소를 선택했을 경우(J)
+                fullAddr = data.jibunAddress;
+            }
+
+            // 사용자가 선택한 주소가 도로명 타입일때 조합한다.
+            if(data.userSelectedType === 'R'){
+                //법정동명이 있을 경우 추가한다.
+                if(data.bname !== ''){
+                    extraAddr += data.bname;
+                }
+                // 건물명이 있을 경우 추가한다.
+                if(data.buildingName !== ''){
+                    extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                }
+                // 조합형주소의 유무에 따라 양쪽에 괄호를 추가하여 최종 주소를 만든다.
+                extraAddr = (extraAddr !== '' ? ' ('+ extraAddr +')' : '');
+            }
+
+            // 우편번호와 주소 정보를 해당 필드에 넣고, 커서를 상세주소 필드로 이동한다.
+            var of = document[frm_name];
+
+            of[frm_zip].value = data.zonecode;
+
+            of[frm_addr1].value = fullAddr;
+            of[frm_addr3].value = extraAddr;
+
+            if(of[frm_jibeon] !== undefined){
+                of[frm_jibeon].value = data.userSelectedType;
+            }
+
+            setTimeout(function(){
+                // console.log(of[frm_addr2]);
+                of[frm_addr2].focus();
+            } , 100);
+        };
+
+        switch(zip_case) {
+            case 1 :    //iframe을 이용하여 페이지에 끼워 넣기
+                var daum_pape_id = 'daum_juso_page'+frm_zip,
+                    element_wrap = document.getElementById(daum_pape_id),
+                    currentScroll = Math.max(document.body.scrollTop, document.documentElement.scrollTop);
+                if (element_wrap == null) {
+                    element_wrap = document.createElement("div");
+                    element_wrap.setAttribute("id", daum_pape_id);
+                    element_wrap.style.cssText = 'display:none;border:1px solid;left:0;width:100%;height:300px;margin:5px 0;position:relative;-webkit-overflow-scrolling:touch;';
+                    element_wrap.innerHTML = '<img src="//i1.daumcdn.net/localimg/localimages/07/postcode/320/close.png" id="btnFoldWrap" style="cursor:pointer;position:absolute;right:0px;top:-21px;z-index:1" class="close_daum_juso" alt="접기 버튼">';
+                    jQuery('form[name="'+frm_name+'"]').find('input[name="'+frm_addr1+'"]').before(element_wrap);
+                    jQuery("#"+daum_pape_id).off("click", ".close_daum_juso").on("click", ".close_daum_juso", function(e){
+                        e.preventDefault();
+                        jQuery(this).parent().hide();
+                    });
+                }
+
+                new daum.Postcode({
+                    oncomplete: function(data) {
+                        complete_fn(data);
+                        // iframe을 넣은 element를 안보이게 한다.
+                        element_wrap.style.display = 'none';
+                        // 우편번호 찾기 화면이 보이기 이전으로 scroll 위치를 되돌린다.
+                        document.body.scrollTop = currentScroll;
+                    },
+                    // 우편번호 찾기 화면 크기가 조정되었을때 실행할 코드를 작성하는 부분.
+                    // iframe을 넣은 element의 높이값을 조정한다.
+                    onresize : function(size) {
+                        element_wrap.style.height = size.height + "px";
+                    },
+                    maxSuggestItems :10,
+                    width : '100%',
+                    height : '100%'
+                }).embed(element_wrap);
+
+                // iframe을 넣은 element를 보이게 한다.
+                element_wrap.style.display = 'block';
+                break;
+            case 2 :    //새창으로 띄우기
+                new daum.Postcode({
+                    oncomplete: function(data) {
+                        complete_fn(data);
+                    }
+                }).open();
+                break;
+            default :   //iframe을 이용하여 레이어 띄우기
+                var rayer_id = 'daum_juso_rayer'+frm_zip,
+                    element_layer = document.getElementById(rayer_id);
+                if (element_layer == null) {
+                    element_layer = document.createElement("div");
+                    element_layer.setAttribute("id", rayer_id);
+                    element_layer.style.cssText = 'display:none;border:5px solid;position:fixed;width:300px;height:460px;left:50%;margin-left:-155px;top:50%;margin-top:-235px;overflow:hidden;-webkit-overflow-scrolling:touch;z-index:10000';
+                    element_layer.innerHTML = '<img src="//i1.daumcdn.net/localimg/localimages/07/postcode/320/close.png" id="btnCloseLayer" style="cursor:pointer;position:absolute;right:-3px;top:-3px;z-index:1" class="close_daum_juso" alt="닫기 버튼">';
+                    document.body.appendChild(element_layer);
+                    jQuery("#"+rayer_id).off("click", ".close_daum_juso").on("click", ".close_daum_juso", function(e){
+                        e.preventDefault();
+                        jQuery(this).parent().hide();
+                    });
+                }
+
+                new daum.Postcode({
+                    oncomplete: function(data) {
+                        complete_fn(data);
+                        // iframe을 넣은 element를 안보이게 한다.
+                        element_layer.style.display = 'none';
+                    },
+                    maxSuggestItems : 10,
+                    width : '100%',
+                    height : '100%'
+                }).embed(element_layer);
+
+                // iframe을 넣은 element를 보이게 한다.
+                element_layer.style.display = 'block';
+        }
+    }
+
+    $(function () {
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        function fnSave() {
+
+            <?php echo $editor_js; // 에디터 사용시 자바스크립트에서 내용을 폼필드로 넣어주며 내용이 입력되었는지 검사함   ?>
+            <?php echo $policy_js; // 에디터 사용시 자바스크립트에서 내용을 폼필드로 넣어주며 내용이 입력되었는지 검사함   ?>
+
+            var mode = $("#dm_mode").val();
+            // var dm_site_name = $.trim($("#dm_site_name").textbox('getValue'));
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>app/mng_setting.php?type="+mode,
+                data : formData,
+                dataType: "json",
+                type : "post",
+                contentType: false,
+                processData: false,
+                success : function (data) {
+
+                    var icon = 'warning';
+                    if(data.result == "success") {
+                        $('#dg').datagrid('reload');
+                        icon = 'info';
+                    }
+                    $.messager.alert('알림',data.notice,icon);
+                }
+            });
+        }
+
+        function selectedDg()
+        {
+            var dm_domain_id = '<?=getSession('site_id');?>';
+            if (dm_domain_id != "")
+            {
+                $.ajax({
+                    url : "<?=$_VAR_PATH_BIZ?>app/mng_setting.php?type=select",
+                    type : "POST",
+                    cache : false,
+                    async : true,
+                    dataType : "json",
+                    data : "",
+                    success : function (data) {
+
+                        if(data.result == "success") {
+                            var dm_company_number = data.row.dm_company_number.split("-");
+                            var dm_email = data.row.dm_ceo_email.split("@");
+
+                            $("#dm_mode").val('update');
+                            $("#dm_site_name").val(data.row.dm_site_name);
+                            $("#dm_naver_site_verification").val(data.row.dm_naver_site_verification);
+                            $("#dm_url").val(data.row.dm_url);
+                            $("#dm_title").val(data.row.dm_title);
+                            $("#dm_company_name").val(data.row.dm_company_name);
+                            $("#dm_company_number1").val(dm_company_number[0]);
+                            $("#dm_company_number2").val(dm_company_number[1]);
+                            $("#dm_company_number3").val(dm_company_number[2]);
+                            $("#dm_tel_company_number").val(data.row.dm_tel_company_number);
+                            $("#dm_ceo").val(data.row.dm_ceo);
+                            $("#dm_ceo_email1").val(dm_email[0]);
+                            $("#dm_ceo_email2").val(dm_email[1]);
+                            $("#dm_zip").val(data.row.dm_zip);
+                            $("#dm_addr1").val(data.row.dm_addr1);
+                            $("#dm_addr2").val(data.row.dm_addr2);
+                            $("#dm_addr3").val(data.row.dm_addr3);
+                            $("#dm_addr_jibeon").val(data.row.dm_addr_jibeon);
+                            $("#dm_tel").val(data.row.dm_tel);
+                            $("#dm_fax").val(data.row.dm_fax);
+                            $("#dm_meta_desc").val(data.row.dm_meta_desc);
+                            $("#dm_meta_keyword").val(data.row.dm_meta_keyword);
+                            $("#dm_private_text").val(data.row.dm_private_text);
+                            $("#dm_policy_text").val(data.row.dm_policy_text);
+                            if (data.row.dm_personal_image) {
+                                $("#dm_personal_image").prepend('<div><img src="'+data.row.file_path+'" alt="'+data.row.dm_personal_image_original_name+'"/><label for="dm_del_image"><input type="checkbox" name="dm_del_image" value="1" />삭제</label></div>');
+                            }
+                            $("#dm_private_name").val(data.row.dm_private_name);
+                            $("#dm_private_group").val(data.row.dm_private_group);
+                            $("#dm_private_email").val(data.row.dm_private_email);
+                            $("#dm_private_tel").val(data.row.dm_private_tel);
+
+                        } else if(data.result == "fail") {
+                            $.messager.alert('이력없음','사이트 정보가 존재하지 않습니다.','warning');
+                        }
+                    }, error:function(request,status,error) {
+                        alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                    }
+                });
+            }
+        }
+        selectedDg();
+    });
+
+</script>
+
+
+<?
+require('../../lib/page_bottom.php');
+?>
+    

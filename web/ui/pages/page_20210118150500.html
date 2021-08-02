@@ -1,0 +1,324 @@
+<!-- /////////////////////////////////// Content - START /////////////////////////////////// -->
+<section class="sec1">
+    <div class="container">
+        <!--오늘의 증시-->
+        <article class="Stock">
+           <? require('./lib/inquery_stock.php'); ?>
+        </article>
+        <!--//오늘의 증시-->
+        <article class="NewsTabWrap">
+             <div class="mainBanner"> 
+                <div id="owl_service3" class="owl-carousel pm-slide_responsive_service owl-loaded owl-drag">
+                     <? foreach ($mainVisual as $value) { ?>
+                       <div class="item">
+                            <a href="<?=$value['dm_visual_link']?>" target="<?=$value['dm_link_target']?>"><img src="<?=(!is_mobile()) ? $value['image_url'] : $value['mobile_image_url']?>" /></a>
+                       </div>
+                     <? } ?>    
+                </div>            
+             </div><!--//mainBanner-->
+             <div class="NewsTab">  
+                <div class="titbox">
+                    <ul>
+                        <li><a class="on" id="tab1" onClick="Chtab('tab0',1,3);Ch_Class('tab',1,3,'on')">주요뉴스</a></li>    
+                        <li><a id="tab2" onClick="Chtab('tab0',2,3);Ch_Class('tab',2,3,'on')">시황·전망</a></li>
+                        <li><a id="tab3" onClick="Chtab('tab0',3,3);Ch_Class('tab',3,3,'on')">담다뉴스</a></li>
+                    </ul>     
+                </div>
+                <div class="newbox">
+                    <div id="tab01" style="display:block">                        
+                        <? require('./lib/inquery_news.php');?>              
+                    </div><!--//두번째 리스트 텍스트만-->
+                    <div id="tab02">
+						<? require('./lib/inquery_news_2.php');?> 
+					</div>
+                    <div id="tab03">
+                        <div class="webList">
+                        <? latest('damnews', 'damnews','3', '80') ?>
+                        </div>
+                    </div>
+                </div>                
+             </div><!--//NewsTab-->
+        </article>
+        <article class="loginWrap">
+            <div class="loginBox">                 
+                 <? require($layout_path.'login.html'); ?>
+            </div><!--//loginbox-->
+            <div class="popular">
+                <div class="popBox">
+                <h2>인기 검색종목</h2>
+                <!--네이버 인기 검색종목 시작-->
+                <table class="tbl_home">
+                    <colgroup><col><col width="30%"><col width="30%"></colgroup>
+                    <thead> 
+                        <tr> 
+                            <th scope="col">구분</th> 
+                            <th scope="col">현재가</th> 
+                            <th scope="col">전일대비</th> 
+                        </tr> 
+                    </thead>
+                    <tbody>
+						<? require('./lib/inquery_popular.php');?> 
+                    </tbody>
+                </table>
+                <!--//네이버 인기 검색종목 끝-->
+                </div>                           
+                <!--설문조사-->
+                <div class="question">
+                    <h2>설문조사</h2>
+                    <p class="txt"></p>
+                    <a href="?contentId=2a38a4a9316c49e5a833517c45d31070">설문조사 참여하기</a>
+                </div>  
+                
+                <!--//설문조사 끝-->
+            </div>
+        </article>
+    </div><!--//container-->
+</section><!--sec1-->
+<section class="sec2">
+    <div class="container">
+        <div class="tit">
+            <h2>우리 회사를 소개합니다.</h2>
+            <span>담다프로젝트에서 추천해드리는 스타트업입니다.</span>
+        </div><!--//tit-->
+        <? latest('company', 'company','8', '80') ?>
+    </div>
+</section>
+<section class="sec3">
+    <div class="container">
+        <div class="tit">
+            <h2>기업<strong>탐방자료</strong></h2>
+            <span>직접 기업을 방문한 자세한 탐방자료를 소개합니다.</span>
+        </div><!--//tit-->
+        <div id="owl_service2" class="owl-carousel pm-slide_responsive_service owl-loaded owl-drag">
+            <? latest('data', 'data','8', '80') ?>
+        </div>
+    </div><!--//container-->
+</section>
+<section class="sec4">
+    <div class="container">
+        <article class="webList">
+            <div class="titbox">
+                <h2>기업분석자료</h2>
+                <a href="?contentId=93db85ed909c13838ff95ccfa94cebd9">더보기 + </a>
+            </div>
+            <? latest('Analysis', 'analysis','3', '80') ?>    
+        </article><!--webList-->
+        <article class="itemRecom">
+            <div class="titbox">
+                <h2>주식종목추천</h2>
+                <a href="?contentId=c7e1249ffc03eb9ded908c236bd1996d">더보기 + </a>
+            </div>
+            <? latest('recommend', 'recommend','3', '80') ?>
+        </article><!--//itemRecom-->
+        <article class="ballot">
+            <div class="tabmenu">
+                <ul>
+                    <li><a class="on" id="tabb_1" onClick="Chtab('tabb',1,2);Ch_Class('tabb_',1,2,'on')">공감지표</a></li>
+                    <li><a id="tabb_2" onClick="Chtab('tabb',2,2);Ch_Class('tabb_',2,2,'on')">이종목 어때</a></li>
+                </ul>
+            </div><!--//tabmenu-->
+            <div id="tabb1" class="List" style="display:block;">        
+                <ul>
+                    <li>
+                        <div class="titbox">
+                            <h4>코스피 UP & Down</h4>
+                            <em>총득표수 4,801명</em>
+                        </div><!--//titbox-->
+                        <div class="graph">
+                            <span style="width:30%" class="down"></span>
+                        </div>
+                        <div class="data">
+                            <p class="blue">하락 <em>30%</em></p>
+                            <p class="red"><em>70%</em> 상승</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="titbox">
+                            <h4>지수종합편</h4>
+                            <em>총득표수 4,801명</em>
+                        </div><!--//titbox-->
+                        <div class="graph">
+                            <span style="width:60%" class="down"></span>
+                        </div>
+                        <div class="data">
+                            <p class="blue">하락 <em>60%</em></p>
+                            <p class="red"><em>40%</em> 상승</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="titbox">
+                            <h4>해외증시</h4>
+                            <em>총득표수 4,801명</em>
+                        </div><!--//titbox-->
+                        <div class="graph">
+                            <span style="width:80%" class="down"></span>
+                        </div>
+                        <div class="data">
+                            <p class="blue">하락 <em>80%</em></p>
+                            <p class="red"><em>20%</em> 상승</p>
+                        </div>
+                    </li>
+                </ul>   
+            </div><!--//tabb01-->
+            <div id="tabb2" class="List" style="display:none;">
+                <ul>
+                    <li>
+                        <div class="titbox">
+                            <h4>퇴근하고싶다</h4>
+                            <em>총득표수 4,801명</em>
+                        </div><!--//titbox-->
+                        <div class="graph">
+                            <span style="width:30%" class="down"></span>
+                        </div>
+                        <div class="data">
+                            <p class="blue">하락 <em>30%</em></p>
+                            <p class="red"><em>70%</em> 상승</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="titbox">
+                            <h4>치맥</h4>
+                            <em>총득표수 4,801명</em>
+                        </div><!--//titbox-->
+                        <div class="graph">
+                            <span style="width:60%" class="down"></span>
+                        </div>
+                        <div class="data">
+                            <p class="blue">하락 <em>60%</em></p>
+                            <p class="red"><em>40%</em> 상승</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="titbox">
+                            <h4>배고파</h4>
+                            <em>총득표수 4,801명</em>
+                        </div><!--//titbox-->
+                        <div class="graph">
+                            <span style="width:80%" class="down"></span>
+                        </div>
+                        <div class="data">
+                            <p class="blue">하락 <em>80%</em></p>
+                            <p class="red"><em>20%</em> 상승</p>
+                        </div>
+                    </li>
+                </ul>
+            </div><!--//tabb02-->
+            <p  class="more"><a href="?contentId=2a38a4a9316c49e5a833517c45d31070">투표 참여하기</a></p>
+        </article><!--//ballot-->
+    </div>    
+</section>
+
+<section class="sec5">
+    <div class="container">
+        <div class="titbox">
+            <h2><em>추천</em> 투자아이템광장</h2>
+            <a href="?contentId=3ef815416f775098fe977004015c6193"><i>더보기</i></a>
+        </div><!--//titbox-->
+        <? latest('item', 'item','10', '80') ?>
+    </div>    
+</section>
+<section class="sec6">
+    <div class="container">
+        <div class="basic">
+            <div class="titbox">
+                <h2>무엇이든 물어보세요 Q&A </h2>
+                <!--<a href="?contentId=f7177163c833dff4b38fc8d2872f1ec6">더보기 + </a>-->
+            </div>
+            <? latest('qna', 'basic','10', '80') ?>
+        </div><!--//basic-->
+        <div class="web">
+            <div class="titbox">
+                <h2>담다TV</h2>               
+            </div>
+            <? latest('damdatv', 'damdatv','4', '80') ?>
+        </div><!--//web-->
+        <div class="tab">
+            <div class="titbox">
+                <ul>
+                    <li><a class="on" id="tabq_1" onClick="Chtab('tabq',1,2);Ch_Class('tabq_',1,2,'on')">자유게시판</a></li>    
+                    <li><a id="tabq_2" onClick="Chtab('tabq',2,2);Ch_Class('tabq_',2,2,'on')">유머방</a></li>
+                </ul>     
+            </div><!--//titbox-->
+            <div id="tabq1" class="List">    
+               <? latest('free', 'basic','10', '80') ?>
+            </div>
+            <div id="tabq2" class="List"  style="display:none">
+               <? latest('humor', 'basic','10', '80') ?>
+            </div>
+        </div><!--//tab-->
+    </div>
+</section>
+
+<!--? require('./lib/inquery_news.php');?-->
+<!--? latest('free', 'webzine','9', '80')?-->
+<!--? latest('humor', 'webzine','9', '80')?-->
+<!--? latest('damnews', 'basic','12', '100')?-->
+<!--? latest('company', 'biz','8', '100')?--> 
+
+<!-- /////////////////////////////////// Content - END /////////////////////////////////// -->
+
+<script>
+    jQuery(function($) {
+		$('#owl_service2').owlCarousel({
+			margin: 10,					// 이미지 간격
+			loop: true,									// 무한 반복
+			center: false,								// 액티브 슬라이드 가운데 정렬
+			mouseDrag: true,							// 마우스 드레그 사용
+			touchDrag: true,							// 터치 드레그 사용
+			stagePadding: 0,							// 스테이지 여백 (좌우 슬라이드 노출)
+			nav: true,						// 방향 네비게이션
+			dots: true,						// 하단 네비게이션
+			dotsEach: false,							// 하단 네비게이션 (페이지별 출력,항목별 출력)
+			autoplay: true,								// 자동 재생
+			autoplayTimeout: 3000,						// 자동 재생 속도
+			smartSpeed: 500,							// 슬라이드 속도
+			responsiveRefreshRate: 0,					// 반응형 체크 시간
+			startPosition: 0,							// 시작 슬라이드 번호
+			autoplayHoverPause: false,					// 마우스 오버시 일시정지
+			responsiveClass: false,						// 반응형 class명 사용 (owl-reponsive-0)
+			navContainer: false,						// 방향 네비게이션 커스터마이징
+			dotsContainer: false,						// 하단 네비게이션 커스터마이징
+			responsive: {								// 반응형
+				0: {
+					items:2,		// 한 화면 출력수 (모바일)
+					slideBy:1	// 한번에 슬라이드 되는 수 (모바일)
+				},
+				768: {
+					items:3,		// 한 화면 출력수 (태블릿)
+					slideBy:1	// 한번에 슬라이드 되는 수 (태블릿)
+				},
+				1024: {
+					items:4,			// 한 화면 출력수 (PC)
+					slideBy:1		// 한번에 슬라이드 되는 수 (PC)
+				}
+			}
+		})
+	});	  
+
+    jQuery(function($) {
+		$('#owl_service3').owlCarousel({                   
+			margin: 0,								// 이미지 간격
+			loop: true,								// 무한 반복
+			center: false,							// 액티브 슬라이드 가운데 정렬
+			mouseDrag: true,						// 마우스 드레그 사용
+			touchDrag: true,						// 터치 드레그 사용
+			stagePadding: 0,						// 스테이지 여백 (좌우 슬라이드 노출)
+			nav: true,					// 방향 네비게이션
+			dots: true,				// 하단 네비게이션
+			dotsEach: false,						// 하단 네비게이션 (페이지별 출력,항목별 출력)
+			autoplay: true,							// 자동 재생
+			autoplayTimeout: 5000,					// 자동 재생 속도
+			smartSpeed: 250,						// 슬라이드 속도
+			responsiveRefreshRate: 0,				// 반응형 체크 시간
+			startPosition: 0,						// 시작 슬라이드 번호
+			URLhashListener: false,					// #URL 로 액티브 슬라이드 동작
+			autoplayHoverPause: false,				// 마우스 오버시 일시정지
+			responsiveClass: false,					// 반응형 class명 사용 (owl-reponsive-0)
+			navContainer: false,					// 방향 네비게이션 커스터마이징
+			dotsContainer: false,					// 하단 네비게이션 커스터마이징
+			items:1,								// 한 화면 출력수
+			slideBy:1,								// 한번에 슬라이드 되는 수
+			animateOut: 'fadeOut'	// 슬라이드(''), 페이드(fadeOut)
+		})
+	});	  
+</script>

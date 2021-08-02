@@ -1,0 +1,343 @@
+<?
+
+$db = new DBSQL();
+$db2 = new DBSQL();
+$db->DBconnect();
+$db2->DBconnect();
+
+$page_no = isset($_REQUEST['page_no']) ? intval($_REQUEST['page_no']) : 1;
+$rows = isset($_REQUEST['rows']) ? intval($_REQUEST['rows']) : 18;
+
+$sType = isset($_REQUEST['sType']) ? trim($_REQUEST['sType']): "";
+$sValue = isset($_REQUEST['sValue']) ? trim($_REQUEST['sValue']): "";
+$orderKind =isset($_REQUEST['orderKind']) ? $_REQUEST['orderKind'] : "";
+$sOrder =isset($_REQUEST['sOrder']) ? $_REQUEST['sOrder'] : "";
+
+$where = " WHERE 1 = 1 AND (dm_table = 'notice' OR dm_table = 'free' OR dm_table ='humor' OR dm_table = 'qna' OR dm_table = 'information' OR dm_table = 'education')";
+
+$query = "SELECT * FROM dm_board $where";
+
+$db->ExecSql($query, "S");
+
+$total_count = 0;
+
+$arTable = array();
+
+$dm_subject = "";
+$i = 0;
+while ($arData = $db->Fetch())
+{
+    $arTable[$i]['dm_table'] = $arData['dm_table'];
+    $arTable[$i]['dm_board_id'] = $arData['dm_id'];
+    $i++;
+}
+
+$where1 = " WHERE 1 = 1 AND wr_is_comment <> 1";
+
+if ($sType) {
+    if ($sType != "both") {
+        $where1 .= " AND $sType LIKE '%".$sValue."%'";
+    } else {
+        $where1 .= " AND (wr_subject LIKE '%".$sValue."%' OR wr_content LIKE '%".$sValue."%')";
+    }
+
+}
+
+//$where1 .= " AND (wr_subject LIKE '%".$search_value."%' OR wr_content LIKE '%".$search_value."%' OR wr_name LIKE '%".$search_value."%' OR wr_datetime LIKE '%".$search_value."%')";
+
+$i = 0;
+foreach ($arTable as $key => $value) {
+    if ($i == 0)
+    {
+        $query = "SELECT
+            a.wr_subject as wr_subject,
+            a.wr_content as wr_content, 
+            a.wr_name as wr_name, 
+            a.mb_id as mb_id, 
+            a.wr_id as wr_id, 
+            a.wr_datetime as wr_datetime, 
+            a.wr_hit as wr_hit, 
+            a.wr_is_comment as wr_is_comment,
+            a.wr_option as wr_option,
+            a.wr_parent as wr_parent,
+            a.wr_good as wr_good,
+            (select count(*) from dm_write_".$value['dm_table']." WHERE wr_is_comment = 1 AND wr_num = a.wr_num) as `comment_count`,
+            (SELECT dm_table FROM dm_board WHERE dm_table = '".$value['dm_table']."') as dm_table, 
+            (SELECT dm_skin FROM dm_board WHERE dm_table = '".$value['dm_table']."') as dm_skin, 
+            (SELECT dm_subject FROM dm_board WHERE dm_table = '".$value['dm_table']."') as dm_subject, 
+            (SELECT dm_id FROM dm_board WHERE dm_table = '".$value['dm_table']."') as dm_board_id,
+            (SELECT distinct(dm_uid) FROM dm_pages WHERE dm_board_id = '".$value['dm_board_id']."' ) as dm_page_uid ,
+            (SELECT dm_is_hit FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_is_hit ,
+            (SELECT dm_is_new FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_is_new ,
+            (SELECT dm_hit_max FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_hit_max ,
+            (SELECT dm_hit_icon FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_hit_icon ,
+            (SELECT dm_new_time FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_new_time ,
+            (SELECT dm_new_icon FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_new_icon,
+            (SELECT dm_read_point FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_read_point,
+            (SELECT dm_read_point_type FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_read_point_type
+            FROM dm_write_".$value['dm_table']." as `a` ". $where1;
+    }
+    else
+    {
+        $query .= " UNION ( SELECT 
+            a.wr_subject as wr_subject,
+            a.wr_content as wr_content,
+            a.wr_name as wr_name, 
+            a.mb_id as mb_id, 
+            a.wr_id as wr_id, 
+            a.wr_datetime as wr_datetime, 
+            a.wr_hit as wr_hit, 
+            a.wr_is_comment as wr_is_comment, 
+            a.wr_option as wr_option,
+            a.wr_parent as wr_parent, 
+            a.wr_good as wr_good, 
+            (select count(*) from dm_write_".$value['dm_table']." WHERE wr_is_comment = 1 AND wr_num = a.wr_num) as `comment_count`,
+            (SELECT dm_table FROM dm_board WHERE dm_table = '".$value['dm_table']."') as dm_table,
+            (SELECT dm_skin FROM dm_board WHERE dm_table = '".$value['dm_table']."') as dm_skin, 
+            (SELECT dm_subject FROM dm_board WHERE dm_table = '".$value['dm_table']."') as dm_subject,
+            (SELECT dm_id FROM dm_board WHERE dm_table = '".$value['dm_table']."') as dm_board_id,
+            (SELECT distinct(dm_uid) FROM dm_pages WHERE dm_board_id = '".$value['dm_board_id']."') as dm_page_uid,
+            (SELECT dm_is_hit FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_is_hit ,
+            (SELECT dm_is_new FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_is_new ,
+            (SELECT dm_hit_max FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_hit_max ,
+            (SELECT dm_hit_icon FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_hit_icon ,
+            (SELECT dm_new_time FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_new_time ,
+            (SELECT dm_new_icon FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_new_icon,
+            (SELECT dm_read_point FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_read_point,
+            (SELECT dm_read_point_type FROM dm_board WHERE dm_table = '".$value['dm_table']."' ) as dm_read_point_type
+            FROM dm_write_".$value['dm_table'] . " as `a` ". $where1." )";
+    }
+    $countQuery = " SELECT count(*) as `count` FROM dm_write_".$value['dm_table'] . $where1;
+    $db->ExecSql($countQuery, "S");
+    $count = $db->Fetch();
+    $total_count += $count['count'];
+    $i++;
+}
+
+$total_page  = ceil($total_count / $rows);  // 전체 페이지 계산
+
+$limit = "limit ".$rows*($page_no-1).", ".$rows;
+
+$order = " ORDER BY b.wr_datetime desc";
+
+if ($orderKind)
+{
+    $orderQuery .= ", $orderKind $sOrder";
+}
+
+$query = "SELECT * FROM (" . $query .") as b ". $order ." ". $limit;
+
+$db2->ExecSql($query, "S");
+$k = 0;
+while ($rowData = $db2->Fetch())
+{
+    $list_num = $total_count - ($page_no - 1) * $rows;
+
+    $rowData['num'] = $list_num - $k;
+
+    $option_array = $rowData['wr_option'];
+    $option_array = explode(",", $option_array);
+    $is_secret = false;
+
+    $rowData['dm_url'] = "?contentId=".$rowData['dm_page_uid']."&command=view&wr_id=".$rowData['wr_id'];
+
+    $current_point = getMemberPoint();
+
+    if ($rowData['dm_read_point'] && (!$is_admin || !$is_board_admin) && ($rowData['mb_id'] != getSession("chk_dm_id"))) {
+        $db3 = new DBSQL();
+        $db3->DBconnect();
+        $is_use = false;
+        $query = "SELECT * FROM dm_point_log WHERE dm_id = '".getSession("chk_dm_id")."' AND dm_table = '".$rowData['dm_table']."' AND wr_id = '".$rowData['wr_id']."' AND dm_type = 1 order by dm_datetime desc";
+        $db3->ExecSql($query, "S");
+        $is_buy = $db3->Fetch();
+
+        if ($is_buy) {
+            $expired = $is_buy['dm_expired'];
+            if ($is_buy['dm_expired']) {
+                $expired_date = date("Y-m-d H:i:s", strtotime($is_buy['dm_datetime'] ."+". $expired . " hour"));
+                $now = date("Y-m-d H:i:s");
+                if ($now >= $expired_date) {
+                    $is_use = false;
+                } else {
+                    $is_use = true;
+                }
+            } else {
+                $is_use = true;
+            }
+        }
+
+        if (!$is_use) {
+            if ($rowData['dm_read_point_type'] == 1) {
+                if ($rowData['dm_read_point'] > $current_point) {
+                    $rowData['dm_url'] = "javascript:alert('글을 읽을 포인트가 부족합니다.')";
+                } else {
+                    $text = "차감되는 포인트는 [".$rowData['dm_read_point']."] 입니다. 글을 읽으시겠습니까?";
+                    $rowData['dm_url'] = "javascript:if (confirm('".$text."')) { location.href='".$rowData['dm_url']."' }";
+                }
+            }
+        }
+    }
+
+    $rowData['dm_hit_url'] = "";
+    $rowData['dm_new_url'] = "";
+
+    if ($rowData['dm_is_hit']) {
+        if ($rowData['wr_hit'] >= $rowData['dm_hit_max']) {
+            if ($rowData['dm_hit_icon']) {
+                if (is_file($_VAR_PATH_WEB_BOARD.$rowData['dm_skin']."/images/".$rowData['dm_hit_icon'])) {
+                    $rowData['dm_hit_url'] = $_VAR_URL_WEB_BOARD.$rowData['dm_skin']."/images/".$rowData['dm_hit_icon'];
+                } else {
+                    $rowData['dm_hit_url'] = $_VAR_URL_WEB_BOARD.$rowData['dm_skin']."/images/ico_hit.png";
+                }
+            } else {
+                $rowData['dm_hit_url'] = $_VAR_URL_WEB_BOARD.$rowData['dm_skin']."/images/ico_hit.png";
+            }
+        }
+    }
+
+    if ($rowData['dm_is_new']) {
+        if (date("Y-m-d H:i:s") <= date("Y-m-d H:i:s", strtotime($rowData['wr_datetime']."+ ".$rowData['dm_new_time']. " hour"))) {
+            if ($rowData['dm_new_icon']) {
+                if (is_file($_VAR_PATH_WEB_BOARD . $rowData['dm_skin'] . "/images/" . $rowData['dm_new_icon'])) {
+                    $rowData['dm_new_url'] = $_VAR_URL_WEB_BOARD . $rowData['dm_skin'] . "/images/" . $rowData['dm_new_icon'];
+                } else {
+                    $rowData['dm_new_url'] = $_VAR_URL_WEB_BOARD.$rowData['dm_skin']."/images/ico_new.png";
+                }
+            } else {
+                $rowData['dm_new_url'] = $_VAR_URL_WEB_BOARD.$rowData['dm_skin']."/images/ico_new.png";
+            }
+        }
+    }
+
+    foreach ($option_array as $value)
+    {
+        if ($value == 'secret')
+        {
+            if (!getSession("is_admin")) {
+                if ($rowData['mb_id'] != getSession("chk_dm_id")) {
+                    $is_secret = true;
+                    $rowData['wr_content'] = $rowData['wr_link1'] = $rowData['wr_link2'] ='';
+                    $rowData['dm_url'] = "javascript:alert('비밀글은 해당 게시판에서 확인할 수 있습니다');";
+                    $rowData['wr_subject'] = "비밀글입니다.";
+                    $rowData['wr_content'] = "비밀글입니다.";
+                }
+            }
+        }
+    }
+
+    if ($rowData['mb_id']) {
+        $query = "SELECT * FROM dm_member WHERE dm_id = '".$rowData['mb_id']."'";
+        $db->ExecSql($query, "S");
+        $mb = $db->Fetch();
+        $rowData['dm_nick'] = $mb['dm_nick'];
+    }
+
+    $BBS_DATAS[] = $rowData;
+    $k++;
+}
+
+?>
+
+<div class="searching">
+    <div id="total">
+        Total <strong class="tcol"><?=$total_count?></strong> <span>개</span> <em>(<?=$page_no?>/<?=$total_page?> page)</em>
+        <? if($sType) { ?><a href="?contentId=<?=$contentId?>" class="btn_all">전체목록</a> <? } ?>
+    </div>
+</div>
+<table class="table_type_01">
+    <caption>전체 게시글 리스트입니다.</caption>
+    <thead>
+    <tr>
+        <th class="num hidden-xs">번호</th>
+        <th class="subject"><?=subject_sort_link('wr_subject', "")?>제목</th>
+        <th><?=subject_sort_link('wr_good', "")?>추천수</th>
+        <th class="name">작성자</th>
+        <th class="date"><?=subject_sort_link('wr_name', "")?>작성일</th>
+        <th class="hit hidden-xs"><?=subject_sort_link('wr_datetime', "")?>조회수</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!--- loop x 12 -->
+
+    <? if (count($BBS_DATAS) > 0) { ?>
+        <? foreach ($BBS_DATAS as $key => $value) { ?>
+            <tr>
+                <td class="num hidden-xs">
+                    <? if($value['wr_is_notice'])
+                    {
+                        echo "공지";
+                    }
+                    else
+                    {
+                        echo $value['num'];
+                    }
+                    ?>
+                </td>
+                <td class="subject">
+                    <a href="<?=$value['dm_url']?>" style="padding-left:<?php echo $value['wr_reply'] ? (strlen($value['wr_reply'])*10) : '0'; ?>px">
+                        <strong><?="[".$value['dm_subject']."]"." </strong>".$value['wr_subject']?>
+                    </a>
+                    <?
+                    if ($value['comment_count'])
+                    {
+                        echo '<span class="reply">'.($value['comment_count'])."</span>";
+                    }
+                    else
+                    {
+                        echo  "";
+                    }
+                    if ($value['is_secret'])
+                    {
+                        echo '<span class="lock"><i class="fas fa-lock"></i></span>';
+                    }
+                    ?>
+
+                    <?
+                    //hit 아이콘
+                    if ($value['dm_hit_url']) {
+                        echo '<img src="'.$value['dm_hit_url'].'" alt="hit 아이콘" width="12" height="12" />';
+                    }
+
+                    // new 아이콘
+                    if ($value['dm_new_url']) {
+                        echo '<img src="'.$value['dm_new_url'].'" alt="new 아이콘" width="12" height="12" />';
+                    }
+                    ?>
+                </td>                
+                <td class="good"><em class="Mtit">추천수</em><?=number_format($value['wr_good'])?></td>               
+                <td class="name"><?php echo $value['wr_name']?></td>
+                <td class="date"><?php echo date("y.m.d", strtotime($value['wr_datetime']));?></td>
+                <td class="hit hidden-xs"><em class="Mtit">조회수</em><?=$value['wr_hit']?></td>
+            </tr>
+        <? } //endforeach ?>
+
+    <? } else { ?>
+        <tr>
+            <td class="empty_li" colspan="6">게시물이 없습니다.</td>
+        </tr>
+    <? } ?>
+    <!--- // loop x 12 -->
+    </tbody>
+</table>
+<div class="searching">
+    <fieldset id="search_box">
+        <h3>검색</h3>
+        <form name="search" method="get">
+            <input type="hidden" name="contentId" value="<?=$contentId?>">
+            <input type="hidden" name="cate" value="<?=$cate?>">
+            <select name="sType" class="">
+                <option value="wr_subject" <? if($sType == "wr_subject") echo "selected"?>>제목</option>
+                <option value="wr_content" <? if($sType == "wr_content") echo "selected"?>>내용</option>
+                <option value="both" <? if($sType == "both") echo "selected"?>>제목+내용</option>
+            </select>
+            <label for="stx">검색어</label>
+            <input type="text" name="sValue" value="<?=$sValue?>" required id="stx" class="sch_input"
+                   maxlength="20" placeholder="검색어 입력">
+            <button type="submit" value="검색" class="sch_btn"><span>검색</span></button>
+        </form>
+    </fieldset>
+</div>
+<div class="paging">
+    <?=get_paging(10, $page_no, $total_page, "?contentId=".$contentId."&sType=".$sType."&sValue=".$sValue."&sKind=".$sKind."&command=".$command."&wr_id=".$wr_id);?>
+</div>
+

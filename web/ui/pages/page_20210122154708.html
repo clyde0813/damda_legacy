@@ -1,0 +1,60 @@
+<?
+if (!getSession("chk_dm_id")) {
+    alert("잘못된 접근입니다.", "?contentId=c13406bf526e9fee2bed34ab6f2125f6");
+    exit;
+}
+?>
+<style>
+.contentWrap{float:inherit;width:inherit;max-width: 1270px;}
+</style>
+<div id="Mypage">
+    <div class="mydata Line">
+        <dl>
+            <dt>남은 잔여포인트</dt>
+            <dd id="remain_point"></dd>
+        </dl>
+        <dl>
+            <dt>총 사용 포인트</dt>
+            <dd id="use_point"></dd>
+        </dl>
+        <dl>
+            <dt>총 충전 포인트</dt>
+            <dd id="charge_point"></dd>
+        </dl>
+        <dl>
+            <dt>마지막 충전일</dd>
+            <dd id="last_date"></dd>
+        </dl>
+    </div>    
+    <? require ($_VAR_PROG_ROOT_PATH.'mypage_goods.php'); ?>    
+</div>
+
+<!--
+<h3 class="mypage_subtitle">사이버머니 결제 가능카드</h3>
+<table class="table_type_01">
+	<thead>
+		<tr>
+			<th>카드사명</th>
+			<th>가능여부</th>
+			<th>결제수단</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>국민카드</td>
+			<td>가능</td>
+			<td>앱카드, ISP결제</td>
+		</tr>
+		<tr>
+			<td>신한카드</td>
+			<td>불가능</td>
+			<td>사이버머니 결제 불가 카드사</td>
+		</tr>
+		<tr>
+			<td>하나카드</td>
+			<td>가능</td>
+			<td>앱카드, ISP결제, QR코드결제</td>
+		</tr>
+	</tbody>	
+</table>
+-->

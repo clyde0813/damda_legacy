@@ -1,0 +1,105 @@
+﻿<!-- 카테고리 영역 -->
+<? if ($is_list_category) { ?>
+    <ul class="category">
+        <li class="<? if (!$cate) echo "on"?>"><a href="?contentId=<?=$contentId?>">전체</a></li>
+        <? foreach ($category_array as $value) { ?>
+            <li class='<? if ($value == $cate) echo "on"?>'><a href="?contentId=<?=$contentId?>&cate=<?=$value?>"><?=$value;?></a></li>
+        <? } ?>
+    </ul>
+<? } ?>
+<!-- 카테고리 영역 끝-->
+<div class="searching">
+    <div id="total">
+        Total <strong class="tcol"><?=$BBS_PAGING['TOTAL_ROW_COUNT']?></strong> <span>개</span> <em>(<?=$BBS_PAGING['PAGE_INDEX']?>/<?=$BBS_PAGING['total_page']?> page)</em>
+        <? if($sType) { ?><a href="?contentId=<?=$contentId?>" class="btn_all">전체목록</a> <? } ?>
+    </div>
+    <fieldset id="search_box">
+        <h3>검색</h3>
+        <form name="search" method="get">
+            <input type="hidden" name="contentId" value="<?=$contentId?>">
+            <input type="hidden" name="cate" value="<?=$cate?>">
+            <select name="sType" class="">
+                <option value="wr_subject" <? if($sType == "wr_subject") echo "selected"?>>제목</option>
+                <option value="wr_content" <? if($sType == "wr_content") echo "selected"?>>내용</option>
+                <option value="both" <? if($sType == "both") echo "selected"?>>제목+내용</option>
+            </select>
+            <label for="stx">검색어</label>
+            <input type="text" name="sValue" value="<?=$sValue?>" required id="stx" class="sch_input"
+                   maxlength="20" placeholder="검색어를 입력해주세요">
+            <button type="submit" value="검색" class="sch_btn"><span>검색</span></button>
+        </form>
+    </fieldset>
+</div>
+
+<div class="board image">
+    <div class="row">
+        <ul>
+            <!--loop -->
+            <? if (count($BBS_DATAS) > 0) { ?>
+                <? foreach ($BBS_DATAS as $key => $value) { ?>
+                    <li class="cell">
+                        <a href="<?=$value['view_href']?>" class="thumb">
+                            <?
+                            $thumb = get_list_thumbnail($BBS_VAL["dm_table"], $value['wr_id'], $BBS_VAL['dm_gallery_width'], $BBS_VAL['dm_gallery_height'], false, true, "top");
+                            if (!$thumb['src']) {
+                                $thum = "<img src='".$_VAR_URL_WEB."common/image/b.gif'>";
+                            } else {
+                                $thum = "<img src='".$thumb['src']."' alt='".$thumb['alt']."' />";
+                            }
+                            echo "<div>".$thum."</div>";
+                            ?>
+                        </a>
+						<h4 class="cell_subject"><?=$value['wr_subject']?></h4>
+						<div class="cell_icon">
+                        <?
+                        //hit 아이콘
+                        if ($value['dm_hit_url']) {
+                            echo '<img src="'.$value['dm_hit_url'].'" alt="hit 아이콘" width="15" height="15" />';
+                        }
+                        // new 아이콘
+                        if ($value['dm_new_url']) {
+                            echo '<img src="'.$value['dm_new_url'].'" alt="new 아이콘" width="15" height="15" />';
+                        }
+                        // 첨부파일 아이콘
+                        if ($is_file_icon) {
+                            if ($value['file_icon']) {
+                                echo '<img src="'.$value['file_icon'].'" alt="file 아이콘" width="15" height="15" />';
+                            }
+                        }
+
+                        if ($is_list_good) {
+							echo '<span class="list_good">'.number_format(''.$value['wr_good']).'</span>';
+						}
+                        ?>
+						</div>
+                    </li>
+                <? } //endforeach ?>
+            <? } else { ?>
+                <li class="empty_li">게시물이 없습니다.</li>
+            <? } ?>
+        </ul>
+    </div>
+    <div class="paging">
+        <?=get_paging($BBS_PAGING['ROWS'], $BBS_PAGING['PAGE_INDEX'], $BBS_PAGING['total_page'], "?contentId=".$contentId."&sType=".$sType."&sValue=".$sValue."&sKind=".$sKind."&command=".$command."&wr_id=".$wr_id);?>
+        <div class="list_btn_wrap">
+            <? if ($write_href) { ?>
+                <a href="<?=$write_href?>" class="btn_write">글쓰기</a>
+            <? } ?>
+        </div>
+    </div>
+
+    <? include ('bbs_secret.html') ?>
+
+</div>
+
+<script>
+    $(function () {
+        img_size ();
+    });
+    $(window).resize(function () {
+        img_size ();
+    });
+    function img_size () {
+        $('.thumb').height($('.thumb').width()*0.75);
+    }
+</script>

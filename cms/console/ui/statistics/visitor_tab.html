@@ -1,0 +1,8 @@
+<ul class="Tabs mt30">
+    <li<?php if(preg_match("/visitor_u/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a id="visitToday" onclick="location.href='/diam/cms/console/ui/statistics/visitor_u.html'">당일 방문현황</a></li>
+    <li<?php if(preg_match("/visit_day/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a id="visitDay" onclick="location.href='/diam/cms/console/ui/statistics/visit_day.html'">일별 방문현황</a></li>
+    <li<?php if(preg_match("/visit_hour/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a id="visitHour" onclick="location.href='/diam/cms/console/ui/statistics/visit_hour.html'">시간대별 방문현황</a></li>
+    <li<?php if(preg_match("/visit_week/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a id="visitWeek" onclick="location.href='/diam/cms/console/ui/statistics/visit_week.html'">요일별 방문현황</a></li>
+    <li<?php if(preg_match("/visit_month/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a id="visitMonth" onclick="location.href='/diam/cms/console/ui/statistics/visit_month.html'">월별 방문현황</a></li>
+</ul>
+<script>var widthSize = $('.Contents').width();</script>

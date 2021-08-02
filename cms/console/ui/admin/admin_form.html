@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <?
+	    include "../../lib/lib.php";
+	    $dm_id = isset($_REQUEST['dm_id']) ? $_REQUEST['dm_id'] : "";
+
+    ?>
+    <title><?=$_TITLE?></title>
+    <script type="text/javascript" src="<?=$_VAR_PATH_JS?>jquery/jquery-1.4.3.min.js"></script>
+    <script type="text/javascript" src="<?=$_VAR_PATH_JS?>jquery/jquery-1.10.2.js"></script>
+    <script type="text/javascript" src="<?=$_VAR_PATH_JS?>common.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_JS?>easyui/themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_JS?>easyui/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_JS?>easyui/themes/color.css">
+    <link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_CSS?>page.css">
+    <script type="text/javascript" src="<?=$_VAR_PATH_JS?>easyui/jquery.easyui.min.js"></script>
+    <meta http-equiv="Content-Type" charset="UTF-8">
+    <style type="text/css">
+        <!--
+        body {
+            background-color: #ffffff;
+        }
+        td,p,INPUT,SELECT,div,body,textarea {font-family:맑은 고딕,Verdana,Arial,Helvetica,sans-serif;font-size:9pt;}
+        -->
+    </style>
+    <script language="javascript">
+        <!--
+            $(document).ready(function(){
+                var dm_id = $.trim($("#dm_id").val());
+
+                if (dm_id != "") {
+                    $.ajax({
+                        url : "<?=$_VAR_PATH_BIZ?>app/mng_admin.php",
+                        type : "POST",
+                        cache : false,
+                        async : true,
+                        dataType : "json",
+                        data : "dm_id="+dm_id+"&type=select_member",
+                        success : function (data) {
+                            if(data.result == "success") {
+                                if (data.rows.dm_1) {
+                                    $("#dm_1").prop("checked", true);
+                                } else {
+                                    $("#dm_1").prop("checked", false);
+                                }
+
+                                $("#confirm_id").hide();
+                                $("#dm_no").val(data.rows.dm_no);
+                                $("#dm_id").attr("readonly", true);
+                                $("#dm_name").val(data.rows.dm_name);
+                                $("#dm_email").val(data.rows.dm_email);
+                                $("#dm_hp").val(data.rows.dm_hp);
+                                $("#dm_tel").val(data.rows.dm_tel);
+                                $("#dm_homepage").val(data.rows.dm_homepage);
+                                $("#dm_signature").val(data.rows.dm_signature);
+                                $("#dm_memo").val(data.rows.dm_memo);
+                                $('#dm_level').combobox('setValue', data.rows.dm_level);
+                                $('#dm_accept_ip').val(data.rows.dm_accept_ip);
+
+                                if (data.rows.dm_leave_date != "")
+                                {
+                                    $("#dm_leave_date").datebox("setValue", data.rows.dm_leave_date);
+                                }
+
+                                if (data.rows.dm_intercept_date != "")
+                                {
+                                    $("#dm_intercept_date").datebox("setValue", data.rows.dm_intercept_date);
+                                }
+
+                                $("#saveBtn").linkbutton({text:"수정"});
+
+                            } else if(data.result == "fail") {
+                                $.messager.alert('이력없음','회원이 존재하지 않습니다.','warning');
+                            }
+                        }, error:function(request,status,error) {
+                            alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                        }
+                    });
+                }
+
+                $("#confirm_id").off().on('click', function () {
+                    var dm_id = $("#dm_id").val();
+
+                    if (dm_id != "" ) {
+                        $.ajax({
+                            url: "<?=$_VAR_PATH_BIZ?>app/mng_admin.php",
+                            type: "POST",
+                            data:'type=select_member&dm_id='+dm_id,
+                            dataType:'json',
+                            success:function (data) {
+                                if (data.result == 'fail') {
+                                    $.messager.alert('정보','사용할 수 있는 아이디입니다.','info');
+                                    $("#confirm_id").hide();
+                                    $("input[name='confirm_id']").val(1);
+                                    $("#dm_id").attr("readonly", true);
+                                    $("#confirm_text").text('사용할 수 있는 아이디입니다.').css('color', 'blue').show();
+
+                                } else if (data.result == 'success') {
+                                    $.messager.alert('경고','사용할 수 없는 아이디입니다.','warning');
+                                    $("input[name='confirm_id']").val(0);
+                                    $("#confirm_text").text('사용할 수 없는 아이디입니다.').css('color', 'red').show();
+                                }
+                            } , error:function(request,status,error) {
+                                alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                            }
+                        });
+                    } else {
+                        $.messager.alert('오류','아이디를 입력해주세요.','warning');
+                    }
+
+                });
+            });
+
+        function fnSave() {
+            var dm_id = $.trim($("#dm_id").val());
+            var dm_password = $.trim($("#dm_password").val());
+            var dm_name = $.trim($("#dm_name").val());
+            var dm_no = $.trim($("#dm_no").val());
+            var dm_confirm_id = $.trim($("input[name='confirm_id']").val());
+
+            var url = "";
+
+            url = "<?=$_VAR_PATH_BIZ?>app/mng_admin.php?type=insert";
+
+            if(dm_id == "") {
+                alert('아이디를 입력해주세요.');
+                $('#dm_id').focus();
+                return;
+            }
+
+            if(dm_name == "") {
+                alert('이름을 입력해주세요.');
+                $('#dm_name').focus();
+                return;
+            }
+
+            if (dm_no == "") {
+                if(dm_password == "") {
+                    alert('비밀번호를 입력해주세요.');
+                    $('#dm_password').focus();
+                    return;
+                }
+
+                if (dm_confirm_id == 0) {
+                    alert('아이디 중복확인을 해주세요.');
+                    $('#dm_id').focus();
+                    return;
+                }
+            }
+
+            var param = $("#fm").serialize();
+
+            $.ajax({
+                url: url,
+                dataType:"json",
+                type:"post",
+                data:param,
+                success: function(response){
+                    if(response.result == "success")
+                    {
+                        window.opener.$("#dg").datagrid('reload');
+                        self.close();
+                    }
+                }
+
+            });
+        }
+        //-->
+    </script>
+    <script src="http://dmaps.daum.net/map_js_init/postcode.v2.js"></script>
+</head>
+<body>
+<div class="easyui-layout">
+    <form style="padding:10px 40px;" id="fm" name="fm" method="post">
+        <div class="title">
+            <h1>관리자정보</h1>
+        </div>
+        <div class="page">
+            <h3>기본정보</h3>
+            <dl>
+                <dt>아이디</dt>
+                <dd>
+                    <input type="hidden" name="dm_no" value="" id="dm_no"/>
+                    <input type="hidden" name="confirm_id" value="0" />
+                    <input type="hidden" name="dm_point" value="" id="dm_point"/>
+                    <input name="dm_id" type="text" id="dm_id" value="<?=$dm_id?>" class="wd30" />
+                    <a href="#" class="easyui-linkbutton c4" onclick="" id="confirm_id">중복확인</a>
+                    <span style="display:none" id="confirm_text">사용할 수 있는 아이디입니다.</span>
+                </dd>
+            </dl>
+            <dl>
+                <dt>비밀번호</dt>
+                <dd><input name="dm_password" id="dm_password" type="password" ></dd>
+            </dl>
+            <dl>
+                <dt>이름</dt>
+                <dd><input name="dm_name" id="dm_name" type="text" ></dd>
+            </dl>
+            <div class="half">
+                <dl>
+                    <dt>회원권한</dt>
+                    <dd>
+                        <select id="dm_level" name="dm_level" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1002',
+                                                    method: 'get',
+                                                    valueField: 'dm_code_value',
+                                                    textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>관리자여부</dt>
+                    <dd><input type="checkbox" name="dm_1" value="1" id="dm_1" /></dd>
+                </dl>
+            </div>
+            <div class="half">
+                <dl>
+                    <dt>이메일</dt>
+                    <dd><input name="dm_email" id="dm_email" type="text" ></dd>
+                </dl>
+                <dl>
+                    <dt>홈페이지</dt>
+                    <dd><input name="dm_homepage" id="dm_homepage" type="text" ></dd>
+                </dl>
+            </div>
+            <div class="half">
+                <dl>
+                    <dt>휴대폰번호</dt>
+                    <dd><input name="dm_hp" id="dm_hp" type="text" ></dd>
+                </dl>
+                <dl>
+                    <dt>전화번호</dt>
+                    <dd><input name="dm_tel" id="dm_tel" type="text" ></dd>
+                </dl>
+            </div>
+            <dl>
+                <dt>허용아이피</dt>
+                <dd><input name="dm_accept_ip" id="dm_accept_ip" type="text" ></dd>
+            </dl>
+            <dl>
+                <dt>메모</dt>
+                <dd><textarea name="dm_memo" style="width:100%; height:150px;" id="dm_memo"></textarea></dd>
+            </dl>
+            <div class="half">
+                <dl>
+                    <dt>탈퇴일자</dt>
+                    <dd><input type="text" class="easyui-datebox" name="dm_leave_date" data-options="formatter:myformatter,parser:myparser" id="dm_leave_date"/></dd>
+                </dl>
+                <dl>
+                    <dt>접근차단일자</dt>
+                    <dd><input type="text" class="easyui-datebox" name="dm_intercept_date" data-options="formatter:myformatter,parser:myparser" id="dm_intercept_date" /></dd>
+                </dl>
+            </div>
+        </div>
+        <div style="margin-top:20px;padding:5px;text-align:center;">
+            <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="fnSave();" id="saveBtn">등록</a>
+            <a href="#" class="easyui-linkbutton" icon="icon-cancel">취소</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

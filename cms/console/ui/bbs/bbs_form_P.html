@@ -1,0 +1,1114 @@
+<?
+require('../../lib/page_header.php');
+$dm_id = isset($_REQUEST['dm_id']) ? $_REQUEST['dm_id'] : "";
+include "../../lib/smarteditor2/editor.lib.php";
+$db = new DBSQL();
+$db->DBconnect();
+$query = "SELECT * FROM dm_board WHERE dm_id = '".$dm_id."'";
+$db->ExecSql($query, "S");
+$row = $db->Fetch();
+
+$content_html = editor_html('dm_basic_content', $row['dm_basic_content'], true);
+$content_js = '';
+$content_js .= get_editor_js('dm_basic_content', true);
+
+$header_html = editor_html('dm_header_content', $row['dm_header_content'], true);
+$header_js = '';
+$header_js .= get_editor_js('dm_header_content', true);
+
+$footer_html = editor_html('dm_footer_content', $row['dm_footer_content'], true);
+$footer_js = '';
+$footer_js .= get_editor_js('dm_footer_content', true);
+?>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false" class="title">
+        <h1><?=$current_page_info['dm_view_title']?></h1>
+        <div class="btnWrap">
+            <button id="fnSave">저장</button>
+            <button id="fnCancel" class="bt09">취소</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false">
+        <form id="fm_writer" name="fm_writer" action="" method="post">
+            <div class="page">
+                <h3>기본정보</h3>
+                <dl>
+                    <dt><label for="bo_table">게시판 아이디</label></dt>
+                    <dd>
+                        <input id="dm_table" name="dm_table" type="text" class="wd50" value="">
+<!--                        <span class="noty">게시판 생성시 자동생성</span>-->
+                        <input type="hidden" name="chk_dm_id" id="chk_dm_id" value="<?=$dm_id?>"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_subject">게시판명</dt>
+                    <dd>
+                        <input id="dm_subject" name="dm_subject" type="text"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">스킨</dt>
+                    <dd>
+                        <select id="dm_skin" name="dm_skin" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectboardskin&value=detail',
+				method: 'get',
+				valueField: 'dm_code_value',
+				textField: 'dm_code_name',
+                editable:false">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">모바일스킨</dt>
+                    <dd>
+                        <select id="dm_mobile_skin" name="dm_mobile_skin" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectboardskin&value=detail',
+				method: 'get',
+				valueField: 'dm_code_value',
+				textField: 'dm_code_name',
+                editable:false">
+                        </select>
+                    </dd>
+                </dl>
+                <dl style="display:none;">
+                    <dt><label for="bo_list">게시판 유형</label>
+                        <div class="Tooltip2">
+                            <a class="icon">도움말</a>
+                            <div class="tip">
+                                <div class="explain">
+                                    게시판 생성 후 게시판 유형 수정 권장하지 않음
+                                </div>
+                            </div>
+                        </div>
+                    </dt>
+                    <dd>
+                        <label><input name="dm_board_type" type="radio" value="list">리스트</label>
+                        <label><input name="dm_board_type" type="radio" value="notice">공지사항</label>
+                        <label><input name="dm_board_type" type="radio" value="gallery">갤러리</label>
+                        <label><input name="dm_board_type" type="radio" value="movie">동영상</label>
+                        <label><input name="dm_board_type" type="radio" value="faq">FAQ</label>
+                        <label><input name="dm_board_type" type="radio" value="qa">QnA</label>
+                        <label><input name="dm_board_type" type="radio" value="inquiry">1:1문의</label>
+                        <label><input name="dm_board_type" type="radio" value="calendar">달력</label>
+                        <label><input name="dm_board_type" type="radio" value="event">이벤트</label>
+                        <label><input name="dm_board_type" type="radio" value="banner">배너</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>사용여부</dt>
+                    <dd>
+                        <label><input type="radio" name="dm_device" value="pc">PC</label>
+                        <label><input type="radio" name="dm_device" value="mobile">모바일</label>
+                        <label><input type="radio" name="dm_device" value="both">모두</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="dm_use_category">분류사용</label></dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_use_category" id="dm_use_category">사용</label>
+                        <input type="text" name="dm_category_list" id="dm_category_list" value="" class="wd30" style="display:none;"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="dm_use_list_category">분류탭 노출</label></dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_use_list_category" id="dm_use_list_category">사용</label>
+                    </dd>
+                </dl>
+
+                <h3>기능 &amp; 권한 설정</h3>
+                <dl>
+                    <dt><label for="bo_table">권한 유형 설정</label></dt>
+                    <dd>
+                        <label><input type="radio" name="dm_auth_type" value="1">그룹형</label>
+                        <label><input type="radio" name="dm_auth_type" value="2">레벨형</label>
+                        <label><input type="radio" name="dm_auth_type" value="3">모두</label>
+                    </dd>
+                </dl>
+                <p class="noty" style="border-bottom:1px solid #ddd;padding-bottom:5px;">아래 그룹설정은 권한유형을 (그룹형/모두)으로 설정할때만 적용됩니다. *(레벨형)일경우에는 적용되지 않습니다.</p>
+                <p class="noty" style="border-bottom:1px solid #ddd;padding-bottom:5px;">아래 그룹설정에 체크가 모두 안되있을경우에는 비회원도 접속가능합니다.</p>
+                <dl>
+                    <dt><label for="bo_table">리스트권한 그룹설정</label></dt>
+                    <dd id="list_group">
+                    </dd>                    
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">읽기권한 그룹설정</label></dt>
+                    <dd id="read_group">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">쓰기권한 그룹설정</label></dt>
+                    <dd id="write_group">
+                    </dd>
+                </dl>
+                <p class="noty" style="border-bottom:1px solid #ddd;padding-bottom:5px;">아래 그룹설정은 권한유형을 (레벨형)으로 설정할때만 적용됩니다. *(그룹형)일경우에는 적용되지 않습니다.</p>
+                <dl>
+                    <dt><label for="bo_table">리스트권한 레벨설정</label></dt>
+                    <dd>
+                        <label><input type="radio" name="dm_list_level" value="0">전체(회원+비회원)</label>
+                        <label><input type="radio" name="dm_list_level" value="6">관리자 전용</label>
+                        <label><input type="radio" name="dm_list_level" value="1">회원전용(비회원제외)</label>
+                        <label><input type="radio" name="dm_list_level" value="custom" id="dm_list_level">특정회원등급</label>
+                        <label>선택된 등급 : <strong id="select_list_level">1</strong></label>
+                        <a class="btn level_select" data-act="list" style="display:none;">회원등급선택</a>
+                    </dd>
+                </dl>
+                
+                <dl>
+                    <dt><label for="gr_id">읽기권한 레벨설정</label></dt>
+                    <dd>
+                        <label><input type="radio" name="dm_read_level" value="0">전체(회원+비회원)</label>
+                        <label><input type="radio" name="dm_read_level" value="6">관리자 전용</label>
+                        <label><input type="radio" name="dm_read_level" value="1">회원전용(비회원제외)</label>
+                        <label><input type="radio" name="dm_read_level" value="custom" id="dm_read_level">특정회원등급</label>
+                        <label>선택된 등급 : <strong id="select_read_level">1</strong></label>
+                        <a class="btn level_select" data-act="read" style="display:none;">회원등급선택</a>
+                    </dd>
+                </dl>
+                
+                <dl>
+                    <dt><label for="gr_id">쓰기권한 레벨설정</label></dt>
+                    <dd>
+                        <label><input type="radio" name="dm_write_level" value="0">전체(회원+비회원)</label>
+                        <label><input type="radio" name="dm_write_level" value="6">관리자 전용</label>
+                        <label><input type="radio" name="dm_write_level" value="1">회원전용(비회원제외)</label>
+                        <label><input type="radio" name="dm_write_level" value="custom" id="dm_write_level">특정회원등급</label>
+                        <label>선택된 등급 : <strong id="select_write_level">1</strong></label>
+                        <a class="btn level_select" data-act="write" style="display:none;">회원등급선택</a>
+                    </dd>
+                </dl>
+                 <p class="noty" style="border-bottom:1px solid #ddd;padding-bottom:5px;">아래 답변설정은 중복으로 체크되어도 모두 적용됩니다.</p>
+                <dl>
+                    <dt><label for="dm_is_reply">답변기능</label></dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_is_reply" id="dm_is_reply" value="1">사용</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>답변권한 레벨설정</dt>
+                    <dd>
+                        <label><input type="radio" name="dm_reply_level" value="0">전체(회원+비회원)</label>
+                        <label><input type="radio" name="dm_reply_level" value="6">관리자 전용</label>
+                        <label><input type="radio" name="dm_reply_level" value="1">회원전용(비회원제외)</label>
+                        <label><input type="radio" name="dm_reply_level" value="custom" id="dm_reply_level">특정회원등급</label>
+                        <label>선택된 등급 : <strong id="select_reply_level">1</strong></label>
+                        <a class="btn level_select" data-act="reply" style="display:none;">회원등급선택</a>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">답변권한 그룹설정</label></dt>
+                    <dd id="reply_group">
+                    </dd>
+                </dl>
+                <p class="noty" style="border-bottom:1px solid #ddd;padding-bottom:5px;">아래 댓글설정은 중복으로 체크되어도 모두 적용됩니다.</p>
+                <dl>
+                    <dt><label for="gr_id">댓글기능</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_is_comment" id="dm_is_comment" value="1">사용</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>댓글권한 레벨설정</dt>
+                    <dd>
+                        <label><input type="radio" name="dm_comment_level" value="0">전체(회원+비회원)</label>
+                        <label><input type="radio" name="dm_comment_level" value="6">관리자 전용</label>
+                        <label><input type="radio" name="dm_comment_level" value="1">회원전용(비회원제외)</label>
+                        <label><input type="radio" name="dm_comment_level" value="custom" id="dm_comment_level">특정회원등급</label>
+                        <label>선택된 등급 : <strong id="select_comment_level"></strong></label>
+                        <a class="btn level_select" data-act="comment" style="display:none;">회원등급선택</a>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">댓글권한 그룹설정</label></dt>
+                    <dd id="comment_group">
+                    </dd>
+                </dl>
+                <p class="noty" style="border-bottom:1px solid #ddd;padding-bottom:5px;">아래 댓글설정은 중복으로 체크되어도 모두 적용됩니다.</p>
+                <dl>
+                    <dt>링크권한 레벨설정</dt>
+                    <dd>
+                        <label><input type="radio" name="dm_link_level" value="0">전체(회원+비회원)</label>
+                        <label><input type="radio" name="dm_link_level" value="6">관리자 전용</label>
+                        <label><input type="radio" name="dm_link_level" value="1">회원전용(비회원제외)</label>
+                        <label><input type="radio" name="dm_link_level" value="custom" id="dm_link_level">특정회원등급</label>
+                        <label>선택된 등급 : <strong id="select_link_level"></strong></label>
+                        <a class="btn level_select" data-act="link" style="display:none;">회원등급선택</a>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">링크권한 그룹설정</label></dt>
+                    <dd id="link_group">
+                    </dd>
+                </dl>
+                <p class="noty" style="border-bottom:1px solid #ddd;padding-bottom:5px;">아래 파일업로드 설정은 중복으로 체크되어도 모두 적용됩니다.</p>
+                <dl>
+                    <dt>파일업로드권한 레벨설정</dt>
+                    <dd>
+                        <label><input type="radio" name="dm_upload_level" value="0">전체(회원+비회원)</label>
+                        <label><input type="radio" name="dm_upload_level" value="6">관리자 전용</label>
+                        <label><input type="radio" name="dm_upload_level" value="1">회원전용(비회원제외)</label>
+                        <label><input type="radio" name="dm_upload_level" value="custom" id="dm_upload_level">특정회원등급</label>
+                        <label>선택된 등급 : <strong id="select_upload_level"></strong></label>
+                        <a class="btn level_select" data-act="link" style="display:none;">회원등급선택</a>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">파일업로드권한 그룹설정</label></dt>
+                    <dd id="upload_group">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>작성자 표시방법</dt>
+                    <dd>
+                        <label><input type="radio" name="dm_writer_type" value="name">이름</label>
+                        <label><input type="radio" name="dm_writer_type" value="id">아이디</label>
+                        <label><input type="radio" name="dm_writer_type" value="nick">닉네임</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>작성자 노출제한</dt>
+                    <dd>
+                        <select name="dm_writer_secret" id="dm_writer_secret" onchange="">
+                            <option value="1">모두 노출</option>
+                            <option value="2">1글자 비노출</option>
+                            <option value="3">1글자 제외 모두 비노출</option>
+                            <option value="4">끝에 2글자 비노출</option>
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>운영자 표시방법</dt>
+                    <dd>
+                        <label><input type="radio" name="dm_admin_type" value="name">이름</label>
+                        <label><input type="radio" name="dm_admin_type" value="nick">닉네임</label>
+                        <label><input type="radio" name="dm_admin_type" value="custom">지정입력형</label>
+                        <label><input type="text" name="dm_admin_txt" value="" id="dm_admin_txt" style="display:none;" class="wd15"/></label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>비밀글 설정</dt>
+                    <dd>
+                        <label><input type="radio" name="dm_use_secret" value="0">미사용</label>
+                        <label><input type="radio" name="dm_use_secret" value="1">사용</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>비밀댓글 설정</dt>
+                    <dd>
+                        <label><input type="radio" name="dm_use_comment_secret" value="0">미사용</label>
+                        <label><input type="radio" name="dm_use_comment_secret" value="1">사용</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>추천/반대기능</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_use_good" value="1" id="dm_use_good">추천</label>
+                        <label><input type="checkbox" name="dm_use_nogood" value="1" id="dm_use_nogood">반대</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>조회당 Hit증가수</dt>
+                    <dd>
+                        <input type="text" class="wd10" name="dm_hit_count" id="dm_hit_count"> 개 &nbsp;
+                        <label style="display:none;"><input type="checkbox" name="dm_hit_ip_deny" value="1" id="dm_hit_ip_deny">IP 중복제한</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>HIT 아이콘</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_is_hit" value="1" id="dm_is_hit">사용</label>
+                        <label>
+							<span class="verti_middle">조회수</span>
+							<input type="text" style="width:50px" name="dm_hit_max" id="dm_hit_max">
+							<span class="verti_middle">회 이상</span>
+						</label>
+                        <p id="hit_ex" style="display:none;"> 등록하지 않으면 기본 아이콘으로 노출됩니다.
+                        </p>
+                        <p id="hit_file" style="display:none;">
+                            <input type="file" name="dm_hit_icon" id="dm_hit_icon" value="" class="wd30 line_height_28" />
+                        </p>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>NEW 아이콘	</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_is_new" value="1" id="dm_is_new">사용</label>
+                        <label>
+							<span class="verti_middle">게시글 등록 후</span>
+							<input type="text" style="width:50px" name="dm_new_time" id="dm_new_time">
+							<span class="verti_middle">시간 이내</span>
+						</label>
+                        <p id="new_ex" style="display:none;"> 등록하지 않으면 기본 아이콘으로 노출됩니다.</p>
+                        <p id="new_file" style="display:none;">
+                            <input type="file" name="dm_new_icon" id="dm_new_icon" value="" class="wd30 line_height_28" />
+                        </p>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>첨부파일 아이콘</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_use_file_icon" value="1" id="dm_use_file_icon">사용</label>
+                        <span class="noty">게시물 목록에 첨부파일 아이콘 출력</span>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>게시글 삭제 설정</dt>
+                    <dd>
+                        <label><input type="radio" name="dm_reply_delete_type" value="alone">답글이 있는 게시글 삭제시, 해당 글만 삭제</label><br>
+                        <label class="padding_none"><input type="radio" name="dm_reply_delete_type" value="both">답글이 있는 게시글 삭제시, 답글도 함께 삭제</label>
+                    </dd>
+                </dl>
+
+                <h3>게시판 목록 설정</h3>
+                <dl>
+                    <dt>목록 제목글자 제한</dt>
+                    <dd>
+                        <input id="dm_subject_len" name="dm_subject_len" type="text" value="100" class="wd10">
+                        <span class="noty">목록에서의 제목 글자수. 잘리는 글은 … 로 표시</span>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>페이지당 게시물 수</dt>
+                    <dd>
+                        <label><span class="verti_middle">PC</span> <input type="text" class="wd10" name="dm_page_rows" id="dm_page_rows"></label>
+						<label><span class="verti_middle">Mobile</span> <input type="text" class="wd10" name="dm_mobile_page_rows" id="dm_mobile_page_rows"></label>
+                        <span class="noty">게시판 페이지별 게시글 노출 개수를 설정</span>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>목록에서 추천수 표시</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_list_good" value="1" id="dm_list_good" >사용</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">갤러리 이미지 폭</label></dt>
+                    <dd>
+                        <input id="dm_gallery_width" name="dm_gallery_width" type="text" value="270" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">갤러리 이미지 높이</label></dt>
+                    <dd>
+                        <input id="dm_gallery_height" name="dm_gallery_height" type="text" value="203"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">모바일 갤러리 폭</label></dt>
+                    <dd>
+                        <input id="dm_mobile_gallery_width" name="dm_mobile_gallery_width" type="text" value="125"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">모바일 갤러리 높이</label></dt>
+                    <dd>
+                        <input id="dm_mobile_gallery_height" name="dm_mobile_gallery_height" type="text" value="100"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">리스트 정렬 필드</dt>
+                    <dd>
+                        <select id="dm_sort_field" name="dm_sort_field" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_BIZ?>app/select.php?type=select_code&group=1012',
+                    method: 'get',
+                    valueField: 'dm_code_value',
+                    textField: 'dm_code_name',
+                    editable:false">
+                        </select>
+                    </dd>
+                </dl>
+
+                <h3>글쓰기 설정</h3>
+                <dl>
+                    <dt><label for="gr_id">자동등록방지</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_use_captcha" value="1" id="dm_use_captcha">사용</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">에디터</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_use_dhtml_editor" value="1" id="dm_use_dhtml_editor">사용</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>링크 사용</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_use_link" value="1" id="dm_use_link">사용</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">첨부파일 사용</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_use_file" value="1" id="dm_use_file">사용</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">첨부파일 갯수</label></dt>
+                    <dd>
+                        <input id="dm_upload_count" name="dm_upload_count" type="text" value="2" class="wd10">
+                        <span class="noty"><strong>최대 9개</strong>까지 설정 가능</span>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">첨부파일 최대크기</label></dt>
+                    <dd>
+                        <label>
+							<input id="dm_upload_size" name="dm_upload_size" type="text" value="2" class="wd10">
+							<span class="verti_middle">MB</span>
+						</label>
+                        <span class="noty"><strong>최대 2MB</strong>까지 설정 가능</span>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">첨부파일 확장자</label></dt>
+                    <dd>
+                        <input id="dm_upload_ext" name="dm_upload_ext" type="text" value="gif,png,jpg,bmp,swf,hwp,doc,pdf,ppt,xls,gul,zip,alz,xlsx,docx,pptx" class="wd70">
+                        <span class="noty">쉼표(,)로 구분 (단, php, php3, html 제외)</span>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>이름 사용</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_use_name" value="1" id="dm_use_name">사용</label>
+                        <span class="noty">* 글쓰기 화면에서 작성자 명을 수정하거나 입력할 수 있는 폼이 출력됨</span>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">본문 설정</label>
+                        <div class="Tooltip2">
+                            <a class="icon">도움말</a>
+                            <div class="tip">
+                                <div class="explain">
+                                    게시글 내용에 출력할 기본 텍스트를 설정
+                                </div>
+                            </div>
+                        </div>
+                    </dt>
+                    <dd>
+                        <?=$content_html?>
+                    </dd>
+                </dl>
+
+                <h3>글보기 설정</h3>
+                <dl>
+                    <dt><label for="gr_id">IP 노출</dt>
+                    <dd>
+                        <label><input type="radio" name="dm_use_ip_view" value="0">IP 미노출</label>
+                        <label><input type="radio" name="dm_use_ip_view" value="1">IP 전체노출</label>
+                        <label><input type="radio" name="dm_use_ip_view" value="2">IP 끝자리 암호화표기</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">SNS 사용</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_use_sns" value="1" id="dm_use_sns">사용</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="dm_use_prev_write">이전글/다음글</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_use_prev_write" value="1" id="dm_use_prev_write">사용</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="dm_use_list">목록보기</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_use_list" value="1" id="dm_use_list">사용</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="dm_use_view_level">작성자 옆 등급 표기</dt>
+                    <dd>
+                        <label><input type="checkbox" name="dm_use_view_level" value="1" id="dm_use_view_level">사용</label>
+                    </dd>
+                </dl>
+
+                <h3>포인트 설정</h3>
+                <dl>
+                    <dt>글 읽기</dt>
+                    <dd>
+                        <input type="text" name="dm_read_point" id="dm_read_point" class="wd10" value="0"/>
+                        <select name="dm_read_point_type" id="dm_read_point_type">
+                            <option value="1">차감</option>
+                            <option value="2">증가</option>
+                        </select>
+                         * 포인트사용 만료 
+                         <input type="text" name="dm_read_point_expired" id="dm_read_point_expired" style="width:40px;" value="0"/>시간 (0 입력시 무제한)
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>글 쓰기</dt>
+                    <dd>
+                        <input type="text" name="dm_write_point" id="dm_write_point" class="wd10" value="0"/>
+                        <select name="dm_write_point_type" id="dm_write_point_type">
+                            <option value="1">차감</option>
+                            <option value="2">증가</option>
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>댓글</dt>
+                    <dd>
+                        <input type="text" name="dm_comment_point" id="dm_comment_point" class="wd10" value="0"/>
+                        <select name="dm_comment_point_type" id="dm_comment_point_type">
+                            <option value="1">차감</option>
+                            <option value="2">증가</option>
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>다운로드</dt>
+                    <dd>
+                        <input type="text" name="dm_download_point" id="dm_download_point" class="wd10" value="0"/>
+                        <select name="dm_download_point_type" id="dm_download_point_type">
+                            <option value="1">차감</option>
+                            <option value="2">증가</option>
+                        </select>
+                        * 포인트사용 만료
+                         <input type="text" name="dm_download_point_expired" id="dm_download_point_expired" style="width:40px;" value="0"/>시간 (0 입력시 무제한)
+                    </dd>
+                </dl>
+                <h3>게시판 상단/하단 꾸미기</h3>
+                <dl>
+                    <dt><label for="gr_id">상단디자인<br>(Header)</dt>
+                    <dd>
+                        <?=$header_html?>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">하단디자인<br>(Footer)</dt>
+                    <dd>
+                        <?=$footer_html?>
+                    </dd>
+                </dl>
+            </div>
+        </form>
+        <div id="dlg" class="easyui-dialog" style="width:600px; height: 700px;">
+            <input type="hidden" name="act" value="" />
+            <div class="page">
+                <h3>권한선택</h3>
+                <table id="dg"
+                       class="easyui-datagrid" fit="true" border="false"
+                       data-options="rownumbers:true,pagination:false, singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_level.php?type=select',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false
+               " fit="true">
+                    <thead>
+                    <tr>
+                        <th data-options="field:'dm_code_name',width:150,align:'center'"><p align="center">권한</p></th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+    <SCRIPT LANGUAGE="JavaScript">
+        $(function () {
+            <? if (!$dm_id) { ?>
+            $.ajax({
+                url :"<?=$_VAR_PATH_BIZ?>app/mng_group.php?type=select",
+                dataType:"json",
+                success:function (data) {
+                    $(".group_list").empty();
+                    if (data.rows) {
+                        $.each(data.rows, function (key, value) {
+                            $("#list_group").append(
+                                '<label><input type="checkbox" name="dm_list_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                            );
+
+                            $("#read_group").append(
+                                '<label><input type="checkbox" name="dm_read_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                            );
+
+                            $("#write_group").append(
+                                '<label><input type="checkbox" name="dm_write_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                            );
+
+                            $("#reply_group").append(
+                                '<label><input type="checkbox" name="dm_reply_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                            );
+
+                            $("#comment_group").append(
+                                '<label><input type="checkbox" name="dm_comment_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                            );
+
+                            $("#link_group").append(
+                                '<label><input type="checkbox" name="dm_link_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                            );
+
+                            $("#upload_group").append(
+                                '<label><input type="checkbox" name="dm_upload_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                            );
+
+                        });
+                    }
+                }
+            });
+            <? } ?>
+            var index = 0;
+            function fnSave() {
+                var form = $('#fm_writer');
+                var iGo = true;
+
+                if(!iGo) return;
+
+                var dm_id = $("#chk_dm_id").val();
+                var mode = "";
+                if(dm_id == "")
+                {
+                    mode = "new_insert";
+                }else
+                {
+                    mode = "new_update";
+                }
+
+                <?=$header_js?>
+                <?=$content_js?>
+                <?=$footer_js?>
+
+                var formData = new FormData(form[0]);
+
+                jQuery.ajax({
+                    url : "<?=$_VAR_PATH_BIZ?>bbs/bbs.php?type="+mode,
+                    type : 'POST',
+                    data : formData,
+                    cache : false,
+                    async : false,
+                    dataType : 'json',
+                    contentType: false,
+                    processData: false,
+                    success:function(data)
+                    {
+                        if(data.result == "success")
+                        {
+                            alert("저장하였습니다.");
+                            $("#chk_dm_id").val(data._return);
+                            location.reload();
+
+                        }else if(data.result == "duplicate")
+                        {
+                            alert("동일한 테이블 명이 존재합니다.");
+
+                        }else
+                        {
+                            alert("저장이 실패하였습니다.");
+                        }
+
+                    },
+                    error:function(data)
+                    {
+                        alert("저장이 실패하였습니다.");
+                    }
+                });
+            }
+
+            function fnRemove() {
+                var dm_id = $("#chk_dm_id").val();
+                $.ajax({
+                    url : "<?=$_VAR_PATH_BIZ?>bbs/bbs.php?type=delete",
+                    type : 'POST',
+                    data : 'dm_id='+dm_id,
+                    cache : false,
+                    async : false,
+                    dataType : 'json',
+                    success:function(data)
+                    {
+                        if(data.result == "success")
+                        {
+                            alert("삭제하였습니다.");
+                            window.parent.closeTab();
+                        }
+                        {
+                            alert("삭제에 실패하였습니다.");
+                        }
+                    },
+                    error:function(data)
+                    {
+                        alert("삭제에 실패하였습니다.");
+                    }
+                })
+            }
+
+            function closeDialog() {
+                $("#dlg").dialog('close');
+            }
+
+
+            $("#fnSave").off().on('click', function () {
+                fnSave();
+            });
+
+            $("#fnRemove").off().on('click', function () {
+                $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                    if (r) {
+                        fnRemove();
+                    }
+                });
+            });
+
+            $('#dg').datagrid({
+                onDblClickCell: function(index,field,value){
+                    $('#dg').datagrid('selectRow',index);
+                    var currentRow = $("#dg").datagrid("getSelected");
+                    var act = $("#dlg input[name='act']").val();
+
+                    $("#dm_"+act+"_level").val(currentRow.dm_code_value);
+                    $("#select_"+act+"_level").text(currentRow.dm_code_value);
+                    $("#select_"+act+"_level").parent().show();
+                    closeDialog();
+                }
+            });
+
+            $(".level_select").off().on('click', function () {
+                var act = $(this).data('act');
+                $("#dlg").dialog('open');
+                $("#dlg input[name='act']").val(act);
+            });
+
+            $("#dm_list_level").off().on('click', function () {
+                $(this).parent().siblings("a").show();
+            });
+
+            $("#dm_read_level").off().on('click', function () {
+                $(this).parent().siblings("a").show();
+            });
+
+            $("#dm_write_level").off().on('click', function () {
+                $(this).parent().siblings("a").show();
+            });
+
+            $("#dm_reply_level").off().on('click', function () {
+                $(this).parent().siblings("a").show();
+            });
+
+            $("#dm_comment_level").off().on('click', function () {
+                $(this).parent().siblings("a").show();
+            });
+
+            $("#dm_use_category").off().on('click', function () {
+                if ($(this).is(":checked")) {
+                    $(this).parent().siblings().show();
+                } else {
+                    $(this).parent().siblings().hide();
+                }
+            });
+
+            $("#dm_is_hit").off().on('click', function () {
+                if ($(this).is(":checked")) {
+                    $(this).parent().siblings("p").show();
+                } else {
+                    $(this).parent().siblings("p").hide();
+                }
+            });
+
+            $("#dm_is_new").off().on('click', function () {
+                if ($(this).is(":checked")) {
+                    $(this).parent().siblings("p").show();
+                } else {
+                    $(this).parent().siblings("p").hide();
+                }
+            });
+
+            $("input[name='dm_admin_type']").off().on('change', function () {
+                if ($(this).val() == 'custom') {
+                    $("#dm_admin_txt").show();
+                } else {
+                    $("#dm_admin_txt").hide();
+                }
+            });
+
+            closeDialog();
+            selectBbs();
+
+            function selectBbs()
+            {
+                var dm_id = $("#chk_dm_id").val();
+                if (dm_id != "")
+                {
+                    $.ajax({
+                        url : "<?=$_VAR_PATH_BIZ?>bbs/bbs.php?type=selectBbs&dm_id="+dm_id,
+                        type : "POST",
+                        cache : false,
+                        async : true,
+                        dataType : "json",
+                        data : "",
+                        success : function (data) {
+                            if(data.result == "success") {
+								setBbsData(data.rows[0]);
+
+                            } else if(data.result == "fail") {
+                                $.messager.alert('이력없음','게시판 정보가 존재하지 않습니다.','warning');
+                            }
+                        }, error:function(request,status,error) {
+                            alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                        }
+                    });
+                }
+            }
+
+            function setBbsData(row)
+            {
+                $("#dm_table").val(row.dm_table).attr('readonly', true);
+                $("#dm_sort_field").combobox('reload', '<?=$_VAR_PATH_BIZ?>app/select.php?type=select_code&group=1012&selected='+row.dm_sort_field);
+
+                $("#dm_subject").val(row.dm_subject);
+                $("input:radio[name='dm_device']:radio[value='"+row.dm_device+"']").prop('checked', true);
+                $("input:radio[name='dm_board_type']:radio[value='"+row.dm_board_type+"']").prop('checked', true);
+                $("input:radio[name='dm_use_secret']:radio[value='"+row.dm_use_secret+"']").prop('checked', true);
+                $("input:radio[name='dm_use_ip_view']:radio[value='"+row.dm_use_ip_view+"']").prop('checked', true);
+
+                if (row.dm_list_level != 0 && row.dm_list_level != 6 && row.dm_list_level != 1) {
+                    $("#dm_list_level").prop("checked", true);
+                    $("#dm_list_level").parent().siblings("a").show();
+                    $("#dm_list_level").val(row.dm_list_level);
+                    $("#select_list_level").text(row.dm_list_level);
+                } else {
+                    $("input:radio[name='dm_list_level']:radio[value='"+row.dm_list_level+"']").prop('checked', true);
+                    $("#dm_list_level").parent().siblings("a").hide();
+                    $("#select_list_level").parent().hide();
+                }
+
+                if (row.dm_read_level != 0 && row.dm_read_level != 6 && row.dm_read_level != 1) {
+                    $("#dm_read_level").prop("checked", true);
+                    $("#dm_read_level").parent().siblings("a").show();
+                    $("#dm_read_level").val(row.dm_read_level);
+                    $("#select_read_level").text(row.dm_read_level);
+                } else {
+                    $("input:radio[name='dm_read_level']:radio[value='"+row.dm_read_level+"']").prop('checked', true);
+                    $("#dm_read_level").parent().siblings("a").hide();
+                    $("#select_read_level").parent().hide();
+                }
+
+                if (row.dm_write_level != 0 && row.dm_write_level != 6 && row.dm_write_level != 1) {
+                    $("#dm_write_level").prop("checked", true);
+                    $("#dm_write_level").parent().siblings("a").show();
+                    $("#dm_write_level").val(row.dm_write_level);
+                    $("#select_write_level").text(row.dm_write_level);
+                } else {
+                    $("input:radio[name='dm_write_level']:radio[value='"+row.dm_write_level+"']").prop('checked', true);
+                    $("#dm_write_level").parent().siblings("a").hide();
+                    $("#select_write_level").parent().hide();
+                }
+
+                if (row.dm_comment_level != 0 && row.dm_comment_level != 6 && row.dm_comment_level != 1) {
+                    $("#dm_comment_level").prop("checked", true);
+                    $("#dm_comment_level").parent().siblings("a").show();
+                    $("#dm_comment_level").val(row.dm_write_level);
+                    $("#select_comment_level").text(row.dm_write_level);
+                } else {
+                    $("input:radio[name='dm_comment_level']:radio[value='"+row.dm_comment_level+"']").prop('checked', true);
+                    $("#dm_comment_level").parent().siblings("a").hide();
+                    $("#select_comment_level").parent().hide();
+                }
+
+                if (row.dm_reply_level != 0 && row.dm_reply_level != 6 && row.dm_reply_level != 1) {
+                    $("#dm_reply_level").prop("checked", true);
+                    $("#dm_reply_level").parent().siblings("a").show();
+                    $("#dm_reply_level").val(row.dm_write_level);
+                    $("#select_reply_level").text(row.dm_write_level);
+                } else {
+                    $("input:radio[name='dm_reply_level']:radio[value='"+row.dm_reply_level+"']").prop('checked', true);
+                    $("#dm_reply_level").parent().siblings("a").hide();
+                    $("#select_reply_level").parent().hide();
+                }
+
+                if (row.dm_link_level != 0 && row.dm_link_level != 6 && row.dm_link_level != 1) {
+                    $("#dm_link_level").prop("checked", true);
+                    $("#dm_link_level").parent().siblings("a").show();
+                    $("#dm_link_level").val(row.dm_link_level);
+                    $("#select_link_level").text(row.dm_link_level);
+                } else {
+                    $("input:radio[name='dm_link_level']:radio[value='"+row.dm_link_level+"']").prop('checked', true);
+                    $("#dm_link_level").parent().siblings("a").hide();
+                    $("#select_link_level").parent().hide();
+                }
+
+                if (row.dm_upload_level != 0 && row.dm_upload_level != 6 && row.dm_upload_level != 1) {
+                    $("#dm_upload_level").prop("checked", true);
+                    $("#dm_upload_level").parent().siblings("a").show();
+                    $("#dm_upload_level").val(row.dm_upload_level);
+                    $("#select_upload_level").text(row.dm_upload_level);
+                } else {
+                    $("input:radio[name='dm_upload_level']:radio[value='"+row.dm_upload_level+"']").prop('checked', true);
+                    $("#dm_upload_level").parent().siblings("a").hide();
+                    $("#select_upload_level").parent().hide();
+                }
+
+                $("input:radio[name='dm_writer_type']:radio[value='"+row.dm_writer_type+"']").prop('checked', true);
+                $("input:radio[name='dm_admin_type']:radio[value='"+row.dm_admin_type+"']").prop('checked', true);
+                $("input:radio[name='dm_reply_delete_type']:radio[value='"+row.dm_reply_delete_type+"']").prop('checked', true);
+                $("input:radio[name='dm_use_comment_secret']:radio[value='"+row.dm_use_comment_secret+"']").prop('checked', true);
+                $("input:radio[name='dm_auth_type']:radio[value='"+row.dm_auth_type+"']").prop('checked', true);
+
+                if (row.dm_admin_type == 'custom') {
+                    $("#dm_admin_txt").val(row.dm_admin_txt).show();
+                }
+
+                $("#dm_writer_secret").val(row.dm_writer_secret);
+                $("#dm_hit_count").val(row.dm_hit_count);
+                $("#dm_hit_max").val(row.dm_hit_max);
+
+                if (row.dm_is_hit != "0") {
+                    $("#dm_is_hit").parent().siblings("p").show();
+                }
+
+                if (row.dm_hit_url != "" && row.dm_is_hit != "0") {
+                    $("#hit_file").append(
+                        '<img src="'+row.dm_hit_url+'"><a href="'+row.dm_hit_url+'" target="_blank" class="btn">다운로드</a> <label><input type="checkbox" name="dm_del_hit" id="dm_del_hit" value="1">삭제</label>'
+                    )
+                }
+
+                $("#dm_new_time").val(row.dm_new_time);
+
+                if (row.dm_is_new != "0") {
+                    $("#dm_is_new").parent().siblings("p").show();
+                }
+
+                if (row.dm_new_url != "" && row.dm_is_new != "0") {
+                    $("#new_file").append(
+                        '<img src="'+row.dm_new_url+'"><a href="'+row.dm_new_url+'" target="_blank" class="btn">다운로드</a> <label><input type="checkbox" name="dm_del_new" id="dm_del_new" value="1">삭제</label>'
+                    )
+                }
+                $("#dm_page_rows").val(row.dm_page_rows);
+                $("#dm_mobile_page_rows").val(row.dm_mobile_page_rows);
+                $("#dm_upload_count").val(row.dm_upload_count);
+                $("#dm_upload_size").val(row.dm_upload_size);
+                $("#dm_upload_ext").val(row.dm_upload_ext);
+
+                if (row.dm_use_category == "1") {
+                    $("#dm_use_category").prop('checked', true);
+                    $("#dm_use_category").parent().siblings().show();
+                } else {
+                    $("#dm_use_category").prop('checked', false);
+                    $("#dm_use_category").parent().siblings().hide();
+                }
+                $("#dm_category_list").val(row.dm_category_list);
+
+                (row.dm_use_list_category == "1") ? $("#dm_use_list_category").prop('checked', true) : $("#dm_use_list_category").prop('checked', false);
+                (row.dm_use_dhtml_editor == "1") ? $("#dm_use_dhtml_editor").prop('checked', true) : $("#dm_use_dhtml_editor").prop('checked', false);
+                (row.dm_use_good == "1") ? $("#dm_use_good").prop('checked', true) : $("#dm_use_good").prop('checked', false);
+                (row.dm_use_nogood == "1") ? $("#dm_use_nogood").prop('checked', true) : $("#dm_use_nogood").prop('checked', false);
+                (row.dm_is_reply == "1") ? $("#dm_is_reply").prop('checked', true) : $("#dm_is_reply").prop('checked', false);
+                (row.dm_is_comment == "1") ? $("#dm_is_comment").prop('checked', true) : $("#dm_is_comment").prop('checked', false);
+                (row.dm_hit_ip_deny == "1") ? $("#dm_hit_ip_deny").prop('checked', true) : $("#dm_hit_ip_deny").prop('checked', false);
+                (row.dm_is_hit == "1") ? $("#dm_is_hit").prop('checked', true) : $("#dm_is_hit").prop('checked', false);
+                (row.dm_is_new == "1") ? $("#dm_is_new").prop('checked', true) : $("#dm_is_new").prop('checked', false);
+                (row.dm_use_captcha == "1") ? $("#dm_use_captcha").prop('checked', true) : $("#dm_use_captcha").prop('checked', false);
+                (row.dm_use_link == "1") ? $("#dm_use_link").prop('checked', true) : $("#dm_use_link").prop('checked', false);
+                (row.dm_use_file == "1") ? $("#dm_use_file").prop('checked', true) : $("#dm_use_file").prop('checked', false);
+                (row.dm_use_sns == "1") ? $("#dm_use_sns").prop('checked', true) : $("#dm_use_sns").prop('checked', false);
+                (row.dm_use_prev_write == "1") ? $("#dm_use_prev_write").prop('checked', true) : $("#dm_use_prev_write").prop('checked', false);
+                (row.dm_use_list == "1") ? $("#dm_use_list").prop('checked', true) : $("#dm_use_list").prop('checked', false);
+                (row.dm_use_file_icon == "1") ? $("#dm_use_file_icon").prop('checked', true) : $("#dm_use_file_icon").prop('checked', false);
+                (row.dm_use_name == "1") ? $("#dm_use_name").prop('checked', true) : $("#dm_use_name").prop('checked', false);
+                (row.dm_list_good == "1") ? $("#dm_list_good").prop('checked', true) : $("#dm_list_good").prop('checked', false);
+                (row.dm_use_view_level == "1") ? $("#dm_use_view_level").prop('checked', true) : $("#dm_use_view_level").prop('checked', false);
+                $("#dm_read_point").val(row.dm_read_point);
+                $("#dm_write_point").val(row.dm_write_point);
+                $("#dm_comment_point").val(row.dm_comment_point);
+                $("#dm_download_point").val(row.dm_download_point);
+                $("#dm_read_point_type").val(row.dm_read_point_type);
+                $("#dm_write_point_type").val(row.dm_write_point_type);
+                $("#dm_download_point_type").val(row.dm_download_point_type);
+                $("#dm_comment_point_type").val(row.dm_comment_point_type);
+                $("#dm_download_point_expired").val(row.dm_download_point_expired);
+                $("#dm_read_point_expired").val(row.dm_read_point_expired);
+                $("#dm_skin").combobox('setValue', row.dm_skin);
+                $("#dm_mobile_skin").combobox('setValue', row.dm_mobile_skin);
+                $("#dm_gallery_height").val(row.dm_gallery_height);
+                $("#dm_gallery_width").val(row.dm_gallery_width);
+                $("#dm_mobile_gallery_width").val(row.dm_mobile_gallery_width);
+                $("#dm_mobile_gallery_height").val(row.dm_mobile_gallery_height);
+				$("#dm_subject_len").val(row.dm_subject_len);
+
+
+                $.ajax({
+                    url :"<?=$_VAR_PATH_BIZ?>app/mng_group.php?type=select",
+                    dataType:"json",
+                    success:function (data) {
+                        console.log(data);
+                        $(".group_list").empty();
+                        if (data.rows) {
+                            $.each(data.rows, function (key, value) {
+                                $("#list_group").append(
+                                    '<label><input type="checkbox" name="dm_list_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                                );
+
+                                $("#read_group").append(
+                                    '<label><input type="checkbox" name="dm_read_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                                );
+
+                                $("#write_group").append(
+                                    '<label><input type="checkbox" name="dm_write_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                                );
+
+                                $("#reply_group").append(
+                                    '<label><input type="checkbox" name="dm_reply_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                                );
+
+                                $("#comment_group").append(
+                                    '<label><input type="checkbox" name="dm_comment_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                                );
+
+                                $("#link_group").append(
+                                    '<label><input type="checkbox" name="dm_link_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                                );
+
+                                $("#upload_group").append(
+                                    '<label><input type="checkbox" name="dm_upload_group[]" value="'+value.dm_group_id+'">'+value.dm_group_name+'</label>'
+                                );
+
+                            });
+
+                            if (row.dm_list_group_array.length > 0) {
+                                for (var i =0; i<row.dm_list_group_array.length; i++) {
+                                    $("input:checkbox[name='dm_list_group[]']:checkbox[value='"+row.dm_list_group_array[i]+"']").prop('checked', true);
+                                }
+                            }
+
+                            if (row.dm_write_group_array.length > 0) {
+                                for (var i =0; i<row.dm_write_group_array.length; i++) {
+                                    $("input:checkbox[name='dm_write_group[]']:checkbox[value='"+row.dm_write_group_array[i]+"']").prop('checked', true);
+                                }
+                            }
+
+                            if (row.dm_read_group_array.length > 0) {
+                                for (var i =0; i<row.dm_read_group_array.length; i++) {
+                                    $("input:checkbox[name='dm_read_group[]']:checkbox[value='"+row.dm_read_group_array[i]+"']").prop('checked', true);
+                                }
+                            }
+
+                            if (row.dm_reply_group_array.length > 0) {
+                                for (var i =0; i<row.dm_reply_group_array.length; i++) {
+                                    $("input:checkbox[name='dm_reply_group[]']:checkbox[value='"+row.dm_reply_group_array[i]+"']").prop('checked', true);
+                                }
+                            }
+
+                            if (row.dm_comment_group_array.length > 0) {
+                                for (var i =0; i<row.dm_comment_group_array.length; i++) {
+                                    $("input:checkbox[name='dm_comment_group[]']:checkbox[value='"+row.dm_comment_group_array[i]+"']").prop('checked', true);
+                                }
+                            }
+
+                            if (row.dm_link_group_array.length > 0) {
+                                for (var i =0; i<row.dm_link_group_array.length; i++) {
+                                    $("input:checkbox[name='dm_link_group[]']:checkbox[value='"+row.dm_link_group_array[i]+"']").prop('checked', true);
+                                }
+                            }
+
+                            if (row.dm_upload_group_array.length > 0) {
+                                for (var i =0; i<row.dm_upload_group_array.length; i++) {
+                                    $("input:checkbox[name='dm_upload_group[]']:checkbox[value='"+row.dm_upload_group_array[i]+"']").prop('checked', true);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+        });
+    </SCRIPT>
+<?
+require('../../lib/page_bottom.php');
+?>

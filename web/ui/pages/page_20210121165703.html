@@ -1,0 +1,402 @@
+<?
+if (!getSession("chk_dm_id") && $command == "modify_form") {
+    alert("잘못된 접근입니다.", "?contentId=c13406bf526e9fee2bed34ab6f2125f6");
+    exit;
+}
+?>
+<? include "mytop.html"; ?>
+<div class="JoinWrap">
+    <h2><?=($command == 'modify_form') ? "회원정보수정" : "회원가입" ?></h2>
+    <form id="fm" name="fm" method="post">
+        <input type="hidden" name="command" value="<?=($command == 'modify_form') ? "update" : "join"?>" />
+        <input type="hidden" name="chk_id_flag" value="0" />
+        <input type="hidden" name="chk_hp_flag" value="0" id="chk_hp_flag" />
+        <input type="hidden" name="chk_nick_flag" value="<?=($command=='modify_form') ? "1" : "0" ?>" id="chk_nick_flag" />
+        <input type="hidden" name="chk_pw_flag" value="<?=($command =='modify_form') ?  "1" : "0"?>" />
+        <input type="hidden" name="dm_no" value="" id="dm_no"/>
+        <ul>
+            <li>
+                <label for=""><span>아이디 <i>*</i></span></label>
+                <div class="glores-A-value">
+                    <div class="reg_memberID">
+                        <input type="text" name="dm_id" id="dm_id" maxlength="12" value="<?=$memberInfo['dm_id']?>" <?=($command == 'modify_form') ? "readonly" : ""?>>
+                        <? if ($command == 'join') { ?>
+                            <button type="button" id="confirm_id">아이디 중복체크</button>
+                        <? } ?>
+                    </div>
+                </div>
+                <div class="glores-A-info">아이디는 영문+숫자만 입력 가능 합니다.</div>
+            </li>
+            <li>
+                <label for=""><span>패스워드 <?=($command == 'modify_form') ? "" : "<i>*</i>"?></span></label>
+                <div class="glores-A-value">
+                    <div class="reg_password">
+                        <input type="password" name="dm_password" id="dm_password" size="12" maxlength="16">
+                    </div>
+                </div>
+                <div class="glores-A-info">
+                    패스워드는 영문+숫자+특수문자를 조합하여 8자 이상 입력해주세요.
+                    <?=($command == 'modify_form') ? "<p>비밀번호를 변경할 경우 입력해주세요</p>" : ""?>
+                </div>
+            </li>
+            <li>
+                <label for=""><span>재확인<?=($command == 'modify_form') ? "" : "<i>*</i>"?></span></label>
+                <div class="glores-A-value">
+                    <div class="reg_password">
+                           <input type="password" name="dm_password_confirm" id="dm_password_confirm" size="12" maxlength="16">
+                    </div>
+                </div>
+                <div class="glores-A-info">패스워드 다시 한번 입력해주세요.</div>
+            </li>
+            <li>
+                <label for=""><span>이름 <i>*</i></span></label>
+                <div class="glores-A-value">
+                    <div class="reg_name">
+                        <input type="text" name="dm_name" id="dm_name" size="20" value="<?=$memberInfo['dm_name']?>" maxlength="20">
+                    </div>
+                </div>
+            </li>
+            <? if ($MEMBER_CONFIG['dm_use_nick'] == 'y') { ?>
+            <li>
+                <label for=""><span>닉네임 <? if ($MEMBER_CONFIG['dm_require_nick'] == 'y') { ?><i>*</i><? } ?></span></label>
+                <div class="reg_memberID">
+                    <div class="reg_name">
+                        <input type="text" name="dm_nick" id="dm_nick" size="20" value="<?=$memberInfo['dm_nick']?>" maxlength="20">
+                        <button type="button" id="confirm_nick" <? if ($command == 'modify_form') echo 'style=display:none;' ?>>닉네임 중복체크</button>
+                    </div>
+                </div>
+            </li>
+            <? } ?>
+            <? if ($MEMBER_CONFIG['dm_use_email'] == 'y') { ?>
+            <li>
+                <label for=""><span>이메일 <? if ($MEMBER_CONFIG['dm_require_email'] == 'y') { ?><i>*</i><? } ?></span></label>
+                <div class="glores-A-value">
+                    <div class="reg_email">
+                        <input type="text" name="dm_email" id="dm_email" value="<?=$memberInfo['dm_email1']?>"/>  @
+                        <input type="text" name="dm_email1" id="dm_email1" value="<?=$memberInfo['dm_email2']?>">
+                        <select name="dm_email2" id="dm_email2" class="email" >
+                            <option value="">직접입력</option>
+                            <option value="naver.com">naver.com</option>
+                            <option value="hanmail.net">hanmail.net</option>
+                            <option value="daum.net">daum.net</option>
+                            <option value="hotmail.com">hotmail.com</option>
+                            <option value="yahoo.com">yahoo.com</option>
+                            <option value="empas.com">empas.com</option>
+                            <option value="korea.com">korea.com</option>
+                            <option value="dreamwiz.com">dreamwiz.com</option>
+                            <option value="gmail.com">gmail.com</option>
+                        </select>
+                    </div>
+                </div>
+            </li>
+            <? } ?>
+            <? if ($MEMBER_CONFIG['dm_use_hp'] == 'y') { ?>
+            <li>
+                <label for=""><span>휴대전화 <? if ($MEMBER_CONFIG['dm_require_hp'] == 'y') { ?><i>*</i><? } ?></span></label>
+                <div class="glores-A-value">
+                    <div class="reg_mobileNumber">
+                        <select name="hp1" id="hp1" title="휴대전화 첫번째" class="needsclick">
+                            <option value="">선택</option>
+                            <option value="010" <? if ($memberInfo['dm_hp1'] == '010') echo "selected";?>>010</option>
+                            <option value="011" <? if ($memberInfo['dm_hp1'] == '011') echo "selected";?>>011</option>
+                            <option value="016" <? if ($memberInfo['dm_hp1'] == '016') echo "selected";?>>016</option>
+                            <option value="017" <? if ($memberInfo['dm_hp1'] == '017') echo "selected";?>>017</option>
+                            <option value="018" <? if ($memberInfo['dm_hp1'] == '018') echo "selected";?>>018</option>
+                            <option value="019" <? if ($memberInfo['dm_hp1'] == '019') echo "selected";?>>019</option>
+                        </select> -
+                        <input type="text" name="hp2" id="hp2" size="4" maxlength="4" value="<?=$memberInfo['dm_hp2']?>" title="휴대전화 두번째"> -
+                        <input type="text" name="hp3" id='hp3' size="4" maxlength="4" value="<?=$memberInfo['dm_hp3']?>" title="휴대전화 세번째">
+                    </div>
+                </div>
+            </li>
+            <? } ?>
+            <li>
+                <label for=""><span>생년월일 <i>*</i></span></label>
+                <div class="glores-A-value">
+                    <div class="reg_birth">
+                        <select name="dm_birth1" id="dm_birth1">
+                            <option>년</option>
+                            <? for ($i=date("Y"); $i>=1900; $i--) { ?>
+                                <option value='<?=$i?>' <? if($i == $memberInfo['dm_birth1']) echo "selected"; ?>><?=$i?></option>
+                            <? } ?>
+                        </select><em>-</em>
+                        <select name="dm_birth2" id="dm_birth2">
+                            <option>월</option>
+                            <? for ($i=1; $i<=12; $i++) { ?>
+                                <option value="<?=str_pad($i, "2" ,"0", STR_PAD_LEFT)?>" <? if($i == $memberInfo['dm_birth2']) echo "selected"; ?>><?=str_pad($i, "2" ,"0", STR_PAD_LEFT)?></option>
+                            <? }?>
+                        </select><em>-</em>
+                        <select name="dm_birth3" id="dm_birth3">
+                            <option>일</option>
+                            <? for ($i=1; $i<=31; $i++) { ?>
+                                <option value="<?=str_pad($i, "2" ,"0", STR_PAD_LEFT)?>" <? if($i == $memberInfo['dm_birth3']) echo "selected"; ?>><?=str_pad($i, "2" ,"0", STR_PAD_LEFT)?></option>
+                            <? }?>
+                        </select>
+                    </div>
+                </div>
+            </li>
+            <? if ($MEMBER_CONFIG['dm_use_member_txt_1'] == 'y') { ?>
+            <li>
+                <label for=""><span><?=$MEMBER_CONFIG['dm_member_txt_1_name']?> <? if ($MEMBER_CONFIG['dm_require_member_txt_1'] == 'y') { ?><i>*</i><? } ?></span></label>
+                <div class="glores-A-value">
+                    <div class="reg_genter">
+                        <input type="radio" name="dm_sex" id="dm_sex_man" value="M" <? if($memberInfo['dm_sex'] == "M") echo "checked"; ?>><label for="dm_sex_man">남자</label>
+                        <input type="radio" name="dm_sex" id="dm_sex_woman" value="F" <? if($memberInfo['dm_sex'] == "F") echo "checked"; ?>><label for="dm_sex_woman">여자</label>
+                    </div>
+                </div>
+            </li>
+            <? } ?>
+            <? if ($MEMBER_CONFIG['dm_use_member_txt_2'] == 'y') { ?>
+                <li>
+                    <label for="dm_10"><span><?=$MEMBER_CONFIG['dm_member_txt_2_name']?> <? if ($MEMBER_CONFIG['dm_require_member_txt_2'] == 'y') { ?><i>*</i><? } ?></span></label>
+                    <div class="glores-A-value">
+                        <div class="reg_genter">
+                            <input type="text" name="dm_10" id="dm_10" value="<?=$memberInfo['dm_10']?>" />
+                        </div>
+                    </div>
+                </li>
+            <? } ?>
+            <? if (getSession("join_type") == 2 || $memberInfo['dm_3'] == 2) { ?>
+            <!--기업회원-->
+             <li>
+                <label for=""><span>파일인증 <i>*</i></span></label>
+                <div class="glores-A-value">
+                    <div class="reg_file">
+                        <? if ($command == 'modify_form') {
+                            if ($memberInfo['dm_file_url']) { ?>
+                                <img src="<?=$memberInfo['dm_file_url']?>" alt="<?=$memberInfo['dm_5']?>" style="width:30%;"/>
+                                <label><input type="checkbox" name="del_image" id="del_image" value="1"/> 삭제</label>
+                            <? } ?>
+                        <? } ?>
+                          <input type="file" id="dm_2"  name="dm_2" accept="image/*">
+                    </div>
+                    <div class="glores-A-info">사업자등록증을 등록해주시면 관리자가 기업회원으로 등업해드립니다.</div>
+                </div>
+            </li>
+            <!--//기업회원-->
+            <? } else if (getSession("join_type") == 3 || $memberInfo['dm_3'] == 3) { ?>
+            <!--전문회원-->
+             <li>
+                <label for=""><span>파일인증 <i>*</i></span></label>
+                <div class="glores-A-value">
+                     <div class="reg_file">
+                         <? if ($command == 'modify_form') {
+                             if ($memberInfo['dm_file_url']) { ?>
+                                 <img src="<?=$memberInfo['dm_file_url']?>" alt="<?=$memberInfo['dm_5']?>" style="width:30%;"/>
+                                 <label><input type="checkbox" name="del_image" id="del_image" value="1"/> 삭제</label>
+                             <? } ?>
+                         <? } ?>
+                          <input type="file" id="dm_2"  name="dm_2" accept="image/*">
+                    </div>
+                    <div class="glores-A-info">명함을 등록해주시면 관리자가 전문회원으로 등업해드립니다.</div>
+                </div>
+            </li>
+            <!--//전문회원-->
+            <? } ?>
+        </ul>
+        <a href="#" onclick="fnSave();" id="saveBtn" class="btn"><?=($command == 'modify_form') ? "회원정보수정" : "가입완료" ?></a>
+        <? if ($command == 'modify_form') { ?>
+            <p class="leaveBtn"><a href="javascript:void(0);" onclick="fnLeave();">회원 탈퇴하기</a></p>
+        <? } ?>
+    </form>
+</div>
+
+<script>
+    $(function () {
+        $("select[name='dm_email2']").off().on('change', function () {
+            var txt = $(this).val();
+            $("input[name='dm_email1']").val(txt);
+        });
+
+        $("#hp2,#hp3").off().on('keypress', function () {
+            $("#chk_hp_flag").val(0);
+            $("#confirm_hp").show();
+        });
+
+        $("#hp1").off().on('change', function () {
+            $("#chk_hp_flag").val(0);
+            $("#confirm_hp").show();
+        });
+
+        $("#dm_nick").off().on('keyup', function () {
+            var nick = $(this).val();
+            var compare = '<?=$memberInfo['dm_nick']?>';
+            if (nick != "") {
+                if (nick != compare) {
+                    $("#confirm_nick").show();
+                    $("#chk_nick_flag").val(0);
+                } else {
+                    $("#confirm_nick").hide();
+                    $("#chk_nick_flag").val(1);
+                }
+            }
+        });
+    });
+
+    function fnSave() {
+
+        <? if ($command == 'join') { ?>
+        if($.trim($("#dm_id").val()) == ""){
+            alert('아이디를 입력해 주십시오.');
+            $("#dm_id").focus();
+            return false;
+        }
+
+        if($.trim($("#dm_password").val()) == ""){
+            alert('패스워드를 입력해 주십시오.');
+            $("#dm_password").focus();
+            return false;
+        }
+
+        if($.trim($("#dm_password_confirm").val()) == ""){
+            alert('패스워드확인을 입력해 주십시오.');
+            $("#dm_password_confirm").focus();
+            return false;
+        }
+
+        if($("input[name='chk_id_flag']").val() == 0){
+            alert('아이디 중복확인을 해주세요');
+            $("#confirm_id").focus();
+            return false;
+        }
+
+        <? } ?>
+
+        if($.trim($("#dm_name").val()) == ""){
+            alert('이름을 입력해주세요');
+            $("#dm_name").focus();
+            return false;
+        }
+
+        <? if ($MEMBER_CONFIG['dm_require_nick'] == 'y') { ?>
+            if($.trim($("#dm_nick").val()) == ""){
+                alert('닉네임을 입력해주세요');
+                $("#dm_nick").focus();
+                return false;
+            }
+            if($("input[name='chk_nick_flag']").val() == 0){
+                alert('닉네임 중복확인을 해주세요');
+                $("#confirm_nick").focus();
+                return false;
+            }
+        <? } ?>
+
+        <? if ($MEMBER_CONFIG['dm_require_email'] == 'y') { ?>
+            if($.trim($("#dm_email").val()) == ""){
+                alert('이메일을 입력해주세요');
+                $("#dm_email").focus();
+                return false;
+            }
+
+            if($.trim($("#dm_email1").val()) == ""){
+                alert('이메일을 입력해주세요');
+                $("#dm_email1").focus();
+                return false;
+            }
+        <? } ?>
+
+
+        <? if ($MEMBER_CONFIG['dm_require_hp'] == 'y') { ?>
+        if($.trim($("#hp2").val()) == ""){
+            alert('휴대폰번호를 입력해주세요');
+            $("#hp2").focus();
+            return false;
+        }
+
+        if($.trim($("#hp3").val()) == ""){
+            alert('휴대폰번호를 입력해주세요');
+            $("#hp3").focus();
+            return false;
+        }
+        <? } ?>
+
+
+        <? if ($MEMBER_CONFIG['dm_require_member_txt_1'] == 'y') { ?>
+            if(!$("input[name='dm_sex']").is(":checked")){
+                alert('성별을 선택해주세요');
+                $("input[name='dm_sex']").focus();
+                return false;
+            }
+        <? } ?>
+
+
+        if($("input[name='chk_pw_flag']").val() == 0){
+            alert('비밀번호를 확인 해주세요');
+            $("#dm_password").focus();
+            return false;
+        }
+
+        if($("#dm_birth1").val() == '' || $("#dm_birth1").val() == '선택해주세요'){
+            alert('생년월일을 선택해주세요');
+            $("#dm_birth1").focus();
+            return false;
+        }
+
+        if($("#dm_birth2").val() == '' || $("#dm_birth2").val() == '선택해주세요'){
+            alert('생년월일을 선택해주세요');
+            $("#dm_birth2").focus();
+            return false;
+        }
+
+        if($("#dm_birth3").val() == '' || $("#dm_birth3").val() == '선택해주세요'){
+            alert('생년월일을 선택해주세요');
+            $("#dm_birth3").focus();
+            return false;
+        }
+
+        <? if (getSession("join_type") == 1 || getSession("join_type") == 2) { ?>
+        var fileForm = /(.*?)\.(jpg|jpeg|png|gif|bmp|pdf)$/;
+        var imgFile = $('#dm_2').val();
+
+        if($("#dm_2").val() == ""){
+            alert('파일을 등록해주세요');
+            $("#dm_2").focus();
+            return false;
+        }
+
+        if(imgFile != "" && imgFile != null) {
+            if(!imgFile.match(fileForm)) {
+                alert("이미지 파일이 아니거나 첨부하지 않았습니다.");
+                return;
+            }
+        }
+        <? } ?>
+
+        var dm_hp = $("#hp1").val()+"-"+$("#hp2").val()+"-"+$("#hp3").val();
+        var dm_birth = $("#dm_birth1").val()+"-"+$("#dm_birth2").val()+"-"+$("#dm_birth3").val();
+
+        $("#fm").append(
+            "<input type='hidden' name='dm_hp' value='"+dm_hp+"' />"+
+            "<input type='hidden' name='dm_birth' value='"+dm_birth+"' />"
+        );
+
+        var form = $("#fm")[0];
+        var formData = new FormData(form);
+
+        $.ajax({
+            url : "<?=$_VAR_URL_WEB_MEMBER?>command.php",
+            data: formData,
+            type : 'POST',
+            cache : false,
+            async : false,
+            contentType: false,
+            processData: false,
+            dataType : 'json',
+            success:function(data)
+            {
+                if(data.result == "success")
+                {
+                    alert(data.notice);
+                    location.href = "<?=$_VAR_URL_WEB?>?contentId=c13406bf526e9fee2bed34ab6f2125f6";
+                }else
+                {
+                    alert("아래와 같은 이류로 사용자 회원가입에 실패하였습니다.\r\n -" + data.notice + "\r\n관리자에게 문의하세요.","회원가입 실패");
+                }
+            },
+            error:function(data)
+            {
+            }
+        });
+        //return true;
+    }
+</script>

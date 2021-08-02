@@ -1,0 +1,383 @@
+<?
+require('../../lib/page_header.php');
+
+$wr_id = isset($_REQUEST['wr_id']) ? trim($_REQUEST['wr_id']) : "";
+$dm_table = isset($_REQUEST['dm_table']) ? trim($_REQUEST['dm_table']) : "";
+
+?>
+    <script>
+        function selectPage()
+        {
+            var dm_table = $("#chk_dm_table").val();
+            var wr_id = $("#wr_id").val();
+
+            if (wr_id != "")
+            {
+                $.ajax({
+                    url : "<?=$_VAR_PATH_BIZ?>app/mng_write.php?type=select_write&wr_id="+wr_id+'&dm_table='+dm_table,
+                    type : "POST",
+                    cache : false,
+                    async : true,
+                    dataType : "json",
+                    data : "",
+                    success : function (data) {
+                        if(data.result == "success") {
+                            fnSetData(data.rows);
+                            if (data.rows.wr_comment_list.length > 0) {
+                                $("#tt").datalist({
+                                    data : data.rows.wr_comment_list,
+                                    valueField : "wr_id",
+                                    textField : "wr_content"
+                                });
+
+                                $(".reply").linkbutton();
+                                $(".reply_modify").linkbutton();
+                                $(".reply_delete").linkbutton();
+                            } else {
+                                $("#tt").datalist('loadData', []);
+                            }
+                        } else if(data.result == "fail") {
+                            $.messager.alert('이력없음','글 정보가 존재하지 않습니다.','warning');
+                        }
+                    }, error:function(request,status,error) {
+                        alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                    }
+                });
+            } else {
+                $("#dm_mode").val('insert');
+            }
+        }
+
+        function fnSetData(row) {
+            $("#dm_mode").val('view');
+            $("#wr_id").val(row.wr_id);
+
+            $("#dm_table").text(row.dm_subject);
+            $("#wr_subject").text(row.wr_subject);
+            $("#wr_content").html(nl2br(row.wr_content));
+            $("#wr_datetime").text(row.wr_datetime);
+
+            $("#wr_name").text(row.wr_name);
+            $("#dm_category").text(row.ca_name);
+
+            if (row.wr_file_array.length > 0)
+            {
+                $("#file_td").empty();
+                for (var i=0; i<row.wr_file_array.length; i++)
+                {
+                    var file_path = row.wr_file_array[i].split("/");
+
+                    $("#file_td").append(
+                        '<p>'+row.wr_file_ori_array[i]+' <a href="<?=$_VAR_PATH_LIB?>file_download.php?dm_table='+file_path[0]+'&file_name='+file_path[1]+'&ori_file_name='+row.wr_file_ori_array[i]+'">다운로드</a></p>'
+                    );
+                }
+            }
+            else
+            {
+                $("#temp").remove();
+            }
+        }
+
+        function modifyComment(wr_id)
+        {
+            var dm_table = $("#chk_dm_table").val();
+
+            $.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>app/mng_write.php?type=select_write&wr_id="+wr_id+'&dm_table='+dm_table,
+                type : "POST",
+                cache : false,
+                async : false,
+                dataType : "json",
+                data : "",
+                success : function (data) {
+                    if(data.result == "success") {
+                        $("#com_wr_id").val(data.rows.wr_id);
+                        $("#mode").val('comment_update');
+                        $("#com_wr_content").val(data.rows.wr_content);
+                        $("#com_wr_name").textbox("setValue", data.rows.wr_name);
+                    } else if(data.result == "fail") {
+                        $.messager.alert('이력없음','게시판 정보가 존재하지 않습니다.','warning');
+                    }
+                }, error:function(request,status,error) {
+                    alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                }
+            });
+
+            $("#dlg").dialog("open").dialog({
+                title : "댓글 수정"
+            });
+        }
+
+        function nl2br(str){
+            return str.replace(/\n/g, "<br />");
+        }
+
+        function deleteComment(wr_id, is_write) {
+            $.messager.confirm("위험", "정말 삭제하시겠습니까?", function (r) {
+                if (r) {
+                    $("#mode").val('comment_delete');
+                    $("#com_wr_id").val(wr_id);
+                    fnCommentSave(is_write);
+                }
+            });
+        }
+
+        $(function () {
+
+            function fnReplyWrite()
+            {
+                var wr_id = $("#wr_id").val();
+                var chk_dm_table = $("#chk_dm_table").val();
+                var wr_subject = $("#wr_subject").text();
+
+                var uWidth = 1024;
+                var uHeight = 768;
+                var option = "scrollbars=auto,toolbar=no,location=no,status=no,menubar=no,resizable=yes,titlebar=no,width="+uWidth+",height="+uHeight+",left=0,top=0";
+                window.open("<?=$_VAR_PATH_UI ?>write/write_reply_form.html?wr_id="+wr_id+"&dm_table="+chk_dm_table, "write_view",option);
+                //window.parent.addTab("<" + wr_subject + "> 세부정보",'<?//=$_VAR_PATH_UI?>//write/write_reply_form.html?wr_id='+wr_id+'&dm_table='+chk_dm_table,true,'','');
+            }
+
+            function fnModifyWrite()
+            {
+                var wr_id = $("#wr_id").val();
+                var chk_dm_table = $("#chk_dm_table").val();
+                var wr_subject = $("#wr_subject").text();
+                var uWidth = 1024;
+                var uHeight = 768;
+                var option = "scrollbars=auto,toolbar=no,location=no,status=no,menubar=no,resizable=yes,titlebar=no,width="+uWidth+",height="+uHeight+",left=0,top=0";
+                window.open("<?=$_VAR_PATH_UI ?>write/write_form.html?wr_id="+wr_id+"&dm_table="+chk_dm_table, "write_view",option);
+                //window.parent.addTab("<" + wr_subject + "> 수정",'<?//=$_VAR_PATH_UI?>//write/write_form.html?wr_id='+wr_id+'&dm_table='+chk_dm_table,true,'','');
+            }
+
+            function fnCommentNew()
+            {
+                $("#dlg").dialog("open").dialog({title:'&nbsp;&nbsp;'});
+                $("#com_wr_id").val('');
+                $("#mode").val('comment_insert');
+                $("#parent_wr_id").val('<?=$wr_id?>');
+                $("#com_wr_name").textbox('setValue', '<?=getSession('chk_dm_name')?>');
+                $("#com_wr_content").val('');
+            }
+
+            setBoardForm();
+            selectPage();
+            $("#dlg").dialog("close");
+            var dm_id = $("#chk_dm_id").val();
+
+            function setBoardForm()
+            {
+                var dm_table = $("#chk_dm_table").val();
+                var wr_id = $("#wr_id").val();
+
+                $.ajax({
+                    url : "<?=$_VAR_PATH_BIZ?>app/mng_write.php?type=get_board_config&wr_id="+wr_id+'&dm_table='+dm_table,
+                    type : "POST",
+                    cache : false,
+                    async : false,
+                    dataType : "json",
+                    data : "",
+                    success : function (data) {
+                        if(data.result == "success") {
+                            var board_config = data.rows;
+                            var is_category = board_config.dm_use_category;
+
+                            if (is_category != "1")
+                            {
+                                $("#category").remove();
+                            }
+
+                        } else if(data.result == "fail") {
+                            $.messager.alert('이력없음','게시판 정보가 존재하지 않습니다.','warning');
+                        }
+                    }, error:function(request,status,error) {
+                        alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                    }
+                });
+
+            }
+
+            $("#comment").datalist({
+                lines:"true"
+            });
+
+            $("#fnCommentNew").off().on('click', function () {
+                fnCommentNew();
+            });
+
+            $("#fnModify").off().on('click', function () {
+                fnModifyWrite();
+            });
+
+            $("#fnReplyWrite").off().on('click', function () {
+                fnReplyWrite();
+            });
+
+            $("#fnRemove").off().on('click', function () {
+                var wr_id = $("#wr_id").val();
+                deleteComment(wr_id, 1);
+            });
+
+        });
+
+        function fnCommentSave(is_write) {
+            var wr_name = $.trim($("#com_wr_name").val());
+            var wr_content = $.trim($("#com_wr_content").val());
+            var dm_mode = $("#mode").val();
+            var url = "<?=$_VAR_PATH_BIZ?>app/mng_write.php?type="+dm_mode;
+
+            if (dm_mode != 'comment_delete') {
+                if(wr_name == "")
+                {
+                    $.messager.alert('입력오류','작성자를 입력해주세요.','warning');
+                    return false;
+                }
+
+                if(wr_content == "")
+                {
+                    $.messager.alert('입력오류','내용을 입력해주세요.','warning');
+                    return false;
+                }
+            }
+
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url : url,
+                data : formData,
+                dataType: "json",
+                type : "post",
+                contentType: false,
+                processData: false,
+                success : function (data) {
+                    var icon = 'warning';
+                    if(data.result == "success") {
+                        selectPage();
+                        $("#dlg").dialog("close");
+                        icon = 'info';
+                        if (is_write) {
+                            window.parent.closeTab();
+                        }
+                    }
+                    $.messager.alert('알림',data.notice,icon);
+                }
+            });
+        }
+
+        function closeDlg() {
+            $("#dlg").dialog("close");
+        }
+
+        function fnCommentReply(wr_id) {
+            $("#dlg").dialog("open").dialog({
+                title : "댓글의 댓글"
+            });
+            $("#com_wr_id").val('');
+            $("#mode").val('comment_reply');
+            $("#parent_wr_id").val(wr_id);
+            $("#com_wr_name").val('<?=getSession('chk_dm_name')?>');
+            $("#com_wr_content").val('');
+        }
+    </script>
+
+    <div class="easyui-layout" style="width:700px;height:350px;" fit="true">
+        <div data-options="region:'north', border:false" class="title">
+            <h1>게시글 보기</h1>
+            <div class="btnWrap">
+                <button id="fnModify">수정</button>
+                <button id="fnRemove" class="bt03">삭제</button>
+                <button id="fnCommentNew" class="bt04">댓글작성</button>
+                <button id="fnReplyWrite" class="bt05">답변</button>
+            </div>
+        </div>
+        <div data-options="region:'center',border:false" style="width:100%;height:260px;padding:0px" valign="middle">
+            <div class="easyui-layout" fit="true" data-options="border:false" style="border:solid 0px #f6c1bc;">
+                <div data-options="region:'center', border:true" style="width:100%;border:solid 0px #f6c1bc;padding:5px">
+                    <form>
+                        <input type="hidden" name="chk_dm_table" id="chk_dm_table" value="<?=$dm_table?>"/>
+                        <input type="hidden" name="wr_id" id="wr_id" value="<?=$wr_id?>"/>
+                        <div class="page">
+                            <h3>게시글 보기</h3>
+                            <dl>
+                                <dt>게시판</dt>
+                                <dd>
+                                    <p id="dm_table"></p>
+                                </dd>
+                            </dl>
+                            <dl id="category">
+                                <dt>카테고리</dt>
+                                <dd>
+                                    <p id="dm_category"></p>
+                                </dd>
+                            </dl>
+                            <dl>
+                                <dt>작성자</dt>
+                                <dd>
+                                    <p id="wr_name"></p>
+                                </dd>
+                            </dl>
+                            <dl>
+                                <dt>작성일</dt>
+                                <dd id="wr_datetime">
+<!--                                    <p ></p>-->
+                                </dd>
+                            </dl>
+                            <dl>
+                                <dt>제목</dt>
+                                <dd>
+                                    <div id="wr_subject"></div>
+                                </dd>
+                            </dl>
+                            <dl>
+                                <dt>내용</dt>
+                                <dd>
+                                    <div id="wr_content"></div>
+                                </dd>
+                            </dl>
+                            <dl id="temp">
+                                <dt id="file_title" class="file_title">파일</dt>
+                                <dd id="file_td">
+                                </dd>
+                            </dl>
+                            <dl>
+                                <dt>댓글</dt>
+                                <dd>
+                                    <ul id="tt" class="easyui-datalist" style="height:250px"></ul>
+                                </dd>
+                            </dl>
+                        </div>
+                    </form>
+                    <div id="dlg" class="easyui-dialog" style="width:600px; height: 500px;">
+                        <form id="fm" method="post" style="text-align: center;" novalidate>
+                            <input type="hidden" name="mode" value="comment_insert" id="mode" />
+                            <input type="hidden" name="wr_id" id="com_wr_id" value="" />
+                            <input type="hidden" name="parent_wr_id" id="parent_wr_id" value="" />
+                            <input type="hidden" name="dm_table" id="dm_table" value="<?=$dm_table?>"/>
+                            <div class="page">
+                                <h3>댓글작성</h3>
+                                <dl>
+                                    <dt>비밀글</dt>
+                                    <dd style="text-align: left !important;"><label><input type="checkbox" name="secret" value="1"></label></dd>
+                                </dl>
+                                <dl>
+                                    <dt>작성자</dt>
+                                    <dd><input type="text" name="com_wr_name" class="easyui-textbox" id="com_wr_name" value=""/></dd>
+                                </dl>
+                                <dl>
+                                    <dt>내용</dt>
+                                    <dd><textarea id="com_wr_content" name="com_wr_content" rows="10" ></textarea></dd>
+                                </dl>
+                            </div>
+                            <div class="btn_wrap">
+                                <a href="javascript:fnCommentSave();" class="btn">저장</a>
+                                <a href="javascript:closeDlg();" class="btn" >닫기</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<?
+require('../../lib/page_bottom.php');
+?>

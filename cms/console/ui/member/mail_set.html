@@ -1,0 +1,217 @@
+<?
+require('../../lib/page_header.php');
+include "../../lib/smarteditor2/editor.lib.php";
+
+$db = new DBSQL();
+$db->DBconnect();
+$query = "SELECT * FROM dm_mail_config";
+$db->ExecSql($query, "S");
+$row = $db->Fetch();
+
+$dm_join_content = editor_html('dm_join_content', $row['dm_join_content'], true);
+$dm_join_content_js = '';
+$dm_join_content_js .= get_editor_js('dm_join_content', true);
+$dm_join_content_js .= chk_editor_js('dm_join_content', true);
+
+$dm_password_content_html = editor_html('dm_password_content', $row['dm_password_content'], true);
+$dm_password_content_js = '';
+$dm_password_content_js .= get_editor_js('dm_password_content', true);
+$dm_password_content_js .= chk_editor_js('dm_password_content', true);
+
+$dm_reply_content_html = editor_html('dm_reply_content', $row['dm_reply_content'], true);
+$dm_reply_content_js = '';
+$dm_reply_content_js .= get_editor_js('dm_reply_content', true);
+$dm_reply_content_js .= chk_editor_js('dm_reply_content', true);
+
+$dm_out_content_html = editor_html('dm_out_content', $row['dm_out_content'], true);
+$dm_out_content_js = '';
+$dm_out_content_js .= get_editor_js('dm_out_content', true);
+$dm_out_content_js .= chk_editor_js('dm_out_content', true);
+
+?>
+    <script>
+        $(function () {
+            fnSetData();
+
+            function fnSetData() {
+                var url = '<?=$_VAR_PATH_BIZ?>app/mng_mail_config.php?type=select';
+                $.ajax({
+                    url : url,
+                    dataType:"json",
+                    type:"post",
+                    success : function (data) {
+                        data = data.rows[0];
+                        $("input:radio[name='dm_use_join_mail']:radio[value='"+data.dm_use_join_mail+"']").prop('checked', true);
+                        $("input:radio[name='dm_use_password_mail']:radio[value='"+data.dm_use_password_mail+"']").prop('checked', true);
+                        $("input:radio[name='dm_use_reply_mail']:radio[value='"+data.dm_use_reply_mail+"']").prop('checked', true);
+                        $("input:radio[name='dm_use_out_mail']:radio[value='"+data.dm_use_out_mail+"']").prop('checked', true);
+
+                        $("#dm_no").val(data.dm_no);
+
+                        $("#dm_join_email").val(data.dm_join_email);
+                        $("#dm_password_email").val(data.dm_password_email);
+                        $("#dm_reply_email").val(data.dm_reply_email);
+                        $("#dm_out_email").val(data.dm_out_email);
+
+                        $("#dm_join_subject").val(data.dm_join_subject);
+                        $("#dm_password_subject").val(data.dm_password_subject);
+                        $("#dm_reply_subject").val(data.dm_reply_subject);
+                        $("#dm_out_subject").val(data.dm_out_subject);
+                    }
+                });
+            }
+
+            function fnSave() {
+                var form = $('#fm_writer');
+                var iGo = true;
+
+                if(!iGo) return;
+
+                var mode = "insert";
+
+                <?=$dm_join_content_js?>
+                <?=$dm_password_content_js?>
+                <?=$dm_reply_content_js?>
+                <?=$dm_out_content_js?>
+
+                var param = $("#fm_writer").serialize();
+
+                jQuery.ajax({
+                    url : "<?=$_VAR_PATH_BIZ?>app/mng_mail_config.php?type="+mode,
+                    type : 'POST',
+                    data : param,
+                    cache : false,
+                    async : false,
+                    dataType : 'json',
+                    success:function(data)
+                    {
+                        if(data.result == "success") {
+                            alert("저장하였습니다.");
+                            location.reload();
+                        } else {
+                            alert("저장이 실패하였습니다.");
+                        }
+                    },
+                    error:function(data)
+                    {
+                        alert("저장이 실패하였습니다.");
+                    }
+                });
+            }
+
+            $("#fnSave").off().on('click', function () {
+                fnSave();
+            });
+        });
+    </script>
+    <div class="easyui-layout" fit="true">
+        <div data-options="region:'north', border:false">
+            <div class="title">
+                <h1><?=$current_page_info['dm_view_title']?></h1>
+                <div class="btnWrap">
+                    <button id="fnSave">저장</button>
+                </div>
+            </div>
+        </div>
+
+        <div data-options="region:'center', border:false" class="Contents">
+            <?
+            require('mail_tab.html');
+            ?>
+            <form id="fm_writer" method="post">
+                <input type="hidden" name="dm_no" id="dm_no" value="" />
+                <div class="page">
+                    <h3>회원가입 메일 설정</h3>
+                    <dl>
+                        <dt>발송여부</dt>
+                        <dd>
+                            <label><input name="dm_use_join_mail" id="" type="radio" value="y">발송함</label>
+                            <label><input name="dm_use_join_mail" id="" type="radio" value="n">발송안함</label>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>발송자이메일</dt>
+                        <dd><input name="dm_join_email" id="dm_join_email" type="text" class="wd50"> <span class="noty">발송자 이메일 정보가 없으면 자동메일이 발송되지 않습니다.</span></dd>
+                    </dl>
+                    <dl>
+                        <dt>제목</dt>
+                        <dd><input name="dm_join_subject" id="dm_join_subject" type="text" value="" placeholder="{사이트명} {이름}님의 회원가입을 축하드립니다."></dd>
+                    </dl>
+                    <dl>
+                        <dt>내용</dt>
+                        <dd>
+                            <?=$dm_join_content?>
+                        </dd>
+                    </dl>
+                    <h3>비밀번호찾기 메일 설정</h3>
+                    <dl>
+                        <dt>발송여부</dt>
+                        <dd>
+                            <label><input name="dm_use_password_mail" id="" type="radio" value="y">발송함</label>
+                            <label><input name="dm_use_password_mail" id="" type="radio" value="n">발송안함</label>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>발송자이메일</dt>
+                        <dd><input name="dm_password_email" id="dm_password_email" type="text" class="wd50"> <span class="noty">발송자 이메일 정보가 없으면 자동메일이 발송되지 않습니다.</span></dd>
+                    </dl>
+                    <dl>
+                        <dt>제목</dt>
+                        <dd><input name="dm_password_subject" id="dm_password_subject" type="text" value="" placeholder="{사이트명} 임시비밀번호를 안내해드립니다."></dd>
+                    </dl>
+                    <dl>
+                        <dt>내용</dt>
+                        <dd>
+                            <?=$dm_password_content_html?>
+                        </dd>
+                    </dl>
+                    <h3>게시글 답변 메일 설정</h3>
+                    <dl>
+                        <dt>발송여부</dt>
+                        <dd>
+                            <label><input name="dm_use_reply_mail" id="" type="radio" value="y">발송함</label>
+                            <label><input name="dm_use_reply_mail" id="" type="radio" value="n">발송안함</label>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>발송자이메일</dt>
+                        <dd><input name="dm_reply_email" id="dm_reply_email" type="text" class="wd50"> <span class="noty">발송자 이메일 정보가 없으면 자동메일이 발송되지 않습니다.</span></dd>
+                    </dl>
+                    <dl>
+                        <dt>제목</dt>
+                        <dd><input name="dm_reply_subject" id="dm_reply_subject" type="text" value="" placeholder="{사이트명} 등록하신 글에 대한 답변입니다."></dd>
+                    </dl>
+                    <dl>
+                        <dt>내용</dt>
+                        <dd>
+                            <?=$dm_reply_content_html?>
+                        </dd>
+                    </dl>
+                    <h3>회원탈퇴 메일 설정</h3>
+                    <dl>
+                        <dt>발송여부</dt>
+                        <dd>
+                            <label><input name="dm_use_out_mail" id="" type="radio" value="y">발송함</label>
+                            <label><input name="dm_use_out_mail" id="" type="radio" value="n">발송안함</label>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>발송자이메일</dt>
+                        <dd><input name="dm_out_email" id="dm_out_email" type="text" class="wd50"> <span class="noty">발송자 이메일 정보가 없으면 자동메일이 발송되지 않습니다.</span></dd>
+                    </dl>
+                    <dl>
+                        <dt>제목</dt>
+                        <dd><input name="dm_out_subject" id="dm_out_subject" type="text" value="" placeholder="{사이트명} 회원탈퇴가 완료되었습니다."></dd>
+                    </dl>
+                    <dl>
+                        <dt>내용</dt>
+                        <dd>
+                            <?=$dm_out_content_html?>
+                        </dd>
+                    </dl>
+                </div>
+            </form>
+
+<?
+require('../../lib/page_bottom.php');
+?>

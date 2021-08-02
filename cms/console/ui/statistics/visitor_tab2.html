@@ -1,0 +1,5 @@
+<ul class="Tabs mt30">
+    <li<?php if(preg_match("/visitor_env_u/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a  onclick="location.href='/diam/cms/console/ui/statistics/visitor_env_u.html'">운영체제 현황</a></li>
+    <li<?php if(preg_match("/visit_browser/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a onclick="location.href='/diam/cms/console/ui/statistics/visit_browser.html'">브라우저 현황</a></li>
+</ul>
+<script>var widthSize = $('.Contents').width();</script>

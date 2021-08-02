@@ -1,0 +1,183 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+<script>
+    $(function () {
+        $('#dg').datagrid({
+            onClickCell : function(rowIndex, field, value) {
+                selectedDg(rowIndex);
+            },
+            onDblClickCell: function(index,field,value){
+                $('#dg').datagrid('selectRow',index);
+                var currentRow = $("#dg").datagrid("getSelected");
+                window.parent.addTab("<" + currentRow.text + "> 세부정보",'<?=$_VAR_PATH_UI?>page/page_form_u.html?dm_id='+currentRow.id,true,'','');
+            },
+            emptyMsg:'데이터가 없습니다.',
+            onLoadSuccess:function(){
+                $(this).datagrid('getPanel').find('.easyui-linkbutton').each(function(){
+                    $(this).linkbutton({
+
+                    });
+                });
+            }
+        });
+
+        function newPage()
+        {
+            window.parent.addTab('페이지 생성','<?=$_VAR_PATH_UI?>page/page_form_u.html',true,'','');
+        }
+
+        function deletePage(){
+            var ids = [];
+            var rows = $('#dg').datagrid('getChecked');
+            if (rows.length > 0) {
+                for(var i=0; i<rows.length; i++){
+                    ids.push(rows[i].id);
+                }
+
+                $.each(ids, function (index, value) {
+                        $.post('<?=$_VAR_PATH_BIZ?>app/mng_page.php?type=delete',{chk_dm_id:value},function(result){
+                            if (result.success){
+                                console.log(result);
+                            }
+                        },'json')
+                    }
+
+                );
+                $('#dg').datagrid('reload');    // reload the user data
+            } else {
+                $.messager.alert('경고', "삭제할 항목을 선택해주세요", 'warning');
+            }
+        }
+
+        $("#stx").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        $("#fnNew").off().on('click', function () {
+            newPage();
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    deletePage();
+                }
+            });
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+        $("#search_btn").off().on('click', function () {
+            doSearch();
+        });
+
+    });
+
+    function selectedDg(rowIndex) {
+        $('#dg').datagrid('selectRow',rowIndex);
+        var currentRow =$("#dg").datagrid("getSelected");
+        if (currentRow)
+        {
+            $("#dm_id").textbox('setValue', currentRow.dm_id);
+            $("#dm_domain_nm").textbox('setValue', currentRow.dm_domain_nm);
+            $("#dm_domain_url").textbox('setValue', currentRow.dm_domain_url);
+            $("#dm_domain_root").textbox('setValue', currentRow.dm_domain_root);
+            $("#dm_domain_admin").textbox('setValue', currentRow.dm_domain_admin);
+            $('#dm_domain_status').combobox('setValue', currentRow.dm_domain_status);
+            $("#dm_domain_description").val(currentRow.dm_domain_description);
+            $("#dm_mode").val("update");
+        }
+    }
+
+    function doSearch() {
+        var search_type = $('#search_type').val();
+        var search_value = $('#stx').val();
+
+        $('#dg').datagrid('load',
+            {
+                search_type : encodeURIComponent(search_type),
+                search_value : encodeURIComponent(search_value)
+            })
+    }
+
+    function allList() {
+        $("#search_type").val('all');
+        $("#stx").val('');
+
+        $("#dg").datagrid('load', {
+            search_type: '',
+            search_value: ''
+        });
+    }
+
+    function formatDetail(value,row){
+        var href = '<?=$_VAR_WEB_URL?>?contentId='+row.dm_uid;
+        return '<a href="' + href + '" class="btn bt08">수정</a> <a href="' + href + '" class="btn" target="_blank">보기</a>';
+    }
+</script>
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/datagrid-detailview.js"></script>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+            <!--           <div class="btnWrap">
+                 <button id="fnSave">저장</button>
+                <button id="fnNew" class="bt01">신규생성</button>
+            </div>-->
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>통합검색</strong></dt>
+                    <dd>
+                        <select name="search_type" id="search_type">
+                            <option value="all">통합검색</option>
+                            <option value="dm_page_name">페이지이름</option>
+                            <option value="dm_title">타이틀</option>
+                        </select>
+                        <input type="text" name="search_value" value="" id="stx">
+                    </dd>
+                </dl>
+            </div>
+            <button class="btn bt00" id="search_btn">검색</button>
+            <button class="btn" onclick="allList()">초기화</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <table id="dg"
+               class="easyui-datagrid" fit="true" border="false"
+               data-options="pagePosition:'top',rownumbers:true,pagination:true, singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_page.php?type=select',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false"
+                pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+            <thead>
+            <tr>
+                <th data-options="field:'dm_title',width:300,align:'left'"><p align="center">경로</p></th>
+                <th data-options="field:'text',width:150,align:'left'"><p align="center">메뉴</p></th>
+                <th data-options="field:'dm_modify_dt',width:150,align:'center'">최종수정일자</th>
+                <th data-options="field:'dm_version',width:50,align:'center',fixed:true">버전</th>
+                <th data-options="field:'dm_status_text',width:60,align:'center'">상태</th>
+                <th field ="detail" width = "70" formatter="formatDetail" align="center">관리</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+    <div data-options="region:'south'">
+        <dl class="Tbottom">
+            <dd>
+                <button class="btn" id="fnRemove">선택삭제</button>
+            </dd>
+        </dl>
+    </div>
+</div>
+<?
+require('../../lib/page_bottom.php');
+?>

@@ -1,0 +1,363 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+<script>
+    $(function () {
+        function fnNew() {
+            $("#dm_id").val('');
+            $("#dm_visual_alt").val('');
+            $("#dm_start_dt").datebox('setValue', '');
+            $("#dm_end_dt").datebox('setValue', '');
+            $("#dm_visual_link").val('');
+            $("#image").children('img').remove();
+            $("#image").children('label').remove();
+            $("#mobile_image").children('img').remove();
+            $("#mobile_image").children('label').remove();
+            $("#dm_link_target").val('_blank');
+            $("#dm_status").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1001');
+            $("#dm_mode").val('visual_insert');
+        }
+
+        function fnSave() {
+            var dm_visual_alt = $("#dm_visual_alt").val();
+            var dm_start_dt = $("#dm_start_dt").datebox('getValue');
+            var dm_end_dt = $("#dm_end_dt").datebox('getValue');
+            var dm_mode = $("#dm_mode").val();
+            var url = "<?=$_VAR_PATH_BIZ?>app/mng_design.php?type="+dm_mode;
+
+            if (dm_mode != 'visual_delete') {
+                if(dm_visual_alt == "")
+                {
+                    $.messager.alert('입력오류','이미지 설명을 입력해주세요.','warning');
+                    return;
+                }
+                if(dm_start_dt == "")
+                {
+                    $.messager.alert('입력오류','노출 시작일을 입력해주세요.','warning');
+                    return;
+                }
+                if(dm_end_dt == "")
+                {
+                    $.messager.alert('입력오류','노출 종료일을 입력해주세요.','warning');
+                    return;
+                }
+
+                if (dm_start_dt > dm_end_dt) {
+                    $.messager.alert('입력오류','시작일이 종료일보다 빠를 수 없습니다','warning');
+                    return;
+                }
+
+            }
+
+            var mode = $("#dm_mode").val();
+            // var dm_site_name = $.trim($("#dm_site_name").textbox('getValue'));
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url : url,
+                data : formData,
+                dataType: "json",
+                type : "post",
+                contentType: false,
+                processData: false,
+                success : function (data) {
+                    var icon = 'warning';
+                    if(data.result == "success") {
+                        $('#dg').datagrid('reload');
+                        $("#dm_mode").val('');
+                        fnNew();
+                        icon = 'info';
+                    }
+                    $.messager.alert('알림',data.notice,icon);
+                    closeDialog();
+                }
+            });
+        }
+
+        function fnRemove() {
+            var ids = [];
+            var rows = $('#dg').datagrid('getChecked');
+
+            if (rows.length > 0) {
+                for(var i=0; i<rows.length; i++){
+                    ids.push(rows[i].dm_id);
+                }
+
+                $.each(ids, function (index, value) {
+                        $.post('<?=$_VAR_PATH_BIZ?>app/mng_design.php?type=visual_delete',{dm_id:value},function(result){
+                            if (result.success){
+                                console.log(result);
+                            }
+                        },'json')
+                    }
+
+                );
+                $('#dg').datagrid('reload');    // reload the user data
+            } else {
+                $.messager.alert('경고', "삭제할 항목을 선택해주세요", 'warning');
+            }
+        }
+
+        function doSearch() {
+            var search_type = $('#search_type').val();
+            var search_value = $('#stx').val();
+            var search_status = $('#search_status').combobox('getValue');
+
+            $('#dg').datagrid('load',
+                {
+                    search_type : encodeURIComponent(search_type),
+                    search_value : encodeURIComponent(search_value),
+                    search_status : encodeURIComponent(search_status)
+                })
+        }
+
+        function closeDialog()
+        {
+            $("#dlg").dialog('close');
+        }
+
+        $('#dg').datagrid({
+            onDblClickCell : function(rowIndex, field, value) {
+                selectedDg(rowIndex);
+            },
+            emptyMsg:'데이터가 없습니다.'
+        });
+
+        closeDialog();
+
+        $("#fnNew").off().on('click', function () {
+            $("#dialog_title").text("메인비주얼 등록");
+            $("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+            fnNew();
+        });
+
+        $("#fnClose").off().on('click', function () {
+            closeDialog();
+        });
+
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    fnRemove();
+                }
+            });
+        });
+
+        $("#search_btn").off().on('click', function () {
+            doSearch();
+        });
+
+        $("#stx").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+        $("#detail_search").off().on('click', function () {
+            $("#Dsearch").toggle();
+        });
+    });
+
+    function selectedDg(rowIndex)
+    {
+        $('#dg').datagrid('selectRow',rowIndex);
+        var currentRow =$("#dg").datagrid("getSelected");
+        $("#image").children('img').remove();
+        $("#image").children('label').remove();
+        $("#mobile_image").children('img').remove();
+        $("#mobile_image").children('label').remove();
+        if (currentRow)
+        {
+            $("#dm_id").val(currentRow.dm_id);
+            $("#dm_visual_alt").val(currentRow.dm_visual_alt);
+            $("#dm_start_dt").datebox('setValue', currentRow.dm_start_dt);
+            $("#dm_end_dt").datebox('setValue', currentRow.dm_end_dt);
+            $("#dm_visual_link").val(currentRow.dm_visual_link);
+            if (currentRow.dm_image_url) {
+                $("#image").append('<img src="'+currentRow.dm_image_url+'" > <label><input type="checkbox" name="dm_del_image" value="1"/> 삭제</label>');
+            }
+
+            if (currentRow.dm_mobile_image_url) {
+                $("#mobile_image").append('<img src="'+currentRow.dm_mobile_image_url+'" > <label><input type="checkbox" name="dm_del_mobile_image" value="1"/> 삭제</label>');
+            }
+
+            $("#dm_status").combobox('setValue', currentRow.dm_status);
+            $("#dm_mode").val("visual_update");
+            $("#dialog_title").text("메인비주얼 수정");
+            $("#dm_order").val(currentRow.dm_order);
+            $("#dm_link_target").val(currentRow.dm_link_target);
+            $("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+        }
+    }
+
+    function allList() {
+        $("#search_type").val('all');
+        $("#stx").val('');
+        $("#search_status").combobox('reload');
+        $("#dg").datagrid('load', {
+            search_type: '',
+            search_value : '',
+            search_status : ''
+        });
+    }
+
+</script>
+
+
+<div class="easyui-layout" style="width:700px;height:350px;" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+            <div class="btnWrap">
+                <button id="fnNew" class="bt08">+ 등록</button>
+            </div>
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>상태</strong></dt>
+                    <dd>
+                        <select id="search_status" name="search_status" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&search=1&group=1001',
+                                                    method: 'get',
+                                                    valueField: 'dm_code_value',
+                                                    textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><strong>통합검색</strong></dt>
+                    <dd>
+                        <select name="search_type" id="search_type">
+                            <option value="all">통합검색</option>
+                            <option value="dm_popup_nm">제목</option>
+                            <option value="dm_start_dt">시작일</option>
+                            <option value="dm_end_dt">종료일</option>
+                            <option value="dm_create_dt">등록일</option>
+                        </select>
+                        <input type="text" name="search_value" value="" id="stx">
+                    </dd>
+                </dl>
+            </div>
+            <button class="btn bt00" id="search_btn">검색</button>
+            <button class="btn" onclick="allList()">초기화</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <table id="dg"
+               class="easyui-datagrid" fit="true" border="false"
+               data-options="pagePosition:'top',rownumbers:true,pagination:true, singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_design.php?type=visual_select',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false,footer:'#ft'"
+               pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+            <thead>
+            <tr>
+                <th data-options="field:'ck',width:100,align:'center',checkbox:true,
+            editor:{
+                type:'checkbox',
+                options:{
+                    on:'Y',
+                    off:'N'
+                }
+            }">-</th>
+                <th data-options="field:'dm_visual_alt',width:200,align:'center'">이미지 설명</th>
+                <th data-options="field:'dm_start_dt',width:200,align:'center'">시작일</th>
+                <th data-options="field:'dm_end_dt',width:200,align:'center'">종료일</th>
+                <th data-options="field:'dm_create_dt',width:200,align:'center'">등록일</th>
+                <th data-options="field:'dm_status_text',width:150,align:'center'">상태</th>
+            </tr>
+            </thead>
+        </table>
+        <div id="dlg" class="easyui-dialog" style="width:600px; height: 700px;">
+            <form id="fm" method="post" novalidate>
+                <input type="hidden" name="dm_mode" id="dm_mode" value="visual_insert"/>
+                <input type="hidden" name="dm_id" value="" id="dm_id" />
+                <input type="hidden" name="dm_domain_id" id="dm_domain_id" value="1" />
+                <div class="page">
+                    <h3 id="dialog_title">메인비주얼 등록</h3>
+                    <dl>
+                        <dt>이미지 설명</dt>
+                        <dd><input type="text" name="dm_visual_alt" id="dm_visual_alt" /></dd>
+                    </dl>
+                    <dl>
+                        <dt>노출 기간</dt>
+                        <dd>
+                            <input type="text" name="dm_start_dt" id="dm_start_dt" class="easyui-datebox wd15" data-options="formatter:myformatter,parser:myparser" /> ~
+                            <input type="text" name="dm_end_dt" id="dm_end_dt" class="easyui-datebox wd15" data-options="formatter:myformatter,parser:myparser"  />
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>링크</dt>
+                        <dd>
+                            <input type="text" name="dm_visual_link" id="dm_visual_link" placeholder="link" class="wd50"/>
+                            <select name="dm_link_target" id="dm_link_target">
+                                <option value="_blank">새창</option>
+                                <option value="_self">현재창</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>이미지</dt>
+                        <dd id="image">
+                            <input type="file" name="dm_visual_image" id="dm_visual_image"  />
+                            <p class="noty">이미지 사이즈 : 597px X 168px</p>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>모바일 이미지</dt>
+                        <dd id="mobile_image">
+                            <input type="file" name="dm_visual_mobile_image" id="dm_visual_mobile_image"  />
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>순서</dt>
+                        <dd>
+                            <input type="text" name="dm_order" id="dm_order" placeholder="1" value="1" />
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>상태</dt>
+                        <dd>
+                            <select id="dm_status" name="dm_status" class="easyui-combobox" panelHeight="auto"
+                                    data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1001',
+                                                    method: 'get',
+                                                    valueField: 'dm_code_value',
+                                                    textField: 'dm_code_name'" ></select>
+                        </dd>
+                    </dl>
+                </div>
+                <div style="text-align: center;">
+                    <a href="javascript:void(0);" id="fnClose" class="easyui-linkbutton" style="width:120px;height:30px">취소</a>
+                    <a href="javascript:void(0);" id="fnSave" class="easyui-linkbutton" style="width:120px;height:30px">저장</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div data-options="region:'south'">
+        <dl class="Tbottom">
+            <dd>
+                <button class="btn" id="fnRemove">선택삭제</button>
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<?
+require('../../lib/page_bottom.php');
+?>

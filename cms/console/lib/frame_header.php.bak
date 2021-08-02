@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<?
+	include "../lib/lib.php";
+?>
+<title><?=$_TITLE?></title>
+
+<script type="text/javascript" src="<?=$_VAR_PATH_JS?>jquery/jquery-1.4.3.min.js"></script>
+<script type="text/javascript" src="<?=$_VAR_PATH_JS?>jquery/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="<?=$_VAR_PATH_JS?>common.js"></script>
+
+<link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_JS?>easyui/themes/bootstrap/easyui.css">
+<link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_JS?>easyui/themes/icon.css">
+<script type="text/javascript" src="<?=$_VAR_PATH_JS?>easyui/jquery.easyui.min.js"></script>
+<meta http-equiv="Content-Type" charset="UTF-8">
+<style type="text/css">
+<!--
+body {
+	background-color: #ffffff;
+}
+td,p,INPUT,SELECT,div,body,textarea {font-family:맑은 고딕,Verdana,Arial,Helvetica,sans-serif;font-size:9pt;}
+-->
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var index = 0;
+function addTab(nm, src, close, icon, page)
+{  
+	index+=1;
+
+	var nDocumentWidth = $(window).width();
+	var nDocumentHeight = $(window).height()-100;
+	var nScrollWidth = 0, nScrollHeight = 0;
+	
+	
+	$('#m_frame').tabs('add',{
+		id: index,
+		title: nm,  
+		content: '<div data-options="closable:true,fit:true" class="wrap-tabs-content"><iframe id="tab_'+ index +'" name="tab_'+ index +'" scrolling="auto" frameborder="0"  src="' + src + '" style="width:100%;height:' + nDocumentHeight +'px"></iframe></div>',  
+		closable: close,
+		iconCls: icon,
+		fit:true
+	});
+}
+function fnLogout()
+{
+
+}
+$(document).ready(function(){
+	
+});
+
+</SCRIPT>
+<!-- <?
+	if($ck_user_id == "")
+	{
+		echo "<script>$(window.top.location).attr('href','/jseng/ui/login.html')</script>";	
+		//exit();
+	}
+?> -->
+</head>
+<body style="overflow:hidden;" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" rightmargin="0" width="100%" height="100%" valign="top" bgcolor="#000000"  cellspacing="0" cellpadding="0">
+<div class="easyui-layout" style="width:700px;height:350px;" fit="true">
+	<div data-options="region:'north'" style="height:60px">
+		<table width="100%" height="58" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td width="152" >&nbsp;</td>
+			<td width="120">&nbsp;</td>	
+			<td align="right">&nbsp;</td>
+			<td width="15">&nbsp;</td>
+			<td width="400" align="right" valign="middle">
+				<div class="easyui-panel" align="right" style="padding:5px;" width="920px">
+					<a href="#" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">HOME</a>
+					<a href="#" class="easyui-menubutton" data-options="menu:'#mm1',iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">사이트관리</a>
+					<a href="#" class="easyui-menubutton" data-options="menu:'#mm2',iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">화면관리</a>
+					<a href="#" class="easyui-menubutton" data-options="menu:'#mm3',iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">게시판관리</a>
+					<a href="#" class="easyui-menubutton" data-options="menu:'#mm4',iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">회원관리</a>
+					<a href="#" class="easyui-menubutton" data-options="menu:'#mm5',iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">통계</a>
+					<a href="#" class="easyui-menubutton" data-options="menu:'#mm6',iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">환경설정</a>
+					<a href="#" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-ok'" onclick="fnLogout();" style="color:gray" align="right"><b>('테스트' 님) 로그인 중</b></a>
+				</div>
+			</td> 
+			<td width="5">&nbsp;</td>
+		</tr>
+	  </table>
+		
+		<div id="mm1" style="width:150px;">
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('도메인관리','<?=$_VAR_PATH_UI?>site/site.html',true,'icon-ok','');">도메인</div>
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">관리자</div>
+		</div>
+		<div id="mm2" style="width:150px;">
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">메인페이지</div>
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">메뉴</div>
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">레이아웃</div>
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">페이지</div>
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">팝업</div>
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">배너</div>
+		</div>
+		<div id="mm3" style="width:150px;">
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">게시판관리</div>
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">카테고리관리</div>
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">게시글관리</div>
+		</div>
+		<div id="mm4" style="width:150px;">
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">회원관리</div>
+		</div>
+		<div id="mm5" style="width:150px;">
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">접속자통계</div>
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">게시판통계</div>
+		</div>
+		<div id="mm6" style="width:150px;">
+			<div data-options="iconCls:'icon-ok'" onclick="javascript:addTab('','','','','');">권한관리</div>
+		</div>
+	</div>
+</div>

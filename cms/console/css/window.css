@@ -1,0 +1,18 @@
+@charset "utf-8";
+
+/*Modal*/
+.window{border-radius:0;vertical-align:middle;background:#fff;border-color:rgba(0,0,0,0.5);max-width: 80%; max-height:85%;overflow-y:auto !important}
+.window-shadow{display:none !important;}
+.window .window-body,.window .panel-header{border:0;}
+.window .panel-header{ position: relative;z-index:10}
+.window .window-header{padding:0}
+.window .panel-title{/*height:auto;font-family:"Nanum Square";font-size:18px;font-weight:900;line-height:normal;*/height: 0;font-size:0;}
+.window .window-header .panel-tool{height: auto;top:15px;right:10px; margin: 0}
+.window .window-header .panel-tool a{opacity: 1; background-color: transparent !important; }
+.window .panel-tool-close{ width: 22px; height: 22px; background: url(../images/window_close.png) no-repeat;}
+
+.window .panel-body .page{padding:15px 15px 30px}
+.window .easyui-linkbutton:nth-last-child(1),.window .easyui-linkbutton:nth-last-child(2){height:40px !important;}
+.window .easyui-linkbutton > span{margin:0 !important;display: table; width: 100%; height: inherit;}
+.window .easyui-linkbutton > span > span{display: table-cell;vertical-align: middle;text-align: center; font-weight: 600; font-size: 110%}
+.window .easyui-linkbutton:nth-last-child(1){color: #fff}

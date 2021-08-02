@@ -1,0 +1,75 @@
+<?php if ($PAGE_VAL['dm_main_content'] != 1) { ?>
+        </div>
+    </div>
+</div>
+<? } ?>
+<!-- /////////////////////////////////// Footer - START /////////////////////////////////// -->
+<footer>
+    <div class="container">        
+            <div class="link">
+				<ul>
+					<!--li><a href="">회사소개</a></li-->
+                    <? if ($CONFIG['dm_private_use'] == 'y') { ?>
+					<li><a href="?contentId=1012d52dbc66334bcbd8985beb4d8e34">개인정보처리방침</a></li>
+                    <? } ?>
+					<!--li><a href="">이메일무단수집거부</a></li-->
+                    <? if ($CONFIG['dm_policy_use'] == 'y') { ?>
+					<li><a href="?contentId=acbf50da9a68059bca80a16b7e7714c5">이용약관</a></li>
+                    <? } ?>
+                    <? if ($CONFIG['dm_information_use'] == 'y') { ?>
+                        <li><a href="?contentId=2ba196017c5dd423cc50acbd50ce6434">이용안내</a></li>
+                    <? } ?>
+                    <? if ($MEMBER['dm_is_member'] >= 6) { ?>
+                        <li><a href="<?=$_VAR_URL_WEB_URL?>/diam/cms/" target="_blank">관리자</a></li>
+                    <? } ?>
+				</ul>
+			</div>
+            <div class="info">
+                <span><?=$CONFIG['dm_company_name']?></span>
+                <span><em>대표</em> <?=$CONFIG['dm_ceo']?></span>              
+                <span><em>TEL</em> <?=$CONFIG['dm_tel']?></span>
+                <span><em>FAX</em> <?=$CONFIG['dm_fax']?></span>
+                <span><em>E-MAIL</em> <?=$CONFIG['dm_ceo_email']?></span><br />
+				<span>(<?=$CONFIG['dm_zip']?>) <?=$CONFIG['dm_addr1']?> <?=$CONFIG['dm_addr2']?> <?=$CONFIG['dm_addr3']?></span>
+                <copyright>Copyright (c) 2020 <?=$CONFIG['dm_company_name']?>. All Right Reserved.</copyright>
+            </div>     
+    </div>
+</footer>
+<button type="button" id="top_btn"><span class="sound_only">상단으로</span></button>
+<? if ($MEMBER['dm_levelup'] == 1) { ?>
+    <div id="mask"></div>
+    <div Id="levelLayer">
+        <h2><?=$MEMBER['dm_name']?>님</h2>
+        <p>레벨이 <em><?=$MEMBER['dm_level']?></em>(으)로 등업되었습니다.</p>
+        <a onclick="btnexit2();" class="close2 levelup_pop">닫기</a>
+    </div><!--//levelLayer-->
+<? } ?>
+
+<? if (!getTodayLogin() && $PAGE_VAL['dm_main_content'] == 1) { ?>
+<div id="mask"></div>
+<div Id="voteLayer">
+    <div class="box">
+        <h2>투표하기 </h2>
+        <em><img src="<?=$layout_path?>images/survey.png"></em>
+        <span>담다프로젝트와 함께하세요</span>
+        <p>다양한 투표와 설문조사가 있습니다.<br /> 많은 참여 바랍니다.</p>
+        <a href="?contentId=2a38a4a9316c49e5a833517c45d31070" class="go">바로가기</a>        
+        <a onclick="btnexit();" class="close2">닫기</a>     
+   </div>
+</div><!--//levelLayer-->
+<? } ?>
+<script> 
+    function btnexit2(){
+        $('#levelLayer').hide();
+        $('#mask').hide();        
+    }
+    function btnexit(){
+        $('#voteLayer').hide();
+        $('#mask').hide();        
+    }
+
+</script>
+</div>
+</body>
+</html>
+<!-- /////////////////////////////////// Footer - END /////////////////////////////////// -->

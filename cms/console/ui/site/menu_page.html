@@ -1,0 +1,434 @@
+<?php
+require('../../lib/page_header.php');
+?>
+<script>
+
+    $(function () {
+        function doSearch() {
+            $("#dg1").datagrid('load', {
+                search_nm: $("#search_name").val()
+            });
+        }
+
+        function fnNew()
+        {
+            var dm_parent_id = $("#dm_id").val();
+            $("#dm_id").val('');
+            $("#dm_menu_nm").val('');
+            $("#dm_menu_text").val('');
+            $("#dm_parent_id").combotree('reload', '<?=$_VAR_PATH_BIZ ?>app/mng_menu.php?type=select').combotree('setValue', dm_parent_id);
+            $('#dm_link_type').combobox('setValue', 1);
+            $("#dm_link_data_text").hide();
+            $("#link_text").attr("disabled", true);
+            $("#link_combo").combobox({
+                disabled:false
+            });
+            $("#dm_link_data_combo").show();
+            $('#dm_link_target').combobox('setValue', '_SELF');
+            $('#dm_menu_view').combobox('setValue', 1);
+            $('#dm_menu_desc').val('');
+            $("#dm_menu_order").numberspinner('setValue', 1);
+            $("#dm_url").val("");
+            $("#dm_level").combobox("setValue", 0);
+            $("#title").text('신규 메뉴');
+        }
+
+        function fnSave() {
+            var dm_menu_nm = $.trim($("#dm_menu_nm").val());
+            var dm_menu_text = $.trim($("#dm_menu_text").val());
+            var dm_link_data = "";
+            var dm_link_type = $.trim($("#dm_link_type").combobox('getValue'));
+            var dm_parent_id = $.trim($("#dm_parent_id").combotree('getValue'));
+            var dm_mode = $.trim($("#dm_mode").val());
+            var url = "";
+
+            if (dm_link_type == 1) {
+                dm_link_data = $.trim($("#link_combo").combobox('getValue'));
+            } else {
+                dm_link_data = $.trim($("#link_text").val());
+            }
+
+            if (dm_mode == 'delete') {
+                url = "<?=$_VAR_PATH_BIZ?>app/mng_menu.php?type=delete";
+            } else {
+                url = "<?=$_VAR_PATH_BIZ?>app/mng_menu.php?type=insert";
+
+                if(dm_menu_nm == "")
+                {
+                    $.messager.alert('입력오류','이름을 입력해주세요.','warning');
+                    return;
+                }
+                if(dm_menu_text == "")
+                {
+                    $.messager.alert('입력오류','메뉴명을 입력해주세요.','warning');
+                    return;
+                }
+                if(dm_link_data == "")
+                {
+                    $.messager.alert('입력오류','연결 대상을 입력해주세요.','warning');
+                    return;
+                }
+                if(dm_parent_id == "")
+                {
+                    $.messager.alert('입력오류','상위 메뉴를 선택해주세요.','warning');
+                    $('#dm_parent_id').focus();
+                    return;
+                }
+            }
+
+            var param = $("#fm").serialize();
+
+            jQuery.ajax({
+                url: url,
+                data:param,
+                type : 'POST',
+                dataType:'json',
+                success: function(response){
+                    if(response.result == "success")
+                    {
+                        g_node_id = response._return;
+                        $('#dg').datagrid('reload');
+                        $('#tt').tree('reload');
+                        $("#dm_mode").val('');
+                        fnNew();
+                    }
+                }
+            });
+        }
+
+        function fnRemove () {
+            var dm_id = $("#dm_id").val();
+            if (dm_id != "") {
+                $("#dm_mode").val('delete');
+                $('#dg').datagrid('reload');
+                $('#tt').tree('reload');
+                fnSave();
+                fnNew();
+            } else {
+                $.messager.alert("경고", "삭제하실 항목을 선택해주세요", "warning");
+            }
+
+        }
+
+        $("#dm_link_type").combobox({
+            onChange:function (newValue, oldValue) {
+                if (newValue == 1) {
+                    $("#dm_link_data_text").hide();
+                    $("#link_text").attr("disabled", true);
+                    $("#link_combo").combobox({
+                        disabled:false
+                    });
+                    $("#dm_link_data_combo").show();
+                } else {
+                    $("#dm_link_data_text").show();
+                    $("#link_combo").combobox({
+                        disabled:true
+                    });
+                    $("#link_text").attr("disabled", false);
+                    $("#dm_link_data_combo").hide();
+                }
+            }
+        });
+
+        $("#link_combo").combobox({
+            onChange:function (newValue, oldValue) {
+                var content_id = newValue;
+                var url = '?contentId='+content_id;
+                $("#dm_url").val(url);
+            }
+        });
+
+        $("#dm_link_data_text").hide();
+        $("#dlg").dialog({
+            title : "페이지 선택"
+        }).dialog("close");
+
+        $('#dg1').datagrid({
+            url : '<?=$_VAR_PATH_BIZ?>app/mng_page.php?type=select_table'
+        });
+
+        $("#search_name").off().on('keypress' , function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        $("#search_btn").off().on('click', function () {
+            doSearch();
+        });
+
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        $("#fnNew").off().on('click', function () {
+            fnNew();
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    fnRemove();
+                }
+            });
+        });
+    });
+
+    function selectedDg(rowIndex)
+    {
+        $('#dg').datagrid('selectRow',rowIndex);
+        var currentRow =$("#dg").datagrid("getSelected");
+        if (currentRow)
+        {
+
+            $("#dm_id").val(currentRow.dm_id);
+            $("#dm_parent_id").combotree('setValue', currentRow.dm_parent_id);
+            $("#dm_menu_nm").val(currentRow.dm_menu_nm);
+            $("#dm_menu_text").val(currentRow.dm_menu_text);
+            $('#dm_link_type').combobox('setValue', currentRow.dm_link_type);
+            $('#dm_link_target').combobox('setValue', currentRow.dm_link_target);
+            $('#dm_menu_view').combobox('setValue', currentRow.dm_menu_view);
+            $('#dm_level').combobox('setValue', currentRow.dm_level);
+
+
+            if (currentRow.dm_link_type == 1) {
+                $("#dm_link_data_text").hide();
+
+                $("#link_text").attr("disabled", true);
+                $("#link_combo").combobox({
+                    disabled:false
+                });
+                $("#dm_link_data_combo").show();
+
+                $('#link_combo').combobox('setValue', currentRow.dm_link_data);
+
+            } else {
+                $("#dm_link_data_combo").hide();
+
+                $("#link_text").attr("disabled", false);
+                $("#link_combo").combobox({
+                    disabled:true
+                });
+                $("#dm_link_data_text").show();
+                $('#link_text').val(currentRow.dm_link_data);
+            }
+
+
+            $('#dm_menu_order').numberspinner('setValue', currentRow.dm_menu_order);
+
+            if (currentRow.dm_id == 1) {
+                $("#thema").show();
+            } else {
+                $("#thema").hide();
+            }
+            $('#dm_url').val(currentRow.dm_url);
+            $("#title").text(currentRow.dm_menu_nm);
+        }
+    }
+
+    function fnOpen() {
+        $("#dlg").dialog('open');
+        $("#search_name").focus();
+        $('#dg1').datagrid({
+            url : '<?=$_VAR_PATH_BIZ?>app/mng_page.php?type=select_table',
+            onDblClickCell: function(index,field,value){
+                $('#dg1').datagrid('selectRow',index);
+                var currentRow = $("#dg1").datagrid("getSelected");
+                $("#link_combo").combobox('setValue', currentRow.dm_uid);
+                $("#dlg").dialog('close');
+            },
+        });
+    }
+
+    function allList() {
+        $("#search_name").searchbox('setValue', '');
+
+        $("#dg1").datagrid('load', {
+            search_nm: $("#search_name").searchbox('getValue')
+        });
+    }
+
+</script>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false" class="title">
+        <h1><?=$current_page_info['dm_view_title']?></h1>
+        <div class="btnWrap">
+            <button id="fnSave">저장</button>
+            <button id="fnNew" class="bt01">1차메뉴생성</button>
+            <button id="fnRemove" class="bt03">삭제</button>
+        </div>
+    </div>
+    <form style="display:none;" id="delete_fm">
+        <input type="text" name="dm_id" id="delete_dm_id" value="" />
+    </form>
+    <form id="fm" method="post" novalidate>
+        <div data-options="region:'west',split:true,border:false" style="width:260px;" class="nav">
+            <ul id="tt" class="easyui-tree" fit="true" width="100%" data-options="
+        url:'<?=$_VAR_PATH_BIZ?>app/mng_menu.php?type=select',
+        method:'get',
+        animate:true,
+        dnd:false,
+        onSelect: function(node){
+            var rows = $('#dg').datagrid('getRows');
+            for(var i=0; i<rows.length; i++)
+			{
+				var row = rows[i];
+				if(row.dm_id == node.id)
+				{
+					selectedDg(i);
+					return;
+				}
+			}
+        }, onDrop : function (targetNode, source, point) {
+            console.log(source.id);
+        }
+
+    "></ul>
+        </div>
+        <div data-options="region:'center',border:false" style="width:100%;">
+            <div class="easyui-layout" fit="true" data-options="border:false">
+                <div data-options="region:'center', border:false">
+                    <div class="page">
+                        <h3 id="title">메뉴설정</h3>
+                        <dl>
+                            <dt>메뉴명</dt>
+                            <dd>
+                                <input type="text" name="dm_menu_nm" id="dm_menu_nm" value=""/ required>
+                                <input type="hidden" name="dm_id" id="dm_id" value="" />
+                                <input type="hidden" name="dm_mode" id="dm_mode" value="" />
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>서브메뉴명</dt>
+                            <dd>
+                                <input type="text" name="dm_menu_text" id="dm_menu_text" value="" />
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>사용여부</dt>
+                            <dd>
+                                <label><input type="radio">사용</label> &nbsp;
+                                <label><input type="radio">사용안함</label>
+                                <span class="noty">'사용안함' 설정시 하위메뉴까지 영향을 받습니다.</span>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>상단메뉴출력</dt>
+                            <dd>
+                                <label><input type="radio">사용함</label> &nbsp;
+                                <label><input type="radio">사용안함</label>
+                                <span class="noty">'사용안함' 설정시 하위메뉴까지 상단메뉴에 출력 되지 않습니다.</span>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>타겟&nbsp;</dt>
+                            <dd>
+                                <label><input type="radio">현재창</label> &nbsp;
+                                <label><input type="radio">새창</label>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>접근권한</dt>
+                            <dd>
+                                <label><input type="radio">전체(회원+비회원)</label> &nbsp;   
+                                <label><input type="radio">회원전용(비회원제외)</label> &nbsp;  
+                                <label><input type="radio">특정 회원등급</label> <a href="javascript:fnOpen();" class="easyui-linkbutton">회원등급선택</a> &nbsp;   
+                                <label><input type="checkbox">하위 메뉴 동일 적용</label>
+                            </dd>
+                        </dl>
+                        
+                        <h3>페이지설정</h3>
+                        <dl>
+                            <dt>출력형태설정</dt>
+                            <dd>
+                                <label><input type="radio">준비중</label> &nbsp;
+                                <label><input type="radio">일반 HTML</label> &nbsp;
+                                <label><input type="radio">링크</label>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dd>
+                            웹에디터
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>링크설정</dt>
+                            <dd>
+                                <select>
+                                    <option value="">URL 직접입력</option>
+                                    <!-- loop-->
+                                    <option style="background-color:#e6f4fd">[1차] 1차메뉴명</option>                                    
+                                    <!-- loop-->
+                                    <option>[2차] 2차메뉴명</option>
+                                    <!-- loop-->
+                                    <option style="background-color:#f2f2f2">[3차] 3차메뉴명</option>
+                                </select>
+                                <input type="text" name="dm_url" id="dm_url" class="wd70">
+                            </dd>
+                        </dl>
+                    </div>
+    </form>
+</div>
+<!--
+<div data-options="region:'south'" border="false" style="height:40px;">
+    <table width="100%" height="100%" style="border:solid 0px #f6c1bc;" cellpadding="0" cellspacing="0">
+        <tr>
+            <td align="left">&nbsp;
+                <a href="javascript:fnRemove();" class="easyui-linkbutton" style="width:120px;height:30px;"" >
+                삭제
+                </a>
+            </td>
+            <td align="right">
+                <a href="#" class="easyui-linkbutton" style="width:120px;height:30px" onclick="fnNew()">신규생성</a>
+                <a href="javascript:fnSave();" class="easyui-linkbutton" style="width:120px;height:30px" >저장</a>
+            </td>
+        </tr>
+    </table>
+</div>
+-->
+</div>
+</div>
+<div style="display:none;">
+    <table id="dg" class="easyui-datagrid" data-options="rownumbers:true,pagination:true,singleSelect:true, url:'<?=$_VAR_PATH_BIZ?>app/mng_menu.php?type=select_table',method:'get',toolbar:'#tb',footer:'#ft',fitColumns:false,striped:true" pageList="[10,20,30,50,70,100]" pageSize="50">
+        <tr>
+            <th data-options="field:'id',width:200,align:'center'" width="100">메뉴아이디</th>
+            <th data-options="field:'dm_parent_id',width:200,align:'center'" width="100">부모메뉴아이디</th>
+            <th data-options="field:'text',width:200,align:'center'" width="100">메뉴텍스트</th>
+            <th data-options="field:'dm_menu_nm',width:200,align:'center'" width="100">메뉴이름</th>
+            <th data-options="field:'dm_thema',width:200,align:'center'" width="100">메뉴테마</th>
+            <th data-options="field:'dm_link_type',width:200,align:'center'" width="100">메뉴링크타입</th>
+            <th data-options="field:'dm_link_data',width:200,align:'center'" width="100">메뉴링크데이터</th>
+            <th data-options="field:'dm_link_target',width:200,align:'center'" width="100">메뉴링크타겟</th>
+            <th data-options="field:'dm_menu_view',width:200,align:'center'" width="100">메뉴뷰</th>
+            <th data-options="field:'dm_menu_order',width:200,align:'center'" width="100">메뉴순서</th>
+            <th data-options="field:'dm_create_dt',width:200,align:'center'" width="100">메뉴만든일</th>
+            <th data-options="field:'dm_modify_dt',width:200,align:'center'" width="100">메뉴수정일</th>
+        </tr>
+    </table>
+</div>
+<div id="dlg" class="easyui-dialog" style=" width:800px;height:500px;">
+    <table id="dg1" data-options="rownumbers:true, singleSelect:true, toolbar:'#tb1',footer:'#ft'" pageList="[10,20,30,50,70,100]" pageSize="50" pagination="true"  fit="true">
+        <thead>
+        <tr>
+            <th data-options="field:'text',width:250,align:'center'">페이지이름</th>
+            <th data-options="field:'dm_title',width:200,align:'center'">타이틀</th>
+            <th data-options="field:'dm_uid',width:186,align:'center'">uid</th>
+            <th data-options="field:'dm_modify_dt',width:120,align:'center'">최종수정일자</th>
+        </tr>
+        </thead>
+    </table>
+    <div id="tb1" style="padding:4px 8px 2px;border:solid 0px #f6c1bc;">
+        <table width="100%">
+            <tr>
+                <td>
+                    <span>타이틀:</span>
+                    <input id="search_name" value="" type="text" />
+                    <button class="btn" id="search_btn">검색</button>
+                    <button class="btn" onclick="allList()">전체목록</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+</div>

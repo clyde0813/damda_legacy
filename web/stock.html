@@ -1,0 +1,97 @@
+
+
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" /> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+    <meta name="format-detection" content="telephone=no, address=no, email=no" />
+    <meta name="Author" content="디자인아이엠 | http://diamkr.design-iam.co.kr/" />
+    <meta name="Keywords" content="메타태그 키워드">
+    <meta name="Description" content="메타태그 설명">
+    <meta name="naver-site-verification" content="네이버 인증키" />
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="디자인아이엠">
+    <meta property="og:image" content="">
+    <meta property="og:url" content="http://diamkr.design-iam.co.kr">
+    <meta property="og:description" content="메타태그 설명">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="디자인아이엠">
+    <meta name="twitter:image" content="">
+    <meta name="twitter:description" content="메타태그 설명">
+    <meta name="robots" content="ALL" />
+    <meta name="Generator" content="dcms1.0.0" />
+    <meta name="publisher" content="디자인아이엠" />
+    <link rel="canonical" href="http://diamkr.design-iam.co.kr">
+    <title>디자인아이엠</title>
+    <link rel="stylesheet" href="http://diamkr.design-iam.co.kr/diam/web/common/css/common.css">
+<script src="http://diamkr.design-iam.co.kr/diam/web/common/js/jquery-1.12.4.min.js"></script>
+<script src="http://diamkr.design-iam.co.kr/diam/web/common/bootstrap/js/bootstrap.min.js"></script>
+<script src="http://diamkr.design-iam.co.kr/diam/web/common/bxslider/dist/jquery.bxslider.min.js"></script>
+<script src="http://diamkr.design-iam.co.kr/diam/web/common/js/plugin.js"></script>
+<script src="http://diamkr.design-iam.co.kr/diam/web/common/js/base.js"></script>
+<script src="http://diamkr.design-iam.co.kr/diam/web/common/js/jquery.easing.min.js"></script>
+    <link rel="stylesheet" href="./thema/basic/css/layout.css">
+        <link rel="stylesheet" href="./thema/basic/css/main.css">
+    <script src="./thema/basic/js/main.js"></script>
+        <script>
+        var web_url = 'http://diamkr.design-iam.co.kr/diam/web/';
+        var login_url = 'http://diamkr.design-iam.co.kr/diam/web/base/login/';
+        var lib_url = 'http://diamkr.design-iam.co.kr/diam/web/lib/';
+        var board_url = 'http://diamkr.design-iam.co.kr/diam/web/base/board/';
+        var member_url = 'http://diamkr.design-iam.co.kr/diam/web/base/member/';
+        var content_id = '';
+        var web_data_url = 'http://diamkr.design-iam.co.kr/diam/web/data/';
+        var layout_path = './thema/basic/';
+    </script>
+    <script src="./thema/basic/js/common.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/diam.js"></script>
+	<script src="/diam/web/js/xml2json.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	 $.ajax({  
+		   type: "GET"
+		  ,url: "/diam/web/lib/remote_xml.php?url=https://finance.naver.com/sise/sise_index.nhn?code=KOSPI"
+		  ,success:function(data){
+			  //console.log(data);
+			//json = $.xml2json(data);
+			var index = data.indexOf("id=\"now_value\"");
+			//console.log(index);
+			var now = data.substring(index, index+50);
+			//console.log(now);
+			index = data.indexOf("https://ssl.pstatic.net/imgstock/chart3/day/");
+			var end_index = data.indexOf("\"", index);
+			var image = data.substring(index, end_index);
+			$("#img").attr("src", image);
+		  }
+		  ,error:function(data){
+			  console.log("ERROR");
+			   console.log(data);
+		  }
+	});
+
+
+
+	$.ajax({  
+		   type: "GET"
+		  ,url: "/diam/web/lib/remote_xml.php?url=https://finance.naver.com/"
+		  ,success:function(data){
+			  console.log(data);
+			
+		  }
+		  ,error:function(data){
+			  console.log("ERROR");
+			   console.log(data);
+		  }
+	});
+});	
+
+</script>
+</head>
+<body style="color:white">
+    <img id="img" name="img" width="201" height="140" src="">
+</body>
+</html>
+<!-- /////////////////////////////////// Footer - END /////////////////////////////////// -->

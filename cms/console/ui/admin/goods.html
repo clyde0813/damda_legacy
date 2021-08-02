@@ -1,0 +1,321 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+<script>
+    $(function () {
+        function fnNew() {
+            $("#dm_id").val('');
+            $("#dm_goods_name").val('');
+            $("#dm_goods_price").val('');
+            $("#dm_bonus").val('');
+            $("#dm_state").val('1');
+            $("#dm_mode").val('insert');
+            $("#dialog_title").text("상품 등록");
+            $("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+        }
+
+        function fnSave() {
+            var dm_mode = $("#dm_mode").val();
+            var url = "<?=$_VAR_PATH_BIZ?>app/mng_goods.php?type="+dm_mode;
+
+            var mode = $("#dm_mode").val();
+            // var dm_site_name = $.trim($("#dm_site_name").textbox('getValue'));
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url : url,
+                data : formData,
+                dataType: "json",
+                type : "post",
+                contentType: false,
+                processData: false,
+                success : function (data) {
+                    var icon = 'warning';
+                    if(data.result == "success") {
+                        $('#dg').datagrid('reload');
+                        $("#dm_mode").val('');
+                        fnNew();
+                        icon = 'info';
+                    }
+                    $.messager.alert('알림',data.notice,icon);
+                    closeDialog();
+                }
+            });
+        }
+
+        function fnRemove() {
+            var ids = [];
+            var rows = $('#dg').datagrid('getChecked');
+
+            if (rows.length > 0) {
+                for(var i=0; i<rows.length; i++){
+                    ids.push(rows[i].dm_id);
+                }
+
+                $.each(ids, function (index, value) {
+                        $.post('<?=$_VAR_PATH_BIZ?>app/mng_goods.php?type=delete',{dm_id:value},function(result){
+                            if (result.success){
+                                console.log(result);
+                            }
+                        },'json')
+                    }
+
+                );
+                $('#dg').datagrid('reload');    // reload the user data
+            } else {
+                $.messager.alert('경고', "삭제할 항목을 선택해주세요", 'warning');
+            }
+        }
+
+        function closeDialog()
+        {
+            $("#dlg").dialog('close');
+        }
+
+        function doSearch() {
+            var search_type = $('#search_type').val();
+            var search_value = $('#stx').val();
+
+            $('#dg').datagrid('load',
+                {
+                    search_type : encodeURIComponent(search_type),
+                    search_value : encodeURIComponent(search_value),
+                });
+        }
+
+        function fnConfirm() {
+            var ids = [];
+            var rows = $('#dg').datagrid('getChecked');
+
+            if (rows.length > 0) {
+                for(var i=0; i<rows.length; i++){
+                    ids.push(rows[i].dm_id);
+                }
+
+                $.each(ids, function (index, value) {
+                        $.post('<?=$_VAR_PATH_BIZ?>app/mng_goods.php?type=change_state',{dm_id:value},function(result){
+                            if (result.success){
+                                console.log(result);
+                            }
+                        },'json')
+                    }
+
+                );
+                $('#dg').datagrid('reload');    // reload the user data
+            } else {
+                $.messager.alert('경고', "항목을 선택해주세요", 'warning');
+            }
+        }
+
+        $('#dg').datagrid({
+            emptyMsg:'데이터가 없습니다.'
+        });
+
+        $("#fnNew").off().on('click', function () {
+            fnNew();
+        });
+
+        $("#fnClose").off().on('click', function () {
+            closeDialog();
+        });
+
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    fnRemove();
+                }
+            });
+        });
+
+        $("#fnConfirm").off().on('click', function () {
+            $.messager.confirm('경고', '사용안함 처리하시겠습니까?', function (r) {
+                if (r) {
+                    fnConfirm();
+                }
+            });
+        });
+
+        $("#search_btn").off().on('click', function () {
+            doSearch();
+        });
+
+        $("#stx").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+        $("#detail_search").off().on('click', function () {
+            $("#Dsearch").toggle();
+        });
+
+        $(document).on('click', ".private_delete", function () {
+            var currentRow = $('#dg').datagrid('getSelected');
+            $.post('<?=$_VAR_PATH_BIZ?>app/mng_goods.php?type=delete_detail',{dm_id:currentRow.dm_id},function(result){
+                if (result.success){
+                    console.log(result);
+                }
+            },'json')
+            $('#dg').datagrid('reload');    // reload the user data
+        });
+
+        $(document).on('click', ".open_form", function () {
+            var currentRow = $('#dg').datagrid('getSelected');
+
+            $("#dm_id").val(currentRow.dm_id);
+            $("#dm_goods_name").val(currentRow.dm_goods_name);
+            $("#dm_goods_price").val(currentRow.dm_goods_price);
+            $("#dm_bonus").val(currentRow.dm_bonus);
+            $("#dm_state").val(currentRow.dm_state);
+            $("#dm_datetime").text(currentRow.dm_datetime);
+            $("#dm_mode").val("update");
+            $("#dialog_title").text("상품 수정");
+            $("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+        });
+
+        closeDialog();
+    });
+
+    function allList() {
+        $("#search_type").val('all');
+        $("#stx").val('');
+        $("#search_survey").val('전체');
+        $("#dg").datagrid('load', {
+            search_type: '',
+            search_value : '',
+            search_survey : ''
+        });
+    }
+
+    function formatDetail(value,row){
+        return '<a data-id="'+row.dm_id+'" class="btn open_form" target="_blank">관리</a> <a data-id="'+row.dm_id+'" class="btn private_delete" target="_blank">삭제</a> ';
+    }
+</script>
+
+<div class="easyui-layout" style="width:700px;height:350px;" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+            <div class="btnWrap">
+                <button id="fnNew" class="bt01">신규생성</button>
+            </div>
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>통합검색</strong></dt>
+                    <dd>
+                        <select name="search_type" id="search_type">
+                            <option value="all">통합검색</option>
+                            <option value="dm_goods_name">상품명</option>
+                            <option value="dm_goods_price">가격</option>
+                            <option value="dm_bonus">보너스</option>
+                            <option value="dm_datetime">등록일</option>
+                        </select>
+                        <input type="text" name="search_value" value="" id="stx">
+                    </dd>
+                </dl>
+            </div>
+            <button class="btn bt00" id="search_btn">검색</button>
+            <button class="btn" onclick="allList()">초기화</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <table id="dg"
+               class="easyui-datagrid" fit="true" border="false"
+               data-options="pagePosition:'top',rownumbers:true,pagination:true, singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_goods.php?type=select',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false,footer:'#ft'"
+               pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+            <thead>
+            <tr>
+                <th data-options="field:'ck',width:100,align:'center',checkbox:true,
+            editor:{
+                type:'checkbox',
+                options:{
+                    on:'Y',
+                    off:'N'
+                }
+            }">-</th>
+                <th data-options="field:'dm_goods_name',width:80,align:'center'">상품명</th>
+                <th data-options="field:'dm_goods_price_text',width:80,align:'center'">상품가격</th>
+                <th data-options="field:'dm_bonus_text',width:80,align:'center'">보너스금액</th>
+                <th data-options="field:'dm_status_text',width:80,align:'center'">상태</th>
+                <th data-options="field:'dm_datetime',width:100,align:'center'">등록일</th>
+                <th field ="detail" width = "80" formatter="formatDetail" align="center">관리</th>
+            </tr>
+            </thead>
+        </table>
+        <div id="dlg" class="easyui-dialog" style="width:600px; height: 700px;">
+            <form id="fm" method="post" novalidate>
+                <input type="hidden" name="dm_mode" id="dm_mode" value="insert"/>
+                <input type="hidden" name="dm_id" value="" id="dm_id" />
+                <div class="page">
+                    <h3 id="dialog_title">상품 관리</h3>
+                    <dl>
+                        <dt>상품명</dt>
+                        <dd><input type="text" name="dm_goods_name" id="dm_goods_name" /></dd>
+                    </dl>
+                    <dl>
+                        <dt>상품가격</dt>
+                        <dd>
+                            <input type="text" name="dm_goods_price" id="dm_goods_price" />
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>보너스금액</dt>
+                        <dd>
+                            <input type="text" name="dm_bonus" id="dm_bonus" />
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>상태</dt>
+                        <dd>
+                            <select name="dm_state" id="dm_state">
+                                <option value="1">사용함</option>
+                                <option value="2">사용안함</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>등록일</dt>
+                        <dd id="dm_datetime">
+                        </dd>
+                    </dl>
+                </div>
+                <div style="text-align: center;">
+                    <a href="javascript:void(0);" id="fnClose" class="easyui-linkbutton" style="width:120px;height:30px">취소</a>
+                    <a href="javascript:void(0);" id="fnSave" class="easyui-linkbutton" style="width:120px;height:30px">저장</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div data-options="region:'south'">
+        <dl class="Tbottom">
+            <dd>
+                <button class="btn" id="fnRemove">선택삭제</button>
+                <button class="btn" id="fnConfirm">선택사용안함</button>
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<?
+require('../../lib/page_bottom.php');
+?>

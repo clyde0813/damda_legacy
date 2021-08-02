@@ -1,0 +1,12 @@
+<?
+if (!getSession("chk_dm_id")) {
+    alert("잘못된 접근입니다.", "?contentId=c13406bf526e9fee2bed34ab6f2125f6");
+    exit;
+}
+?>
+<style>
+.contentWrap{float:inherit;width:inherit;max-width: 1270px;}
+</style>
+<div id="Mypage">   
+<? require ($_VAR_PROG_ROOT_PATH.'mypage_as_list.php'); ?>
+</div>

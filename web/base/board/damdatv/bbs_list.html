@@ -1,0 +1,238 @@
+<?
+$query = "SELECT * FROM dm_write_damdatv WHERE dm_append_1 = 1 AND (dm_append_3 <= '".date("Y-m-d")."' AND dm_append_4 >= '".date("Y-m-d")."') order by dm_append_2 asc, wr_datetime desc";
+$db->ExecSql($query, "S");
+$top = array();
+while ($res = $db->Fetch()) {
+    if ($is_read)
+    {
+        //뷰 링크
+        $res['view_href'] = "?command=view&contentId=".$contentId.'&wr_id='.$res['wr_id']."&cate=".$cate."&page_num=".$page_no."&sType=".$sType."&sValue=".$sValue."&sPhoto=".$sPhoto;
+
+        $current_point = getMemberPoint();
+
+        if ((!$is_admin && !$is_board_admin)) {
+            if ($BBS_VAL['dm_read_point'] && ($res['mb_id'] != getSession("chk_dm_id"))) {
+                $db2 = new DBSQL();
+                $db2->DBconnect();
+                $is_use = false;
+                $query = "SELECT * FROM dm_point_log WHERE dm_id = '".getSession("chk_dm_id")."' AND dm_table = '".$BBS_VAL['dm_table']."' AND wr_id = '".$res['wr_id']."' AND dm_type = 1 order by dm_datetime desc";
+                $db2->ExecSql($query, "S");
+                $is_buy = $db2->Fetch();
+
+                if ($is_buy) {
+                    $expired = $is_buy['dm_expired'];
+                    if ($is_buy['dm_expired']) {
+                        $expired_date = date("Y-m-d H:i:s", strtotime($is_buy['dm_datetime'] ."+". $expired . " hour"));
+                        $now = date("Y-m-d H:i:s");
+                        if ($now >= $expired_date) {
+                            $is_use = false;
+                        } else {
+                            $is_use = true;
+                        }
+                    } else {
+                        $is_use = true;
+                    }
+                }
+
+                if (!$is_use) {
+                    if ($BBS_VAL['dm_read_point_type'] == 1) {
+                        if ($BBS_VAL['dm_read_point'] > $current_point) {
+                            if (!getSession("chk_dm_id")) {
+                                $res['view_href'] = "javascript:alert('로그인 후 이용해주세요'); location.href='?contentId=c13406bf526e9fee2bed34ab6f2125f6'";
+                            } else {
+                                $res['view_href'] = "javascript:alert('글을 읽을 포인트가 부족합니다.')";
+                            }
+
+                        } else {
+                            $text = "차감되는 포인트는 [".$BBS_VAL['dm_read_point']."] 입니다. 글을 읽으시겠습니까?";
+                            $res['view_href'] = "javascript:if (confirm('".$text."')) { location.href='".$res['view_href']."' }";
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        $res['view_href'] = "javascript:alert('글을 읽을 권한이 없습니다. 회원이시면 로그인해보세요');location.href='/diam/web/?contentId=c13406bf526e9fee2bed34ab6f2125f6';";
+    }
+    $top[] = $res;
+}
+?>
+ <? if (count($top) > 0) { ?>
+<div class="damdatv">  
+    <h3>급부상 중인 담다 TV </h3>
+    <div id="tvMain" class="owl-carousel pm-slide_responsive_service owl-loaded owl-drag">
+    <? foreach ($top as $key => $value) { ?>
+        <? if ($value['dm_append_1'] == 1)  { ?>
+            <div class="item">
+                <a href="<?=$value['view_href']?>" class="thumb">
+                    <?
+                    $thumb = get_list_thumbnail($BBS_VAL["dm_table"], $value['wr_id'], $BBS_VAL['dm_gallery_width'], $BBS_VAL['dm_gallery_height'], false, true, "top");
+                    if($value['wr_1']) {
+                        $youtube_id = str_replace("https://youtu.be/", "", $value['wr_1']);
+                        $thum = '<img src="https://img.youtube.com/vi/'.$youtube_id.'/mqdefault.jpg" width="'.$BBS_VAL['bo_gallery_width'].'" height="'.$BBS_VAL['bo_gallery_height'].'">';
+                    } else if($thumb['src']) {
+                        $thum = '<img src="' . $thumb['src'] . '" alt="' . $thumb['alt'] . '" width="' . $BBS_VAL['bo_gallery_width'] . '" height="' . $BBS_VAL['bo_gallery_height'] . '">';
+                    } else {
+                        $thum = "<img src='".$_VAR_URL_WEB."common/image/b.gif'>";
+                    }
+                    echo "<div>".$thum."</div>";
+                    ?>
+                </a>
+                <h4 class="cell_subject"><?=$value['wr_subject']?></h4>
+            </div>
+        <? }?>
+
+    <? } ?>
+    </div>
+</div>
+  <? }?>
+<!-- 카테고리 영역 -->
+<? if ($is_list_category) { ?>
+    <ul class="category">
+        <li class="<? if (!$cate) echo "on"?>"><a href="?contentId=<?=$contentId?>">전체</a></li>
+        <? foreach ($category_array as $value) { ?>
+            <li class='<? if ($value == $cate) echo "on"?>'><a href="?contentId=<?=$contentId?>&cate=<?=$value?>"><?=$value;?></a></li>
+        <? } ?>
+    </ul>
+<? } ?>
+<!-- 카테고리 영역 끝-->
+<div class="searching">
+    <div id="total">
+        Total <strong class="tcol"><?=$BBS_PAGING['TOTAL_ROW_COUNT']?></strong> <span>개</span> <em>(<?=$BBS_PAGING['PAGE_INDEX']?>/<?=$BBS_PAGING['total_page']?> page)</em>
+        <? if($sType) { ?><a href="?contentId=<?=$contentId?>" class="btn_all">전체목록</a> <? } ?>
+    </div>
+    <!--순서정렬-->
+    <div class="lineUp">
+        <input type="radio" id="last" name="order" value="last"
+            <? if (!$orderKind) echo "checked"; if ($orderKind=='wr_datetime') echo "checked" ?>
+        ><label for="last">최신순</label>
+        <input type="radio" id="good" name="order" value="good"  <? if ($orderKind=='wr_good') echo "checked" ?> /><label for="good">추천순</label>
+        <input type="radio" id="hit" name="order" value="hit"  <? if ($orderKind=='wr_hit') echo "checked" ?> /><label for="hit">조회순</label>
+        <input type="radio" id="comment" name="order" value="comment"  <? if ($orderKind=='com_count') echo "checked" ?> /><label for="comment">댓글순</label>
+    </div>
+    <!--//순서정렬-->
+</div>
+
+<div class="board image">
+
+        <ul>
+            <!--loop -->
+            <? if (count($BBS_DATAS) > 0) { ?>
+                <? foreach ($BBS_DATAS as $key => $value) { ?>
+                    <li class="cell">
+                        <a href="<?=$value['view_href']?>" class="thumb">
+                            <?
+                            $thumb = get_list_thumbnail($BBS_VAL["dm_table"], $value['wr_id'], $BBS_VAL['dm_gallery_width'], $BBS_VAL['dm_gallery_height'], false, true, "top");
+                            if($value['wr_1']) {
+                                $youtube_id = str_replace("https://youtu.be/", "", $value['wr_1']);
+                                $thum = '<img src="https://img.youtube.com/vi/'.$youtube_id.'/mqdefault.jpg" width="'.$BBS_VAL['bo_gallery_width'].'" height="'.$BBS_VAL['bo_gallery_height'].'">';
+                            } else if($thumb['src']) {
+                                $thum = '<img src="' . $thumb['src'] . '" alt="' . $thumb['alt'] . '" width="' . $BBS_VAL['bo_gallery_width'] . '" height="' . $BBS_VAL['bo_gallery_height'] . '">';
+                            } else {
+                                $thum = "<img src='".$_VAR_URL_WEB."common/image/b.gif'>";
+                            }
+                            echo "<div>".$thum."</div>";
+                            ?>
+                        </a>
+						<h4 class="cell_subject"><?=$value['wr_subject']?>
+						<em class="cell_icon">
+                        <?
+                        //hit 아이콘
+                        if ($value['dm_hit_url']) {
+                            echo '<img src="'.$value['dm_hit_url'].'" alt="hit 아이콘" width="12" height="12" />';
+                        }
+                        // new 아이콘
+                        if ($value['dm_new_url']) {
+                            echo '<img src="'.$value['dm_new_url'].'" alt="new 아이콘" width="12" height="12" />';
+                        }
+                        // 첨부파일 아이콘
+                        if ($is_file_icon) {
+                            if ($value['file_icon']) {
+                                echo '<img src="'.$value['file_icon'].'" alt="file 아이콘" width="15" height="15" />';
+                            }
+                        }
+
+                        if ($is_list_good) {
+							echo '<span class="list_good">'.number_format(''.$value['wr_good']).'</span>';
+						}
+                        ?>
+						</em>
+                        </h4>
+                    </li>
+                <? } //endforeach ?>
+            <? } else { ?>
+                <li class="empty_li">게시물이 없습니다.</li>
+            <? } ?>
+        </ul>
+<div class="searching">
+
+    <fieldset id="search_box">
+        <h3>검색</h3>
+        <form name="search" method="get">
+            <input type="hidden" name="contentId" value="<?=$contentId?>">
+            <input type="hidden" name="cate" value="<?=$cate?>">
+            <select name="sType" class="">
+                <option value="wr_subject" <? if($sType == "wr_subject") echo "selected"?>>제목</option>
+                <option value="wr_content" <? if($sType == "wr_content") echo "selected"?>>내용</option>
+                <option value="both" <? if($sType == "both") echo "selected"?>>제목+내용</option>
+            </select>
+            <label for="stx">검색어</label>
+            <input type="text" name="sValue" value="<?=$sValue?>" required id="stx" class="sch_input"
+                   maxlength="20" placeholder="검색어를 입력해주세요">
+            <button type="submit" value="검색" class="sch_btn"><span>검색</span></button>
+        </form>
+    </fieldset>
+</div>
+    <div class="paging">
+        <?=get_paging($BBS_PAGING['ROWS'], $BBS_PAGING['PAGE_INDEX'], $BBS_PAGING['total_page'], "?contentId=".$contentId."&sType=".$sType."&sValue=".$sValue."&sKind=".$sKind."&command=".$command."&wr_id=".$wr_id);?>
+        <div class="list_btn_wrap">
+            <? if ($write_href) { ?>
+                <a href="<?=$write_href?>" class="btn_write">글쓰기</a>
+            <? } ?>
+        </div>
+    </div>
+
+    <? include ('bbs_secret.html') ?>
+
+</div>
+
+<script>
+    jQuery(function($) {
+		$('#tvMain').owlCarousel({
+			margin: 10,					// 이미지 간격
+			loop: true,									// 무한 반복
+			center: false,								// 액티브 슬라이드 가운데 정렬
+			mouseDrag: true,							// 마우스 드레그 사용
+			touchDrag: true,							// 터치 드레그 사용
+			stagePadding: 0,							// 스테이지 여백 (좌우 슬라이드 노출)
+			nav: true,						// 방향 네비게이션
+			dots: true,						// 하단 네비게이션
+			dotsEach: false,							// 하단 네비게이션 (페이지별 출력,항목별 출력)
+			autoplay: true,								// 자동 재생
+			autoplayTimeout: 3000,						// 자동 재생 속도
+			smartSpeed: 500,							// 슬라이드 속도
+			responsiveRefreshRate: 0,					// 반응형 체크 시간
+			startPosition: 0,							// 시작 슬라이드 번호
+			autoplayHoverPause: false,					// 마우스 오버시 일시정지
+			responsiveClass: false,						// 반응형 class명 사용 (owl-reponsive-0)
+			navContainer: false,						// 방향 네비게이션 커스터마이징
+			dotsContainer: false,						// 하단 네비게이션 커스터마이징
+			responsive: {								// 반응형
+				0: {
+					items:2,		// 한 화면 출력수 (모바일)
+					slideBy:1	// 한번에 슬라이드 되는 수 (모바일)
+				},
+				768: {
+					items:3,		// 한 화면 출력수 (태블릿)
+					slideBy:1	// 한번에 슬라이드 되는 수 (태블릿)
+				},
+				1024: {
+					items:3,			// 한 화면 출력수 (PC)
+					slideBy:1		// 한번에 슬라이드 되는 수 (PC)
+				}
+			}
+		})
+	});
+</script>

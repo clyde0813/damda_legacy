@@ -1,0 +1,24 @@
+@charset "utf-8";
+
+.btnWrap{position:absolute;right:0px;top:50%;margin-top:-20px;}
+.btnWrap button,.btnWrap button.bt03,.btn.bt03{color:#fff;border:1px solid rgba(0,0,0,0.1);font-size:120%;font-weight:600;min-width:100px;height:40px;cursor:pointer;padding:0 10px;text-shadow:0 1px 1px rgba(0,0,0,0.2)}
+.btnWrap button.bt01,.btn.bt01{background:#03CF5D !important;}
+.btnWrap button.bt02,.btn.bt02{background:#a103cf !important;}
+.btnWrap button.bt04,.btn.bt04{background:#e76200 !important;}
+.btnWrap button.bt05,.btn.bt05{background:#01ccb2 !important;}
+.btnWrap button.bt06,.btn.bt06{background:#e8340d !important;}
+.btnWrap button.bt07,.btn.bt07,.page h3 .btn{background:#555 !important;}
+
+.btnWrap button.bt03,.btn.bt03{color:#E8340D;border:2px solid #E8340D;background:#fff !important;text-shadow:none}
+.btnWrap button.bt08,.btn.bt08{border:1px solid;background:#fff !important;text-shadow:none}
+.btnWrap button.bt09,.btn.bt09{border-color:rgba(0,0,0,0.3);background:#fff !important;color:inherit;text-shadow: none}
+.btn.bt09{background: rgba(0,0,0,0.6) !important;}
+
+.panel-body .btnWrap{right:10px;margin-top:-15px;}
+
+.btn,.btn_frmline{border-color:rgba(0,0,0,0.2)}
+.btn:hover,.btn_frmline:hover{border-color:rgba(0,0,0,0.4)}
+/*Icon*/
+.btn.excel:before,.btn.ic:before{font-family:"Font Awesome 5 Free";font-weight:900;}
+.btn.excel:before{content:'\f1c3';color:#28774C}
+.btn.plus:before{content:'\f067';}

@@ -1,0 +1,264 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+<script>
+    $(function () {
+        function fnNew() {
+            var dm_parent_id = $("#dm_id").val();
+            $("#dm_id").val('');
+            if (dm_parent_id) {
+                $("#dm_parent_id").combotree('setValue', dm_parent_id);
+            }
+            $("#dm_history_nm").val('');
+            $("#dm_history_text").val('');
+            $('#dm_link').val('');
+            $("#dm_item_type").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1016');
+            $("#dm_order").numberspinner('setValue', 1);
+            $("#dm_type").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1017');
+            $("#dm_status").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1006');
+            $("#dm_mode").val("insert");
+        }
+
+        function fnSave() {
+            var dm_history_nm = $.trim($("#dm_history_nm").val());
+            var dm_item_type = $.trim($("#dm_item_type").combobox('getValue'));
+            var dm_type = $.trim($("#dm_type").combobox('getValue'));
+            var dm_mode = $.trim($("#dm_mode").val());
+            var url = "<?=$_VAR_PATH_BIZ?>app/mng_history.php?type="+dm_mode;
+
+            if (dm_mode != 'delete') {
+                if(dm_history_nm == "")
+                {
+                    $.messager.alert('입력오류','이름을 입력해주세요.','warning');
+                    return;
+                }
+                if(dm_item_type == "")
+                {
+                    $.messager.alert('입력오류','아이템 타입을 선택해주세요.','warning');
+                    return;
+                }
+                if(dm_type == "")
+                {
+                    $.messager.alert('입력오류','화면 타입을 선택해주세요.','warning');
+                    return;
+                }
+            }
+
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url : url,
+                data : formData,
+                dataType: "json",
+                type : "post",
+                contentType: false,
+                processData: false,
+                success : function (data) {
+                    var icon = 'warning';
+                    if(data.result == "success") {
+                        $('#dg').datagrid('reload');
+                        $('#tt').tree('reload');
+                        $("#dm_parent_id").combotree("reload", "<?=$_VAR_PATH_BIZ ?>app/mng_history.php?type=select");
+                        $("#dm_history_nm").val('');
+                        $("#dm_history_text").val('');
+                        $('#dm_link').val('');
+                        $("#dm_item_type").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1016');
+                        $("#dm_order").numberspinner('setValue', 1);
+                        $("#dm_type").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1017');
+                        $("#dm_status").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1006');
+                        $("#dm_mode").val("insert");
+                    }
+                    $.messager.alert('알림',data.notice,'info');
+                }
+            });
+        }
+
+        function fnRemove() {
+            if ($("#dm_id").val() == "") {
+                $.messager.alert('경고','항목을 선택해주세요');
+                return false;
+            }
+            $("#dm_mode").val('delete');
+            fnSave();
+            $("#dm_id").val('');
+            fnNew();
+        }
+
+        $('#dg').datagrid();
+
+        $("#dm_order").numberspinner({
+            min:0,
+            max:100
+        });
+
+        $("#fnNew").off().on('click', function () {
+            fnNew();
+        });
+
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    fnRemove();
+                }
+            });
+        });
+
+    });
+
+    function selectedDg(rowIndex)
+    {
+        $('#dg').datagrid('selectRow',rowIndex);
+        var currentRow =$("#dg").datagrid("getSelected");
+        if (currentRow)
+        {
+            $("#dm_id").val(currentRow.id);
+            $("#dm_parent_id").combotree('setValue', currentRow.dm_parent_id);
+            $("#dm_history_nm").val(currentRow.text);
+            $("#title").text(currentRow.text);
+            $("#dm_history_text").val(currentRow.dm_history_text);
+            $('#dm_link').val(currentRow.dm_link);
+            $("#dm_item_type").combobox('setValue', currentRow.dm_item_type);
+            $("#dm_order").numberspinner('setValue', currentRow.dm_order);
+            $("#dm_status").combobox('setValue', currentRow.dm_status);
+            $("#dm_type").combobox('setValue', currentRow.dm_type);
+            $("#dm_mode").val("update");
+        }
+    }
+
+</script>
+
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false" class="title">
+        <h1><?=$current_page_info['dm_view_title']?></h1>
+        <div class="btnWrap">
+            <button id="fnNew" class="bt01">신규생성</button>
+            <button id="fnSave">저장</button>
+            <button id="fnRemove" class="bt03">삭제</button>
+        </div>
+    </div>
+    <div data-options="region:'west',split:true,border:false" style="width:220px;">
+        <ul id="tt" class="easyui-tree" fit="true" width="100%" data-options="
+            url:'<?=$_VAR_PATH_BIZ?>app/mng_history.php?type=select',
+            onSelect: function(node){
+            var rows = $('#dg').datagrid('getRows');
+            console.log(rows);
+            for(var i=0; i<rows.length; i++)
+			{
+				var row = rows[i];
+				if(row.id == node.id)
+				{
+					selectedDg(i);
+					return;
+				}
+			}
+        }
+        "></ul>
+    </div>
+    <div data-options="region:'center', border:false" style="border:solid 0px #f6c1bc;padding:0px;">
+        <div class="easyui-layout" fit="true" data-options="border:false" style="border:solid 0px #f6c1bc;">
+            <div data-options="region:'center', border:true" style="width:100%;border:solid 0px #f6c1bc;padding:5px">
+                <form id="fm" novalidate method="post">
+                    <input type="hidden" name="dm_mode" id="dm_mode" />
+                    <div class="page">
+                        <h3 id="title">신규 연혁</h3>
+                        <dl>
+                            <dt>상위 아이템</dt>
+                            <dd>
+                                <select  id="dm_parent_id" name="dm_parent_id" class="easyui-combotree"
+                                         data-options="url: '<?=$_VAR_PATH_BIZ ?>app/mng_history.php?type=select',
+                                                method: 'get',
+                                                valueField: 'id',
+                                                textField: 'text'"></select>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>이름</dt>
+                            <dd>
+                                <input type="text" name="dm_history_nm" id='dm_history_nm' />
+                                <input type="hidden" name="dm_id" id="dm_id" />
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>TEXT</dt>
+                            <dd>
+                                <textarea rows="10" id="dm_history_text" name="dm_history_text"></textarea>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>아이템타입</dt>
+                            <dd>
+                                <select id="dm_item_type" name="dm_item_type" class="easyui-combobox"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1016',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'"></select>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>링크</dt>
+                            <dd>
+                                <input type="text" name="dm_link" id="dm_link" />
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>화면타입</dt>
+                            <dd>
+                                <select id="dm_type" name="dm_type" class="easyui-combobox"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1017',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'"></select>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>출력순서</dt>
+                            <dd>
+                                <input type="text" name="dm_order" value="" class="easyui-numberspinner" id="dm_order" style="width:300px;"/>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>사용</dt>
+                            <dd>
+                                <select id="dm_status" name="dm_status" class="easyui-combobox" panelHeight="auto" style="width:300px;height:24px;"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1006',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'"></select>
+                            </dd>
+                        </dl>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div style="display:none;">
+        <table id="dg" class="easyui-datagrid" data-options="rownumbers:true,pagination:true,singleSelect:true, url:'<?=$_VAR_PATH_BIZ?>app/mng_history.php?type=select_table',method:'get',toolbar:'#tb',footer:'#ft',fitColumns:false,striped:true" pageList="[10,20,30,50,70,100]" pageSize="50">
+            <tr>
+                <th data-options="field:'id',width:200,align:'center'" width="100"></th>
+                <th data-options="field:'dm_parent_id',width:200,align:'center'" width="100"></th>
+                <th data-options="field:'text',width:200,align:'center'" width="100"></th>
+                <th data-options="field:'dm_history_text',width:200,align:'center'" width="100"></th>
+                <th data-options="field:'dm_item_type',width:200,align:'center'" width="100"></th>
+                <th data-options="field:'dm_link',width:200,align:'center'" width="100"></th>
+                <th data-options="field:'dm_type',width:200,align:'center'" width="100"></th>
+                <th data-options="field:'dm_order',width:200,align:'center'" width="100"></th>
+                <th data-options="field:'dm_status',width:200,align:'center'" width="100"></th>
+                <th data-options="field:'dm_create_dt',width:200,align:'center'" width="100"></th>
+                <th data-options="field:'dm_create_id',width:200,align:'center'" width="100"></th>
+                <th data-options="field:'dm_modify_dt',width:200,align:'center'" width="100"></th>
+                <th data-options="field:'dm_modify_id',width:200,align:'center'" width="100"></th>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<?
+require('../../lib/page_bottom.php');
+?>

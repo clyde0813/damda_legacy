@@ -1,0 +1,339 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+<script>
+    $(function () {
+        function fnNew()
+        {
+            $("#dm_id").val('');
+            $("#dm_layout_nm").val('');
+            $("input[name='dm_layout_type']:checked").prop("checked", false);
+            $("#dm_content_area").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_content_type&search=1&group=1008');
+            $("#dm_top_content").combobox({disabled:false});
+            $("#dm_left_content").combobox({disabled:false});
+            $("#dm_right_content").combobox({disabled:false});
+            $("#dm_bottom_content").combobox({disabled:false});
+            $("#dm_code").val('new');
+        }
+
+        function fnRemove () {
+            if ($("#dm_id").val() == "") {
+                $.messager.alert("삭제할 항목을 선택해주세요", "warning");
+                return false;
+            }
+            $("#dm_mode").val('delete');
+            fnSave();
+            fnNew();
+        }
+
+        function fnSave()
+        {
+            var dm_layout_nm = $.trim($("#dm_layout_nm").val());
+            var dm_content_type = $.trim($("#dm_content_area").combobox('getValue'));
+            var dm_layout_type = $.trim($("input[name='dm_layout_type']:checked").val());
+            var dm_mode = $.trim($("#dm_mode").val());
+            var url = "";
+
+            if (dm_mode == 'delete') {
+                url = "<?=$_VAR_PATH_BIZ?>app/mng_layout.php?type=delete";
+            } else {
+                url = "<?=$_VAR_PATH_BIZ?>app/mng_layout.php?type=insert";
+
+                if(dm_layout_type == "")
+                {
+                    $.messager.alert('입력오류','레이아웃 타입을 입력해주세요.','warning');
+                    return;
+                }
+                if(dm_layout_nm == "")
+                {
+                    $.messager.alert('입력오류','레이아웃 이름을 입력해주세요.','warning');
+                    return;
+                }
+                if(dm_content_type == "")
+                {
+                    $.messager.alert('입력오류','Content를 선택해주세요.','warning');
+                    return;
+                }
+            }
+
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url : url,
+                data : formData,
+                dataType: "json",
+                type : "post",
+                contentType: false,
+                processData: false,
+                success : function (data) {
+                    var icon = 'warning';
+                    if(data.result == "success") {
+                        icon = 'info';
+                        $('#dg').datagrid('reload');
+                        $('#tt').tree('reload');
+                        $("#dm_mode").val('');
+                        fnNew();
+                    }
+                    $.messager.alert('알림',data.notice,icon);
+                }
+            });
+        }
+
+        $("input[name='dm_layout_type']").off().on("click", function () {
+            var layout_type = $(this).val();
+            $("#dm_content_area").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_content_type&group=1008&search=1&content_type='+layout_type);
+            setRadioBtn(layout_type);
+        });
+
+        $("#dm_content_area").combobox({
+            onChange : function (newValue, oldValue) {
+                $("#dm_"+newValue.toLowerCase()+"_content").combobox({disabled:true});
+                $("#dm_"+oldValue.toLowerCase()+"_content").combobox({disabled:false});
+            }
+        });
+
+        $("#fnNew").off().on('click', function () {
+            fnNew();
+        });
+
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    fnRemove();
+                }
+            });
+        });
+    });
+
+    function setRadioBtn(layout_type, is_disable="") {
+        var top_cont = $("#dm_top_content");
+        var left_cont = $("#dm_left_content");
+        var right_cont = $("#dm_right_content");
+        var bottom_cont = $("#dm_bottom_content");
+
+        var top_cont_disable = "";
+        var left_cont_disable = "";
+        var right_cont_disable = "";
+        var bottom_cont_disable = "";
+
+        if (is_disable == 'TOP') {
+            top_cont_disable = true;
+        } else if (is_disable == 'LEFT') {
+            left_cont_disable = true;
+        } else if (is_disable == 'RIGHT') {
+            right_cont_disable = true;
+        } else if (is_disable == 'BOTTOM') {
+            bottom_cont_disable = true;
+        }
+
+        switch (layout_type) {
+            case "0" :
+                top_cont_disable = (typeof(top_cont_disable) === "boolean") ? top_cont_disable : false;
+                left_cont_disable = (typeof(left_cont_disable) === "boolean") ? left_cont_disable : false;
+                right_cont_disable = (typeof(right_cont_disable) === "boolean")  ? right_cont_disable : false;
+                bottom_cont_disable = (typeof(bottom_cont_disable) === "boolean") ? bottom_cont_disable : false;
+                break;
+
+            case "1":
+                top_cont_disable = (typeof(top_cont_disable) === "boolean") ? top_cont_disable : false;
+                left_cont_disable = (typeof(left_cont_disable) === "boolean") ? left_cont_disable : true;
+                right_cont_disable = (typeof(right_cont_disable) === "boolean")  ? right_cont_disable : true;
+                bottom_cont_disable = (typeof(bottom_cont_disable) === "boolean") ? bottom_cont_disable : false;
+            break;
+
+            case "2":
+                top_cont_disable = (typeof(top_cont_disable) === "boolean") ? top_cont_disable : true;
+                left_cont_disable = (typeof(left_cont_disable) === "boolean") ? left_cont_disable : false;
+                right_cont_disable = (typeof(right_cont_disable) === "boolean")  ? right_cont_disable : false;
+                bottom_cont_disable = (typeof(bottom_cont_disable) === "boolean") ? bottom_cont_disable : true;
+            break;
+
+            case "3":
+                top_cont_disable = (typeof(top_cont_disable) === "boolean") ? top_cont_disable : false;
+                left_cont_disable = (typeof(left_cont_disable) === "boolean") ? left_cont_disable : false;
+                right_cont_disable = (typeof(right_cont_disable) === "boolean")  ? right_cont_disable : false;
+                bottom_cont_disable = (typeof(bottom_cont_disable) === "boolean") ? bottom_cont_disable : true;
+            break;
+
+            case "4":
+                top_cont_disable = (typeof(top_cont_disable) === "boolean") ? top_cont_disable : true;
+                left_cont_disable = (typeof(left_cont_disable) === "boolean") ? left_cont_disable : false;
+                right_cont_disable = (typeof(right_cont_disable) === "boolean")  ? right_cont_disable : false;
+                bottom_cont_disable = (typeof(bottom_cont_disable) === "boolean") ? bottom_cont_disable : false;
+            break;
+
+            case "5":
+                top_cont_disable = (typeof(top_cont_disable) === "boolean") ? top_cont_disable : false;
+                left_cont_disable = (typeof(left_cont_disable) === "boolean") ? left_cont_disable : true;
+                right_cont_disable = (typeof(right_cont_disable) === "boolean")  ? right_cont_disable : false;
+                bottom_cont_disable = (typeof(bottom_cont_disable) === "boolean") ? bottom_cont_disable : false;
+            break;
+
+            case "6":
+            case "7":
+                top_cont_disable = (typeof(top_cont_disable) === "boolean") ? top_cont_disable : false;
+                left_cont_disable = (typeof(left_cont_disable) === "boolean") ? left_cont_disable : false;
+                right_cont_disable = (typeof(right_cont_disable) === "boolean")  ? right_cont_disable : false;
+                bottom_cont_disable = (typeof(bottom_cont_disable) === "boolean") ? bottom_cont_disable : false;
+            break;
+        }
+
+        top_cont.combobox({disabled:top_cont_disable});
+        left_cont.combobox({disabled:left_cont_disable});
+        right_cont.combobox({disabled:right_cont_disable});
+        bottom_cont.combobox({disabled:bottom_cont_disable});
+    }
+
+    function selectedDg(rowIndex)
+    {
+        $('#dg').datagrid('selectRow',rowIndex);
+        var currentRow =$("#dg").datagrid("getSelected");
+        if (currentRow)
+        {
+            $("#dm_id").val(currentRow.id);
+            $("#dm_layout_nm").val(currentRow.text);
+            $("input:radio[name='dm_layout_type']:radio[value='"+currentRow.dm_layout_type+"']").prop('checked', true);
+            $("#dm_content_area").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_content_type&group=1008&content_type='+currentRow.dm_layout_type+'&selected='+currentRow.dm_content_area);
+            $("#dm_top_content").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_layout_thema&selected='+currentRow.dm_top_content);
+            $("#dm_left_content").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_layout_thema&selected='+currentRow.dm_left_content);
+            $("#dm_right_content").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_layout_thema&selected='+currentRow.dm_right_content);
+            $("#dm_bottom_content").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_layout_thema&selected='+currentRow.dm_bottom_content);
+            setRadioBtn(currentRow.dm_layout_type, currentRow.dm_content_area);
+            $("#title").text(currentRow.text);
+        }
+    }
+
+</script>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false" class="title">
+        <h1>레이아웃</h1>
+        <div class="btnWrap">
+            <button id="fnNew" class="bt01">신규생성</button>
+            <button id="fnSave">저장</button>
+            <button id="fnRemove" class="bt03">삭제</button>
+        </div>
+    </div>
+    <div data-options="region:'west',split:true,border:false" style="width:220px;">
+        <ul id="tt" class="easyui-tree" fit="true" width="100%" data-options="
+            url:'<?=$_VAR_PATH_BIZ?>app/mng_layout.php?type=select',
+            onSelect: function(node){
+            var rows = $('#dg').datagrid('getRows');
+
+            for(var i=0; i<rows.length; i++)
+			{
+				var row = rows[i];
+				if(row.id == node.id)
+				{
+					selectedDg(i);
+					return;
+				}
+			}
+        }, onDrop : function (targetNode, source, point) {
+            console.log(source.id);
+        }
+        "></ul>
+    </div>
+    <div data-options="region:'center',border:false" style="width:100%;height:260px;padding:0px" valign="middle">
+        <div class="easyui-layout" fit="true" data-options="border:false" style="border:solid 0px #f6c1bc;">
+            <div data-options="region:'center', border:true" style="width:100%;border:solid 0px #f6c1bc;padding:5px">
+                <form id="fm" novalidate method="post">
+                    <div class="page">
+                        <h3 id="title">신규 레이아웃</h3>
+                        <dl>
+                            <dt>레이아웃타입</dt>
+                            <dd>
+                                <label for="dm_layout_type1">NONE: </label><input type="radio" name="dm_layout_type" value="0" id="dm_layout_type1" />
+                                <label for="dm_layout_type2">TOP/BOTTOM: </label><input type="radio" name="dm_layout_type" value="1" id="dm_layout_type2" />
+                                <label for="dm_layout_type3">LEFT/RIGHT: </label><input type="radio" name="dm_layout_type" value="2" id="dm_layout_type3" />
+                                <label for="dm_layout_type4">TOP/LEFT/RIGHT: </label><input type="radio" name="dm_layout_type" value="3" id="dm_layout_type4" />
+                                <label for="dm_layout_type5">LEFT/RIGHT/BOTTOM: </label><input type="radio" name="dm_layout_type" value="4" id="dm_layout_type5" />
+                                <label for="dm_layout_type6">TOP/RIGHT/BOTTOM: </label><input type="radio" name="dm_layout_type" value="5" id="dm_layout_type6" />
+                                <label for="dm_layout_type7">TOP/LEFT/RIGHT/BOTTOM: </label><input type="radio" name="dm_layout_type" value="6" id="dm_layout_type7" />
+                                <label for="dm_layout_type18">LEFT/TOP/RIGHT/BOTTOM: </label><input type="radio" name="dm_layout_type" value="7" id="dm_layout_type18" />
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>컨텐츠명&nbsp;</dt>
+                            <dd>
+                                <input type="text" name="dm_layout_nm" value="" id='dm_layout_nm' />
+                                <input type="hidden" name="dm_id" id='dm_id' value=""  />
+                                <input type="hidden" name="dm_mode" id="dm_mode" value="" />
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>Content&nbsp;</dt>
+                            <dd>
+                                <select id='dm_content_area' name="dm_content_area" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_content_type&group=1008&search=1',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'"></select>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>TOP</dt>
+                            <dd>
+                                <select id="dm_top_content" name="dm_top_content" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_layout_thema',
+                                                method: 'get',
+                                                valueField: 'thema_text',
+                                                textField: 'thema_text'" ></select>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>LEFT</dt>
+                            <dd>
+                                <select id="dm_left_content" name="dm_left_content" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_layout_thema',
+                                                method: 'get',
+                                                valueField: 'thema_text',
+                                                textField: 'thema_text'" ></select>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>RIGHT</dt>
+                            <dd>
+                                <select id="dm_right_content" name="dm_right_content" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_layout_thema',
+                                                method: 'get',
+                                                valueField: 'thema_text',
+                                                textField: 'thema_text'" ></select>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>BOTTOM</dt>
+                            <dd>
+                                <select id="dm_bottom_content" name="dm_bottom_content" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_layout_thema',
+                                                method: 'get',
+                                                valueField: 'thema_text',
+                                                textField: 'thema_text'" ></select>
+                            </dd>
+                        </dl>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </div>
+    </div>
+    <div style="display:none;">
+        <table id="dg" class="easyui-datagrid" data-options="rownumbers:true,pagination:true,singleSelect:true, url:'<?=$_VAR_PATH_BIZ?>app/mng_layout.php?type=select',method:'get',toolbar:'#tb',footer:'#ft',fitColumns:false,striped:true" pageList="[10,20,30,50,70,100]" pageSize="50">
+            <tr>
+                <th data-options="field:'id',width:200,align:'center'" width="100">레이아웃아이디</th>
+                <th data-options="field:'dm_layout_type',width:200,align:'center'" width="100">레이아웃타입</th>
+                <th data-options="field:'text',width:200,align:'center'" width="100">레이아웃명</th>
+                <th data-options="field:'dm_content_area',width:200,align:'center'" width="100">content</th>
+                <th data-options="field:'dm_top_content',width:200,align:'center'" width="100">top</th>
+                <th data-options="field:'dm_left_content',width:200,align:'center'" width="100">left</th>
+                <th data-options="field:'dm_right_content',width:200,align:'center'" width="100">right</th>
+                <th data-options="field:'dm_bottom_content',width:200,align:'center'" width="100">bottom</th>
+            </tr>
+        </table>
+    </div>
+</div>

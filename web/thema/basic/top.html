@@ -1,0 +1,265 @@
+<? require($layout_path.'header.php'); ?>
+<div id="header">
+    <div class="Pmenu">
+        <div class='container'>
+            <div class="PmenuWrap">
+                <h1><a href="<?=$_VAR_URL_WEB?>" title="<?=$CONFIG['dm_company_name']?>"><img src="<?=$layout_path?>images/logo.jpg" alt="<?=$CONFIG['dm_company_name']?>"></a></h1>    
+                <div class="search">                  
+                    <div class="srh_box">
+                        <input name="search_value" id="search_value" value="<? if($contentId=='9039ca26934275e62483422d11e21db4') echo getSession("search_value")?>" placeholder="검색어를 입력하세요">
+                    </div>
+                    <div class="srh_btn">
+                        <input type="image" src="<?=$layout_path?>images/srh_icon.png" id="search_btn">
+                    </div>                  
+                </div><!--//search-->   
+                <div class="topNavi">
+                    <h2>공지사항</h2>
+                    <? latest('notice', 'notice','1', '80') ?>               
+                </div><!--//topNavi-->
+            </div>
+        </div><!--//container-->
+        <!--PC메뉴-->    
+        <div class="MenuWrap">
+            <div class='container'>
+                <div id="lnb_p_all_wrap" class="allMenu">
+                    <button type="button" class="btn_lnb_p_all">
+                        <div>
+                            <span class="barTop"></span>
+                            <span class="barMid"></span>
+                            <span class="barBot"></span>
+                        </div> 전체메뉴
+                    </button>
+                    <!--전체메뉴-->
+                    <div id="lnb_p_all">
+                        <?=getMobileMenu(1, $menu_count); ?>
+                    </div><!--//lnb_p_all-->               
+                    <!--//전체메뉴 끝-->               
+                </div><!--//allMenu-->
+                <div id="menu2" class="Menu">
+                     <?=getMenu(1, $menu_count);?>
+                </div>    
+                <div class="menuNavi">
+                    <? if (getSession("chk_dm_id")) {  ?>                        
+                        <a href="?contentId=d38f6d8badc81ddd0c677801a87b9dbc"><em class="q01"></em>마이페이지</a>   
+                        <a href="javascript:logout();"><em class="q03"></em>로그아웃</a>
+                    <? } else { ?>
+                        <a href="?contentId=c13406bf526e9fee2bed34ab6f2125f6"><em class="q01"></em>로그인</a>
+                        <a href="?contentId=ed9412b7aa3eb07c21772f26d7678ab0"><em class="q02"></em>회원가입</a>
+                    <? } ?> 
+                    <a href="?command=write_form&contentId=0f28b5d49b3020afeecd95b4009adf4c"><em class="q04"></em>서비스 문의</a>
+                </div>
+            </div><!--//container-->
+        </div><!--//MenuWrap--> 
+        <!--//PC메뉴-->
+    </div><!--//Pmenu-->
+    <div class="Mmenu fixHeader">
+        <nav class="navbar navbar-default" role="navigation">
+          <div class="container-fluid">
+            <div class="navbar-header">       
+                <div class="Msrhbox" id="flip">검색</div> 
+                <div id="panel">
+                    <div class="Msearch">
+                        <div class="srh_box">
+                            <input name="search_value1" id="search_value1" type="search"  value="<? if($contentId=='9039ca26934275e62483422d11e21db4') echo getSession("search_value")?>" placeholder="검색어를 입력하세요">
+                        </div>
+                        <div class="srh_btn">
+                            <input type="image" src="<?=$layout_path?>images/srh_icon2.png" id="search_btn1">
+                        </div>      
+                    </div><!--//Msearch-->
+                </div><!--/Msearch-->
+                <button type="button" class="navbar-toggle offcanvas-toggle pull-right" data-toggle="offcanvas" data-target="#js-bootstrap-offcanvas">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </span>
+                </button>
+                <a class="navbar-brand logo" href="/diam/web/"><img src="<?=$layout_path?>images/logo.jpg" alt="담다프로젝트"></a>
+            </div>
+            <div class="navbar-offcanvas navbar-offcanvas-touch" id="js-bootstrap-offcanvas">             
+                <? if (getSession("chk_dm_id")) {  ?>  
+                    <h3><?=$MEMBER['dm_name']?>님 (레벨 <?=$MEMBER['level_text']?>)</h3>
+                <? } else { ?>
+                      <h3>담다프로젝트</h3>
+                <? } ?> 
+                <div class="mypageWrap">
+                    <ul>
+                        <? if (getSession("chk_dm_id")) {  ?>                        
+                            <li class="q01"><a href="?contentId=d38f6d8badc81ddd0c677801a87b9dbc">마이페이지</a></li>   
+                            <li class="q03"><a href="javascript:logout();">로그아웃</a></li>
+                        <? } else { ?>
+                            <li class="q01"><a href="?contentId=c13406bf526e9fee2bed34ab6f2125f6">로그인</a></li>
+                            <li class="q02"><a href="?contentId=ed9412b7aa3eb07c21772f26d7678ab0">회원가입</a></li>
+                        <? } ?> 
+                        <li class="q04"><a href="?command=write_form&contentId=0f28b5d49b3020afeecd95b4009adf4c">서비스 문의</a></li>
+                    </ul>
+                </div>
+                <div id="Mobile">
+                <?=getMobileMenu2(1, $menu_count);?>
+                </div>	
+            </div>
+          </div>
+        </nav>
+		<div class="slideMobile swiper-container" style="cursor:grab">
+			<?=getSlideMenu(1);?>
+		</div>
+    </div><!--Mmenu-->	
+</div><!--//header-->  
+
+
+  
+    <?php
+    if ($PAGE_VAL['dm_main_content'] != 1) {
+        $query = "select * from dm_menus where dm_link_data = '".$PAGE_VAL["dm_uid"]."'  order by dm_id desc limit 0, 1";
+
+        $db->ExecSql($query, "S" );
+        if ($db->Num > 0)
+        {
+            $current_menu = $db->Fetch();
+        }
+    ?>  
+
+   
+    <?
+        $arChildren = array();
+        if($menu_id[1]) {
+            echo ' <div class="SubMenuWrap">
+                        <div class="container"><div class="subTitle"><h1>'.$menu_text[0].'</h1></div><div class="SubMenu">';
+            echo ' <ul>';
+
+            foreach( $menu_array AS $key => $menu ) {
+                if($menu_id[0] == $menu["rows"]["dm_link_data"]) {
+                    foreach( $menu["children"] AS $sMenuKey => $sMenu ) {
+                        if ($sMenu['rows']['dm_menu_view'] == 1) {
+                            if ($menu_id[1] == $sMenu['rows']['dm_link_data']) {
+                                echo "<li class='on'><a href='".$sMenu["rows"]["dm_url"]."'><p>".$sMenu["rows"]["dm_menu_text"]."</p></a></li>"; // 2차 메뉴
+                            } else {
+                                echo "<li><a href='".$sMenu["rows"]["dm_url"]."'>".$sMenu["rows"]["dm_menu_text"]."</a></li>"; // 2차 메뉴
+                            }
+                        }
+                    }
+                }
+            }
+            echo " </ul>";
+            echo "</div></div>
+        </div>";
+        }
+    ?>
+
+    <?
+    if($menu_id[1]) {
+        echo ' <div class="MSmenu submenu_yes">
+                            <div id="M_snb_h"><div class="toggle"><span>'.$menu_text[0].'</span></div><div class="MenuSlide">';
+        echo ' <ul class="dep2">';
+
+        foreach( $menu_array AS $key => $menu ) {
+            if($menu_id[0] == $menu["rows"]["dm_link_data"]) {
+                foreach( $menu["children"] AS $sMenuKey => $sMenu ) {
+                    if ($sMenu['rows']['dm_menu_view'] == 1) {
+                        if ($menu_id[1] == $sMenu['rows']['dm_link_data']) {
+                            echo "<li class='on'><a href='".$sMenu["rows"]["dm_url"]."'><p>".$sMenu["rows"]["dm_menu_text"]."</p></a></li>"; // 2차 메뉴
+                        } else {
+                            echo "<li><a href='".$sMenu["rows"]["dm_url"]."'>".$sMenu["rows"]["dm_menu_text"]."</a></li>"; // 2차 메뉴
+                        }
+                    }
+                }
+            }
+        }
+        echo " </ul>";
+        echo "</div></div>
+            </div>";
+    }
+    ?>
+<!--//MSmenu-->
+<div class="depth3 container">
+		<?
+			$thr_menu = "";
+			if ($menu_id[1]) {
+				$thr_menu .= "<div class='depth3_menu'><ul>";
+
+				foreach( $menu_array AS $key => $menu ) {
+					$temp = $menu["rows"]["dm_link_data"];
+
+					if($menu_id[0] == $temp) {
+						foreach( $menu["children"] AS $sMenuKey => $sMenu ) {
+							$temp = $sMenu["rows"]["dm_link_data"];
+
+							if($menu_id[1] == $temp) {
+								foreach ($sMenu['children'] as $value) {
+									$menu_name = $value["rows"]["dm_menu_text"];
+									$menu_uid = $value["rows"]["dm_link_data"];
+									$menu_url = $value["rows"]["dm_url"];
+									$link_data2 = $_VAR_URL_WEB.$value["rows"]["dm_url"];
+									if($value["rows"]["dm_link_type"] == "2") {
+										$link_data2 = $value["rows"]["dm_link_data"];
+									}
+									if($menu_id[2] == $menu_uid) {
+										$thr_menu .= '<li class="on"><a href="'.$menu_url.'">'.$menu_name.'</a></li>';
+									} else {
+										$thr_menu .= '<li><a href="'.$menu_url.'">'.$menu_name.'</a></li>';
+									}
+								}
+							}
+						}
+					}
+				}
+				$thr_menu .= "</ul></div>";
+			}
+			echo $thr_menu;
+		?>
+	</div>
+    <div id="content" class="<? if(!$menu_id[1]){?>submenu_no<?}?>">
+        <div class="container">         
+        <? } ?>
+            
+            
+            
+<script>		
+jQuery(function($){
+    var $lnb_p = $('#lnb_p');
+    var $lnb_all_wrap = $('#lnb_p_all_wrap');
+
+    $lnb_all_wrap.find('.btn_lnb_p_all').on('click', function(){
+        if($lnb_all_wrap.hasClass('on')){
+            $lnb_p.find('.dep1 > li .dep1_li_inner > div').removeAttr('style');
+            $(this).parent().removeClass('on');
+            $lnb_all_wrap.find('#lnb_p_all').stop().slideUp(300);
+        }else{
+            $lnb_p.find('.dep1 > li .dep1_li_inner > div').hide();
+            $(this).parent().addClass('on');
+            $lnb_all_wrap.find('#lnb_p_all').stop().slideDown(300);
+        }
+    });
+
+
+});
+
+
+var toggleNavigation = new ToggleNavigation($('#M_snb_h'));
+function ToggleNavigation($this){
+    var
+        $button = $this.find('.toggle')
+        ,$nav = $this.find('.dep2')
+    ;
+    $button.on('click', function(){
+        $(this).toggleClass('on');
+        $nav.slideToggle('fast');
+        return false;
+    });
+}	   
+    
+
+$(document).ready(function(){
+     $("#flip").click(function(){
+       $("#panel").slideToggle(300);
+     });
+
+	 var slideMobile = new Swiper(".slideMobile", {
+		  slidesPerView : 'auto',
+	 });
+	 
+	 var activeIndex = ($('.current').parent("div").index() * 1);
+	 slideMobile.slideTo(activeIndex);
+});
+</script>         

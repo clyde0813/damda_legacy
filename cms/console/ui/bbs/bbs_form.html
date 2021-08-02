@@ -1,0 +1,761 @@
+﻿<?
+require('../../lib/page_header.php');
+$dm_id = isset($_REQUEST['dm_id']) ? $_REQUEST['dm_id'] : "";
+?>
+<SCRIPT LANGUAGE="JavaScript">
+    $(function () {
+        var index = 0;
+        function fnSave()
+        {
+            var form = $('#fm_writer');
+            var iGo = true;
+            $.each(form[0].elements, function(index, elem){
+                if(elem.required)
+                {
+                    if(elem.value=="")
+                    {
+                        if(elem.name == "txt_picture")
+                        {
+                            alert("사진을 등록해 주세요.","입력오류");
+                            $("#txt_select_pic").focus();
+                        }else
+                        {
+                            alert("필수 입력값이 입력되지 않았습니다.\r\n데이터를 입력해주세요.","입력오류");
+                            elem.focus();
+                        }
+
+                        iGo = false;
+                        return false;
+                    }
+                }
+
+            });
+
+            if(!iGo) return;
+
+            var dm_id = $("#chk_dm_id").val();
+            var mode = "";
+            if(dm_id == "")
+            {
+                mode = "insert";
+            }else
+            {
+                mode = "update";
+            }
+
+
+            var param = $("#fm_writer").serialize();
+            //console.log('<?=$_VAR_PATH_BIZ?>bbs/bbs.php?type=insert');
+            jQuery.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>bbs/bbs.php?type="+mode,
+                type : 'POST',
+                data : param,
+                cache : false,
+                async : false,
+                dataType : 'json',
+                success:function(data)
+                {
+                    if(data.result == "success")
+                    {
+                        alert("저장하였습니다.");
+                        $("#chk_dm_id").val(data._return);
+
+                    }else if(data.result == "duplicate")
+                    {
+                        alert("동일한 테이블 명이 존재합니다.");
+
+                    }else
+                    {
+                        alert("저장이 실패하였습니다.");
+                    }
+
+                },
+                error:function(data)
+                {
+                    alert("저장이 실패하였습니다.");
+                }
+            });
+        }
+
+        function fnRemove() {
+            var dm_id = $("#chk_dm_id").val();
+            $.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>bbs/bbs.php?type=delete",
+                type : 'POST',
+                data : 'dm_id='+dm_id,
+                cache : false,
+                async : false,
+                dataType : 'json',
+                success:function(data)
+                {
+                    if(data.result == "success")
+                    {
+                        alert("삭제하였습니다.");
+                        window.parent.closeTab();
+                    }
+                    {
+                        alert("삭제에 실패하였습니다.");
+                    }
+                },
+                error:function(data)
+                {
+                    alert("삭제에 실패하였습니다.");
+                }
+            })
+        }
+
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    fnRemove();
+                }
+            });
+        });
+    });
+
+    function selectBbs()
+    {
+        var dm_id = $("#chk_dm_id").val();
+        if (dm_id != "")
+        {
+            $.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>bbs/bbs.php?type=selectBbs&dm_id="+dm_id,
+                type : "POST",
+                cache : false,
+                async : true,
+                dataType : "json",
+                data : "",
+                success : function (data) {
+                    if(data.result == "success") {
+                        setBbsData(data.rows[0]);
+
+                    } else if(data.result == "fail") {
+                        $.messager.alert('이력없음','게시판 정보가 존재하지 않습니다.','warning');
+                    }
+                }, error:function(request,status,error) {
+                    alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                }
+            });
+        }
+    }
+    function setBbsData(row)
+    {
+        $("#txt_dm_table").val(row.dm_table).attr('readonly', true);
+
+        $("#txt_dm_group_id").combobox('setValue', row.dm_group_id);
+        $("#txt_dm_subject").val(row.dm_subject);
+        $("#txt_dm_mobile_subject").val(row.dm_mobile_subject);
+        $("#txt_dm_device").combobox('setValue', row.dm_device);
+        $("#txt_dm_admin").val(row.dm_admin);
+        $("#int_dm_list_level").combobox('setValue', row.dm_list_level);
+        $("#int_dm_read_level").combobox('setValue', row.dm_read_level);
+        $("#int_dm_write_level").combobox('setValue', row.dm_write_level);
+        $("#int_dm_reply_level").combobox('setValue', row.dm_reply_level);
+        $("#int_dm_comment_level").combobox('setValue', row.dm_comment_level);
+        $("#int_dm_upload_level").combobox('setValue', row.dm_upload_level);
+        $("#int_dm_download_level").combobox('setValue', row.dm_download_level);
+        $("#int_dm_html_level").combobox('setValue', row.dm_html_level);
+        $("#int_dm_link_level").combobox('setValue', row.dm_link_level);
+
+        $("#int_dm_count_delete").val(row.dm_count_delete);
+        $("#int_dm_count_modify").val(row.dm_count_modify);
+        $("#int_dm_read_point").val(row.dm_read_point);
+        $("#int_dm_write_point").val(row.dm_write_point);
+        $("#int_dm_comment_point").val(row.dm_comment_point);
+        $("#int_dm_download_point").val(row.dm_download_point);
+
+        (row.dm_use_category == "1") ? $("#int_dm_use_category").switchbutton('check') : $("#int_dm_use_category").switchbutton('uncheck');
+        (row.dm_use_list_category == "1") ? $("#int_dm_use_list_category").switchbutton('check') : $("#int_dm_use_list_category").switchbutton('uncheck');
+
+        $("#txt_dm_category_list").val(row.dm_category_list);
+
+        (row.dm_use_sideview == "1") ? $("#int_dm_use_sideview").switchbutton('check') : $("#int_dm_use_sideview").switchbutton('uncheck');
+        (row.dm_use_file_content == "1") ? $("#int_dm_use_file_content").switchbutton('check') : $("#int_dm_use_file_content").switchbutton('uncheck');
+        $("#txt_dm_use_secret").combobox('setValue', row.dm_use_secret);
+        (row.dm_use_dhtml_editor == "1") ? $("#int_dm_use_dhtml_editor").switchbutton('check') : $("#int_dm_use_dhtml_editor").switchbutton('uncheck');
+        (row.dm_use_rss_view == "1") ? $("#int_dm_use_rss_view").switchbutton('check') : $("#int_dm_use_rss_view").switchbutton('uncheck');
+        (row.dm_use_good == "1") ? $("#int_dm_use_good").switchbutton('check') : $("#int_dm_use_good").switchbutton('uncheck');
+        (row.dm_use_nogood == "1") ? $("#int_dm_use_nogood").switchbutton('check') : $("#int_dm_use_nogood").switchbutton('uncheck');
+        (row.dm_use_name == "1") ? $("#int_dm_use_name").switchbutton('check') : $("#int_dm_use_name").switchbutton('uncheck');
+        (row.dm_use_signature == "1") ? $("#int_dm_use_signature").switchbutton('check') : $("#int_dm_use_signature").switchbutton('uncheck');
+        (row.dm_use_ip_view == "1") ? $("#int_dm_use_ip_view").switchbutton('check') : $("#int_dm_use_ip_view").switchbutton('uncheck');
+        (row.dm_use_list_view == "1") ? $("#int_dm_use_list_view").switchbutton('check') : $("#int_dm_use_list_view").switchbutton('uncheck');
+        (row.dm_use_list_file == "1") ? $("#int_dm_use_list_file").switchbutton('check') : $("#int_dm_use_list_file").switchbutton('uncheck');
+        (row.dm_use_list_content == "1") ? $("#int_dm_use_list_content").switchbutton('check') : $("#int_dm_use_list_content").switchbutton('uncheck');
+
+        $("#int_dm_table_width").val(row.dm_table_width);
+        $("#int_dm_subject_len").val(row.dm_subject_len);
+        $("#int_dm_mobile_subject_len").val(row.dm_mobile_subject_len);
+        $("#int_dm_page_rows").val(row.dm_page_rows);
+        $("#int_dm_mobile_page_rows").val(row.dm_mobile_page_rows);
+        $("#int_dm_new").val(row.dm_new);
+        $("#int_dm_hot").val(row.dm_hot);
+        $("#int_dm_image_width").val(row.dm_image_width);
+
+        $("#txt_dm_skin").combobox('setValue', row.dm_skin);
+        $("#txt_dm_mobile_skin").combobox('setValue', row.dm_mobile_skin);
+
+        $("#int_dm_gallery_cols").combobox('setValue', row.dm_gallery_cols);
+        $("#int_dm_gallery_width").val(row.dm_gallery_width);
+        $("#int_dm_gallery_height").val(row.dm_gallery_height);
+        $("#int_dm_mobile_gallery_width").val(row.dm_mobile_gallery_width);
+        $("#int_dm_mobile_gallery_height").val(row.dm_mobile_gallery_height);
+        $("#int_dm_upload_size").val(row.dm_upload_size);
+
+        $("#int_dm_order").val(row.dm_order);
+
+        $("#int_dm_reply_order").combobox('setValue', row.dm_reply_order);
+        $("#txt_dm_sort_field").combobox('setValue', row.dm_sort_field);
+
+        $("#int_dm_write_min").val(row.dm_write_min);
+        $("#int_dm_write_max").val(row.dm_write_max);
+        $("#int_dm_comment_min").val(row.dm_comment_min);
+        $("#int_dm_comment_max").val(row.dm_comment_max);
+
+        $("#int_dm_upload_count").val(row.dm_upload_count);
+
+        (row.dm_use_email == "1") ? $("#int_dm_use_email").switchbutton('check') : $("#int_dm_use_email").switchbutton('uncheck');
+        (row.dm_use_sns == "1") ? $("#int_dm_use_sns").switchbutton('check') : $("#int_dm_use_sns").switchbutton('uncheck');
+        (row.dm_use_captcha == "1") ? $("#int_dm_use_captcha").switchbutton('check') : $("#int_dm_use_captcha").switchbutton('uncheck');
+
+        $("#txt_dm_1_subj").val(row.dm_1_subj);
+        $("#txt_dm_2_subj").val(row.dm_2_subj);
+        $("#txt_dm_3_subj").val(row.dm_3_subj);
+        $("#txt_dm_4_subj").val(row.dm_4_subj);
+        $("#txt_dm_5_subj").val(row.dm_5_subj);
+        $("#txt_dm_6_subj").val(row.dm_6_subj);
+        $("#txt_dm_7_subj").val(row.dm_7_subj);
+        $("#txt_dm_8_subj").val(row.dm_8_subj);
+        $("#txt_dm_9_subj").val(row.dm_9_subj);
+        $("#txt_dm_10_subj").val(row.dm_10_subj);
+
+        $("#txt_dm_1").val(row.dm_1);
+        $("#txt_dm_2").val(row.dm_2);
+        $("#txt_dm_3").val(row.dm_3);
+        $("#txt_dm_4").val(row.dm_4);
+        $("#txt_dm_5").val(row.dm_5);
+        $("#txt_dm_6").val(row.dm_6);
+        $("#txt_dm_7").val(row.dm_7);
+        $("#txt_dm_8").val(row.dm_8);
+        $("#txt_dm_9").val(row.dm_9);
+        $("#txt_dm_10").val(row.dm_10);
+
+    }
+
+    $(document).ready(function(){
+        selectBbs();
+    });
+
+</SCRIPT>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false" class="title">
+        <h1>게시판관리</h1>
+        <div class="btnWrap">
+            <button id="fnSave">저장</button>
+            <button id="fnRemove" class="bt03">삭제</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false">
+        <form id="fm_writer" name="fm_writer" action="" method="post">
+            <div class="page">
+                <h3>기본정보</h3>
+                <dl>
+                    <dt><label for="bo_table">table</label></dt>
+                    <dd>
+                        <input id="txt_dm_table" name="txt_dm_table" type="text"/>
+                        <input type="hidden" name="chk_dm_id" id="chk_dm_id" value="<?=$dm_id?>"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">그룹</dt>
+                    <dd>
+                        <select id="txt_dm_group_id" name="txt_dm_group_id" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectboardgroup',
+                                method: 'get',
+                                valueField: 'dm_gr_id',
+                                textField: 'dm_gr_subject'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_subject">게시판 제목</dt>
+                    <dd>
+                        <input id="txt_dm_subject" name="txt_dm_subject" type="text"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_mobile_subject">모바일 게시판 제목</label></dt>
+                    <dd>
+                        <input id="txt_dm_mobile_subject" name="txt_dm_mobile_subject" type="text" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="dm_device">접속기기</label></dt>
+                    <dd>
+                        <select id="txt_dm_device" name="txt_dm_device" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1010&value=both',
+				method: 'get',
+				valueField: 'dm_code_value',
+				textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_category_list">분류</label></dt>
+                    <dd>
+                        <input id="txt_dm_category_list" name="txt_dm_category_list" type="text" class="wd60" />
+                        <input id="int_dm_use_category" name="int_dm_use_category" class="easyui-switchbutton" labelWidth="120" tabindex="1" >
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="int_dm_use_list_category">목록분류사용</label></dt>
+                    <dd>
+                        <input id="int_dm_use_list_category" name="int_dm_use_list_category" class="easyui-switchbutton" labelWidth="120" tabindex="1" >
+                    </dd>
+                </dl>
+                <h3>권한설정</h3>
+                <dl>
+                    <dt><label for="bo_table">게시판 관리자</label></dt>
+                    <dd>
+                        <input id="txt_dm_admin" name="txt_dm_admin" type="text"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">목록보기</dt>
+                    <dd>
+                        <select id="int_dm_list_level" name="int_dm_list_level" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1002&value=1',
+                                method: 'get',
+                                valueField: 'dm_code_value',
+                                textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">글읽기</dt>
+                    <dd>
+                        <select id="int_dm_read_level" name="int_dm_read_level" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1002&value=1',
+                                method: 'get',
+                                valueField: 'dm_code_value',
+                                textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">글쓰기</dt>
+                    <dd>
+                        <select id="int_dm_write_level" name="int_dm_write_level" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1002&value=1',
+                                method: 'get',
+                                valueField: 'dm_code_value',
+                                textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">글답변</dt>
+                    <dd>
+                        <select id="int_dm_reply_level" name="int_dm_reply_level" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1002&value=1',
+                                method: 'get',
+                                valueField: 'dm_code_value',
+                                textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">댓글쓰기</dt>
+                    <dd>
+                        <select id="int_dm_comment_level" name="int_dm_comment_level" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1002&value=1',
+                                method: 'get',
+                                valueField: 'dm_code_value',
+                                textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">링크</dt>
+                    <dd>
+                        <select id="int_dm_link_level" name="int_dm_link_level" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1002&value=1',
+                                method: 'get',
+                                valueField: 'dm_code_value',
+                                textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">업로드</dt>
+                    <dd>
+                        <select id="int_dm_upload_level" name="int_dm_upload_level" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1002&value=1',
+                                method: 'get',
+                                valueField: 'dm_code_value',
+                                textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">다운로드</dt>
+                    <dd>
+                        <select id="int_dm_download_level" name="int_dm_download_level" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1002&value=1',
+                                method: 'get',
+                                valueField: 'dm_code_value',
+                                textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">HTML</dt>
+                    <dd>
+                        <select id="int_dm_html_level" name="int_dm_html_level" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1002&value=1',
+                                method: 'get',
+                                valueField: 'dm_code_value',
+                                textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <h3>게시판 기능 설정</h3>
+                <dl>
+                    <dt><label for="bo_table">원글 수정 불가</label></dt>
+                    <dd>
+                        <input id="int_dm_count_modify" name="int_dm_count_modify" type="text" value="1" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">원글 삭제 불가</dt>
+                    <dd>
+                        <input id="int_dm_count_delete" name="int_dm_count_delete" type="text" value="1" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">글쓴이 사이드뷰</dt>
+                    <dd>
+                        <input id="int_dm_use_sideview" name="int_dm_use_sideview" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">비밀글</dt>
+                    <dd>
+                        <select id="txt_dm_use_secret" name="txt_dm_use_secret" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1001&value=0',
+				method: 'get',
+				valueField: 'dm_code_value',
+				textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">DHTML에디터</dt>
+                    <dd>
+                        <input id="int_dm_use_dhtml_editor" name="int_dm_use_dhtml_editor" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">RSS</dt>
+                    <dd>
+                        <input id="int_dm_use_rss_view" name="int_dm_use_rss_view" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">추천</dt>
+                    <dd>
+                        <input id="int_dm_use_good" name="int_dm_use_good" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">비추천</dt>
+                    <dd>
+                        <input id="int_dm_use_nogood" name="int_dm_use_nogood" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">이름사용</dt>
+                    <dd>
+                        <input id="int_dm_use_name" name="int_dm_use_name" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">서명보이기</dt>
+                    <dd>
+                        <input id="int_dm_use_signature" name="int_dm_use_signature" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">IP보이기</dt>
+                    <dd>
+                        <input id="int_dm_use_ip_view" name="int_dm_use_ip_view" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">목록에서 내용</dt>
+                    <dd>
+                        <input id="int_dm_use_list_content" name="int_dm_use_list_content" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">전체목록보이기</dt>
+                    <dd>
+                        <input id="int_dm_use_list_view" name="int_dm_use_list_view" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">메일발송</dt>
+                    <dd>
+                        <input id="int_dm_use_email" name="int_dm_use_email" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">파일 업로드 개수</label></dt>
+                    <dd>
+                        <input id="int_dm_upload_count" name="int_dm_upload_count" type="text" value="2"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">파일 업로드 용량</label></dt>
+                    <dd>
+                        <input id="int_dm_upload_size" name="int_dm_upload_size" type="text" value="1048576" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">파일 설명</dt>
+                    <dd>
+                        <input id="int_dm_use_file_content" name="int_dm_use_file_content" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">파일 설명</dt>
+                    <dd>
+                        <input id="int_dm_use_file_content" name="int_dm_use_file_content" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">최소 글자 제한</label></dt>
+                    <dd>
+                        <input id="int_dm_write_min" name="int_dm_write_min" type="text" value="0" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">최대 글자 제한</label></dt>
+                    <dd>
+                        <input id="int_dm_write_max" name="int_dm_write_max" type="text" value="0" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">최소 글자수 제한</label></dt>
+                    <dd>
+                        <input id="int_dm_comment_min" name="int_dm_comment_min" type="text" value="0" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">SNS 사용</dt>
+                    <dd>
+                        <input id="int_dm_use_sns" name="int_dm_use_sns" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">전체 검색 사용</dt>
+                    <dd>
+                        <input id="int_dm_use_search" name="int_dm_use_search" class="easyui-switchbutton" labelWidth="120" tabindex="1" value="on">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">출력순서</label></dt>
+                    <dd>
+                        <input id="int_dm_order" name="int_dm_order" type="text" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">캡챠사용</dt>
+                    <dd>
+                        <input id="int_dm_use_captcha" name="int_dm_use_captcha" class="easyui-switchbutton" labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <h3>게시판 디자인</h3>
+                <dl>
+                    <dt><label for="gr_id">스킨</dt>
+                    <dd>
+                        <select id="txt_dm_skin" name="txt_dm_skin" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectboardskin&value=detail',
+				method: 'get',
+				valueField: 'dm_code_value',
+				textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">모바일스킨</dt>
+                    <dd>
+                        <select id="txt_dm_mobile_skin" name="txt_dm_mobile_skin" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectboardskin&value=detail',
+				method: 'get',
+				valueField: 'dm_code_value',
+				textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">제목 길이</label></dt>
+                    <dd>
+                        <input id="int_dm_subject_len" name="int_dm_subject_len" type="text" value="60" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">모바일 제목 길이</label></dt>
+                    <dd>
+                        <input id="int_dm_mobile_subject_len" name="int_dm_mobile_subject_len" type="text" value="30" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">페이지당 목록 수</label></dt>
+                    <dd>
+                        <input id="int_dm_page_rows" name="int_dm_page_rows" type="text" value="10"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">모바일 페이지당 목록 수</label></dt>
+                    <dd>
+                        <input id="int_dm_mobile_page_rows" name="int_dm_mobile_page_rows" type="text" value="10"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">갤리러 이미지수</dt>
+                    <dd>
+                        <select id="int_dm_gallery_cols" name="int_dm_gallery_cols" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1013&value=4',
+                    method: 'get',
+                    valueField: 'dm_code_value',
+                    textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">갤러리 이미지 폭</label></dt>
+                    <dd>
+                        <input id="int_dm_gallery_width" name="int_dm_gallery_width" type="text" value="202" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">갤러리 이미지 높이</label></dt>
+                    <dd>
+                        <input id="int_dm_gallery_height" name="int_dm_gallery_height" type="text"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">모바일 갤러리 폭</label></dt>
+                    <dd>
+                        <input id="int_dm_mobile_gallery_width" name="int_dm_mobile_gallery_width" type="text" value="125"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">모바일 갤러리 높이</label></dt>
+                    <dd>
+                        <input id="int_dm_mobile_gallery_height" name="int_dm_mobile_gallery_height" type="text" value="100"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">게시판 폭</label></dt>
+                    <dd>
+                        <input id="int_dm_table_width" name="int_dm_table_width" type="text" value="100"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">이미지 폭</label></dt>
+                    <dd>
+                        <input id="int_dm_image_width" name="int_dm_image_width" type="text" value="600"/>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">새글 아이콘</label></dt>
+                    <dd>
+                        <input id="int_dm_new" name="int_dm_new" type="text" value="24" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">인기글 아이콘</label></dt>
+                    <dd>
+                        <input id="int_dm_hot" name="int_dm_hot" type="text" value="10" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">답변 달기</dt>
+                    <dd>
+                        <select id="int_dm_reply_order" name="int_dm_reply_order" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1011&value=1',
+                    method: 'get',
+                    valueField: 'dm_code_value',
+                    textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="gr_id">리스트 정렬 필드</dt>
+                    <dd>
+                        <select id="txt_dm_sort_field" name="txt_dm_sort_field" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_LIB?>select_code.php?type=selectcode&group=1012',
+                    method: 'get',
+                    valueField: 'dm_code_value',
+                    textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <h3>포인트 설정</h3>
+                <dl>
+                    <dt><label for="gr_id">기본값 설정</dt>
+                    <dd>
+                        <input id="chk_dm_point_basic" name="chk_dm_point_basic" class="easyui-switchbutton" checked labelWidth="120" tabindex="1">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">글 읽기</label></dt>
+                    <dd>
+                        <input id="int_dm_read_point" name="int_dm_read_point" type="text" value="0" />
+                    </dd>
+
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">글 쓰기</label></dt>
+                    <dd>
+                        <input id="int_dm_write_point" name="int_dm_write_point" type="text" value="0" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">댓글 쓰기</label></dt>
+                    <dd>
+                        <input id="int_dm_comment_point" name="int_dm_comment_point" type="text" value="0" />
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="bo_table">다운로드</label></dt>
+                    <dd>
+                        <input id="int_dm_download_point" name="int_dm_download_point" type="text" value="0" />
+                    </dd>
+                </dl>
+                <h3>여분필드</h3>
+                <?php for ($i=1; $i<=10; $i++) { ?>
+                    <dl>
+                        <dt>여분필드<?php echo $i ?></dt>
+                        <dd class="td_extra">
+                            <label for="txt_dm_<?php echo $i ?>_subj">여분필드 <?php echo $i ?> 제목</label>
+                            <input id="txt_dm_<?php echo $i ?>_subj" name="txt_dm_<?php echo $i ?>_subj" type="text" class="wd30"/>
+                            <label for="txt_dm_<?php echo $i ?>">여분필드 <?php echo $i ?> 값</label>
+                            <input id="txt_dm_<?php echo $i ?>" name="txt_dm_<?php echo $i ?>" type="text" class="wd30" />
+                        </dd>
+                    </dl>
+                <?php } ?>
+            </div>
+        </form>
+    </div>
+</div>
+
+<?
+require('../../lib/page_bottom.php');
+?>

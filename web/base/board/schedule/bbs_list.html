@@ -1,0 +1,353 @@
+<?
+include ($_VAR_PATH_WEB_LIB."LunarToSola.lib.php");
+$year = isset($_REQUEST['year']) ? $_REQUEST['year'] : date("Y");
+$month = isset($_REQUEST['month']) ? $_REQUEST['month'] : date("m");
+
+$date = "$year-$month-01"; // 현재 날짜
+$time = strtotime($date); // 현재 날짜의 타임스탬프
+$start_week = date('w', $time); // 1. 시작 요일
+$total_day = date('t', $time); // 2. 현재 달의 총 날짜
+$total_week = ceil(($total_day + $start_week) / 7);  // 3. 현재 달의 총 주차
+
+function getHoliday ($current) {
+    $result = false;
+
+//석가탄신일 올해
+    $budda_array = LunarToSola(date("Y").'0408');
+    $budda = $budda_array['year']."-".$budda_array['month']."-".$budda_array['day'];
+
+//구정 올해
+    $sul_array = LunarToSola(date("Y").'0101'); //음력->양력으로 변환
+    $sul = $sul_array['year']."-".$sul_array['month']."-".$sul_array['day'];
+    $sul_minus = date("Y-m-d", strtotime($sul . " - 1 day"));
+    $sul_plus = date("Y-m-d", strtotime($sul . " + 1 day"));
+
+//추석 올해
+    $sola = LunarToSola(date("Y").'0815'); //음력->양력으로 변환
+    $chusuck = $sola['year']."-".$sola['month']."-".$sola['day'];
+    $chusuck_minus = date("Y-m-d", strtotime($chusuck . " - 1 day"));
+    $chusuck_plus = date("Y-m-d", strtotime($chusuck . " + 1 day"));
+
+//석가탄신일 내년
+    $next_budda_array = LunarToSola(date("Ymd", strtotime(date("Y")."0408"." + 1 year")));
+    $next_budda = $next_budda_array['year']."-".$next_budda_array['month']."-".$next_budda_array['day'];
+
+//구정 올해
+    $next_sul_array = LunarToSola(date("Ymd", strtotime(date("Y")."0101"." + 1 year")));
+    $next_sul = $next_sul_array['year']."-".$next_sul_array['month']."-".$next_sul_array['day'];
+    $next_sul_minus = date("Y-m-d", strtotime($next_sul . " - 1 day"));
+    $next_sul_plus = date("Y-m-d", strtotime($next_sul . " + 1 day"));
+
+//추석 올해
+    $next_sola = LunarToSola(date("Ymd", strtotime(date("Y")."0815"." + 1 year")));
+    $next_chusuck = $next_sola['year']."-".$next_sola['month']."-".$next_sola['day'];
+    $next_chusuck_minus = date("Y-m-d", strtotime($next_chusuck . " - 1 day"));
+    $next_chusuck_plus = date("Y-m-d", strtotime($next_chusuck . " + 1 day"));
+
+
+    $apply_list = array();
+    array_push($apply_list, date("Y")."-01-01");
+    array_push($apply_list, date("Y-m-d", strtotime(date("Y")."-01-01"."+ 1 year")));
+    array_push($apply_list, date("Y")."-03-01");
+    array_push($apply_list, date("Y-m-d", strtotime(date("Y")."-03-01"."+ 1 year")));
+    array_push($apply_list, date("Y")."-05-05");
+    array_push($apply_list, date("Y-m-d", strtotime(date("Y")."-05-05"."+ 1 year")));
+    array_push($apply_list, date("Y")."-06-06");
+    array_push($apply_list, date("Y-m-d", strtotime(date("Y")."-06-06"."+ 1 year")));
+    array_push($apply_list, date("Y")."-08-15");
+    array_push($apply_list, date("Y-m-d", strtotime(date("Y")."-08-15"."+ 1 year")));
+    array_push($apply_list, date("Y")."-10-03");
+    array_push($apply_list, date("Y-m-d", strtotime(date("Y")."-10-03"."+ 1 year")));
+    array_push($apply_list, date("Y")."-10-09");
+    array_push($apply_list, date("Y-m-d", strtotime(date("Y")."-10-09"."+ 1 year")));
+    array_push($apply_list, date("Y")."-12-25");
+    array_push($apply_list, date("Y-m-d", strtotime(date("Y")."-12-25"."+ 1 year")));
+    array_push($apply_list, $chusuck);
+    array_push($apply_list, $chusuck_minus);
+    array_push($apply_list, $chusuck_plus);
+    array_push($apply_list, $sul);
+    array_push($apply_list, $sul_minus);
+    array_push($apply_list, $sul_plus);
+    array_push($apply_list, $budda);
+    array_push($apply_list, $next_chusuck);
+    array_push($apply_list, $next_chusuck_minus);
+    array_push($apply_list, $next_chusuck_plus);
+    array_push($apply_list, $next_sul);
+    array_push($apply_list, $next_sul_minus);
+    array_push($apply_list, $next_sul_plus);
+    array_push($apply_list, $next_budda);
+
+    if (in_array($current, $apply_list)) {
+        $result = true;
+    }
+
+    return $result;
+}
+
+?>
+<div class="schedule">
+    <div class="month">
+        <? if ((int)$month == 1) { ?>
+            <a href="?contentId=<?=$contentId?>&year=<?=$year-1?>&month=12" class="prevMonth">이전 달</a>
+        <? } else { ?>
+            <a href="?contentId=<?=$contentId?>&year=<?=$year?>&month=<?=$month-1?>" class="prevMonth">이전 달</a>
+        <? } ?>
+        <strong><?=$year."년 ".str_pad($month, 2,0,STR_PAD_LEFT)."월"?></strong>
+        <? if ((int)$month == 12) { ?>
+            <a href="?contentId=<?=$contentId?>&year=<?=$year+1?>&month=1" class="nextMonth">다음 달</a>
+        <? } else { ?>
+            <a href="?contentId=<?=$contentId?>&year=<?=$year?>&month=<?=$month+1?>" class="nextMonth">다음 달</a>
+        <?} ?>
+    </div>
+    <div class="scheduleBox">
+    <p class="etc">가로로 스크롤 할 수 있습니다.</p>
+    <table>
+        <caption>탐방일정</caption>
+        <thead>
+            <tr>
+                <th class="sun">일요일</th>
+                <th>월요일</th>
+                <th>화요일</th>
+                <th>수요일</th>
+                <th>목요일</th>
+                <th>금요일</th>
+                <th class="sat">토요일</th>
+            </tr>
+        </thead>
+        <tbody>
+        <? for ($n = 1, $i = 0; $i < $total_week; $i++) { ?>
+            <tr>
+                <? for ($k = 0; $k < 7; $k++) { ?>
+                    <?
+                    if (($n > 1 || $k >= $start_week) && $total_day >= $n) {
+                        $schedule = array();
+                        $current = $year."-".str_pad($month, 2, 0, STR_PAD_LEFT)."-".str_pad($n, 2, 0, STR_PAD_LEFT);
+                        $yoil = date('w', strtotime($current));
+                        $class = "";
+                        $today = "";
+                        if ($current == date("Y-m-d")) {
+                            $today = "today";
+                        }
+
+                        // 공휴일
+                        if (getHoliday($current)) {
+                            $class = "sun";
+                        } else {
+                            if ($yoil == 6) {
+                                $class = "sat";
+                            } else if ($yoil == 0) {
+                                $class = "sun";
+                            }
+                        }
+
+                        $query = "SELECT * FROM dm_write_schedule WHERE dm_append_1 = '".$current."'";
+                        $db->ExecSql($query, "S");
+                        while ($res = $db->Fetch()) {
+                            //뷰 링크
+                            $res['view_href'] = "?command=view&contentId=".$contentId.'&wr_id='.$res['wr_id']."&cate=".$cate."&page_num=".$page_no."&sType=".$sType."&sValue=".$sValue."&sPhoto=".$sPhoto;
+
+                            $current_point = getMemberPoint();
+
+                            if ((!$is_admin && !$is_board_admin)) {
+                                if ($BBS_VAL['dm_read_point'] && ($res['mb_id'] != getSession("chk_dm_id"))) {
+                                    $db2 = new DBSQL();
+                                    $db2->DBconnect();
+                                    $is_use = false;
+                                    $query = "SELECT * FROM dm_point_log WHERE dm_id = '".getSession("chk_dm_id")."' AND dm_table = '".$BBS_VAL['dm_table']."' AND wr_id = '".$res['wr_id']."' AND dm_type = 1 order by dm_datetime desc";
+                                    $db2->ExecSql($query, "S");
+                                    $is_buy = $db2->Fetch();
+
+                                    if ($is_buy) {
+                                        $expired = $is_buy['dm_expired'];
+                                        if ($is_buy['dm_expired']) {
+                                            $expired_date = date("Y-m-d H:i:s", strtotime($is_buy['dm_datetime'] ."+". $expired . " hour"));
+                                            $now = date("Y-m-d H:i:s");
+                                            if ($now >= $expired_date) {
+                                                $is_use = false;
+                                            } else {
+                                                $is_use = true;
+                                            }
+                                        } else {
+                                            $is_use = true;
+                                        }
+                                    }
+
+                                    if (!$is_use) {
+                                        if ($BBS_VAL['dm_read_point_type'] == 1) {
+                                            if ($BBS_VAL['dm_read_point'] > $current_point) {
+                                                if (!getSession("chk_dm_id")) {
+                                                    $res['view_href'] = "javascript:alert('로그인 후 이용해주세요'); location.href='?contentId=c13406bf526e9fee2bed34ab6f2125f6'";
+                                                } else {
+                                                    $res['view_href'] = "javascript:alert('글을 읽을 포인트가 부족합니다.')";
+                                                }
+
+                                            } else {
+                                                $text = "차감되는 포인트는 [".$BBS_VAL['dm_read_point']."] 입니다. 글을 읽으시겠습니까?";
+                                                $res['view_href'] = "javascript:if (confirm('".$text."')) { location.href='".$res['view_href']."' }";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            $schedule[] = $res;
+                        }
+                    ?>
+                    <td class="<?=$class?>">
+                        <div class="hgroup">
+                            <strong class="<?=$today?>"><?=$n++?></strong>
+                        </div>
+                        <? if (count($schedule)) { ?>
+                        <ul>
+                            <? foreach ($schedule as $key=>$value) { ?>
+                            <li>
+                                <a href="<?=$value['view_href']?>">
+                                    <em>[<?=$value['dm_append_6']?>]</em>
+                                    <span><?=$value['dm_append_3']?></span>
+                                </a>
+                            </li>
+                            <? } ?>
+                        </ul>
+                        <? }?>
+                    </td>
+                    <? } else { ?>
+                        <td class="empty"></td>
+                    <? } ?>
+                <? } ?>
+            <? }?>
+        </tbody>
+    </table>
+    </div>
+</div>
+
+<!-- 카테고리 영역 -->
+<? if ($is_list_category) { ?>
+    <ul class="category">
+        <li class="<? if (!$cate) echo "on"?>"><a href="?contentId=<?=$contentId?>">전체</a></li>
+        <? foreach ($category_array as $value) { ?>
+            <li class='<? if ($value == $cate) echo "on"?>'><a href="?contentId=<?=$contentId?>&cate=<?=$value?>"><?=$value;?></a></li>
+        <? } ?>
+    </ul>
+<? } ?>
+<!-- 카테고리 영역 끝-->
+<div class="searching">
+    <div id="total">
+        Total <strong class="tcol"><?=$BBS_PAGING['TOTAL_ROW_COUNT']?></strong> <span>개</span> <em>(<?=$BBS_PAGING['PAGE_INDEX']?>/<?=$BBS_PAGING['total_page']?> page)</em>
+        <? if($sType) { ?><a href="?contentId=<?=$contentId?>" class="btn_all">전체목록</a> <? } ?>
+    </div>
+    <!--순서정렬-->
+    <div class="lineUp">
+        <input type="radio" id="last" name="order" value="last"
+            <? if (!$orderKind) echo "checked"; if ($orderKind=='wr_datetime') echo "checked" ?>
+        ><label for="last">최신순</label>
+        <input type="radio" id="good" name="order" value="good"  <? if ($orderKind=='wr_good') echo "checked" ?> /><label for="good">추천순</label>
+        <input type="radio" id="hit" name="order" value="hit"  <? if ($orderKind=='wr_hit') echo "checked" ?> /><label for="hit">조회순</label>
+        <input type="radio" id="comment" name="order" value="comment"  <? if ($orderKind=='com_count') echo "checked" ?> /><label for="comment">댓글순</label>
+    </div>
+    <!--//순서정렬-->
+</div>
+<table class="table_type_01">
+	<caption><?=$BBS_VAL['dm_subject']?> 게시글 리스트입니다.</caption>
+	<thead>
+		<tr>
+			<th class="num hidden-xs">번호</th>
+			<th class="subject"><?=subject_sort_link('wr_subject', "")?>제목</th>
+            <? if ($is_list_good) { ?>
+                <th><?=subject_sort_link('wr_good', "")?>추천수</th>
+            <? } ?>
+			<th class="date"><?=subject_sort_link('wr_name', "")?>작성일</th>
+			<th class="hit hidden-xs"><?=subject_sort_link('wr_datetime', "")?>조회수</th>
+		</tr>
+	</thead>
+	<tbody>
+		<!--- loop x 12 -->
+
+        <? if (count($BBS_DATAS) > 0) { ?>
+            <? foreach ($BBS_DATAS as $key => $value) { ?>
+                <tr>
+                    <td class="num hidden-xs">
+                        <? if($value['wr_is_notice'])
+                        {
+                            echo "공지";
+                        }
+                        else
+                        {
+                            echo $value['num'];
+                        }
+                        ?>
+                    </td>
+                    <td class="subject">
+                        <a href="<?=$value['view_href']?>" style="padding-left:<?php echo $value['wr_reply'] ? (strlen($value['wr_reply'])*10) : '0'; ?>px">
+							<?php echo $value['wr_subject']?>
+                        </a>
+						<?
+                            if ($value['comment_count'])
+                            {
+                                echo '<span class="reply">'.($value['comment_count'])."</span>";
+                            }
+                            else
+                            {
+                                echo  "";
+                            }
+                            if ($value['is_secret'])
+                            {
+                                echo '<span class="lock"><i class="fas fa-lock"></i></span>';
+                            }
+                        ?>
+
+						<?
+                        //hit 아이콘
+                        if ($value['dm_hit_url']) {
+                            echo '<img src="'.$value['dm_hit_url'].'" alt="hit 아이콘" width="12" height="12" />';
+                        }
+
+                        // new 아이콘
+                        if ($value['dm_new_url']) {
+                            echo '<img src="'.$value['dm_new_url'].'" alt="new 아이콘" width="12" height="12" />';
+                        }
+                        ?>
+                        <p class="companydate">탐방일정 : <?php echo $value['dm_append_1']?> / <?php echo $value['dm_append_3']?>  [<?php echo $value['dm_append_6']?>] </p>
+                    </td>
+                    <? if ($is_list_good) { ?>
+                        <td class="good"><em class="Mtit">추천수</em><?=number_format($value['wr_good'])?></td>
+                    <? } ?>
+                    <td class="date"><?php echo date("y.m.d", strtotime($value['wr_datetime']));?></td>
+                    <td class="hit hidden-xs"><em class="Mtit">조회수</em><?=$value['wr_hit']?></td>
+                </tr>
+            <? } //endforeach ?>
+
+        <? } else { ?>
+			<tr>
+				<td class="empty_li" colspan="5">게시물이 없습니다.</td>
+			</tr>
+        <? } ?>
+        <!--- // loop x 12 -->
+	</tbody>
+</table>
+<div class="searching">
+    <fieldset id="search_box">
+        <h3>검색</h3>
+        <form name="search" method="get">
+            <input type="hidden" name="contentId" value="<?=$contentId?>">
+            <input type="hidden" name="cate" value="<?=$cate?>">
+            <select name="sType" class="">
+                <option value="wr_subject" <? if($sType == "wr_subject") echo "selected"?>>제목</option>
+                <option value="wr_content" <? if($sType == "wr_content") echo "selected"?>>내용</option>
+                <option value="both" <? if($sType == "both") echo "selected"?>>제목+내용</option>
+            </select>
+            <label for="stx">검색어</label>
+            <input type="text" name="sValue" value="<?=$sValue?>" required id="stx" class="sch_input"
+                   maxlength="20" placeholder="검색어 입력">
+            <button type="submit" value="검색" class="sch_btn"><span>검색</span></button>
+        </form>
+    </fieldset>
+</div>
+<div class="paging">
+	<?=get_paging($BBS_PAGING['ROWS'], $BBS_PAGING['PAGE_INDEX'], $BBS_PAGING['total_page'], "?contentId=".$contentId."&sType=".$sType."&sValue=".$sValue."&sKind=".$sKind."&command=".$command."&wr_id=".$wr_id);?>
+	<div class="list_btn_wrap">
+		<? if ($write_href) { ?>
+			<a href="<?=$write_href?>" class="btn_write">글쓰기</a>
+		<? } ?>
+	</div>
+</div>
+
+<? include ('bbs_secret.html') ?>

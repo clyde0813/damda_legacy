@@ -1,0 +1,296 @@
+<?
+$page_number = isset($_REQUEST['page_number']) ? $_REQUEST['page_number'] : "1";
+
+$countQuery = "SELECT count(*) FROM `dm_write_{$BBS_VAL["dm_table"]}`";
+$selectQuery = "SELECT * FROM `dm_write_{$BBS_VAL["dm_table"]}`";
+
+$whereQuery = "WHERE 1 = 1 AND wr_is_comment <> 1";
+$orderQuery = "ORDER BY wr_is_notice DESC";
+
+$pageQuery = "limit ".$BBS_VAL["dm_page_rows"]*($page_number-1).", ".$BBS_VAL["dm_page_rows"];
+
+if ($cate && $cate != "전체") {
+    $whereQuery .= " AND `ca_name` LIKE '%".$cate."%'" ;
+}
+
+if ($sType && $sType != "전체") {
+    if ($sType == "both") {
+        $whereQuery .= " AND (wr_subject LIKE '%$sValue%' OR wr_content LIKE '%$sValue%')";
+    } else {
+        $whereQuery .= " AND `$sType` LIKE '%".$sValue."%'" ;
+    }
+}
+
+if ($sPhoto) {
+    $whereQuery .= " AND wr_content LIKE '%<img%' ";
+}
+
+if ($orderKind)
+{
+    $orderQuery .= ", $orderKind $sOrder";
+}
+
+else
+{
+    if($BBS_VAL["dm_sort_field"] == 1)
+    {
+        $orderQuery .= ', wr_num , wr_reply';
+    }
+    else if ($BBS_VAL["dm_sort_field"] == 2)
+    {
+        $orderQuery .= ', wr_num desc , wr_reply';
+    }
+    else if ($BBS_VAL["dm_sort_field"] == 'wr_2')
+    {
+        $orderQuery .= ', cast(wr_2 as unsigned) asc ';
+    }
+    else if ($BBS_VAL["dm_sort_field"] == 'wr_3')
+    {
+        $orderQuery .= ', wr_3 desc ';
+    }
+    else if ($BBS_VAL["dm_sort_field"] == 'wr_4')
+    {
+        $orderQuery .= ', wr_4 desc ';
+    }
+}
+
+$cQuery = $countQuery." ".$whereQuery."";
+$Query = $selectQuery." ".$whereQuery." ".$orderQuery." ".$pageQuery;
+$db->ExecSql($cQuery, "S");
+$row = $db -> GetPosition(0);
+
+$total_page  = ceil($row[0] / $BBS_VAL["dm_page_rows"]);  // 전체 페이지 계산
+
+$BBS_PAGING["TOTAL_ROW_COUNT"] = $row[0];
+$BBS_PAGING["PAGE_INDEX"] = $page_number;
+$BBS_PAGING["ROWS"] = $BBS_VAL["dm_page_rows"];
+$BBS_PAGING["total_page"] = $total_page;
+
+$db->ExecSql($Query, "S");
+
+//회원
+if (!$is_list_read)
+{
+    $is_list_read = getAuth1($BBS_VAL['dm_auth_type'], $member_level, $BBS_VAL['dm_list_level'], $MEMBER['dm_group_id'], $list_group);
+
+    if (!$is_list_read)
+    {
+        alert("글목록 권한이 없습니다. 회원이시라면 로그인해보세요");
+    }
+}
+
+//쓰기 권한 체크
+$write_href = "";
+
+if ($is_admin)
+{
+    $write_href = "?contentId=".$contentId."&command=write_form";
+}
+else
+{
+    $is_write = getAuth1($BBS_VAL['dm_auth_type'], $member_level, $BBS_VAL['dm_write_level'], $MEMBER['dm_group_id'], $write_group);
+
+    if ($is_write)
+    {
+        $write_href = "?contentId=".$contentId."&command=write_form";
+    }
+}
+
+//글 읽기 권한 체크
+if (!$is_read)
+{
+    $is_read = getAuth1($BBS_VAL['dm_auth_type'], $member_level, $BBS_VAL['dm_view_level'], $MEMBER['dm_group_id'], $view_group);
+}
+
+
+$k = 0;
+while ($arItem = $db->Fetch() )
+{
+    foreach( $arItem AS $key => $val )
+    {
+        if ( !is_string( $key ) ) continue;
+        $sDatas[ $key ] = $val;
+    }
+
+    $comment = getCommentCount($arItem['wr_num'], 'dm_write_'.$BBS_VAL["dm_table"]);
+    $comment_count = count($comment);
+    $sDatas['comment_count'] = $comment_count;
+
+    $reply = getReply($arItem['wr_num'], 'dm_write_'.$BBS_VAL['dm_table']);
+    $sDatas['reply_count'] = count($reply);
+
+    $list_num = $BBS_PAGING["TOTAL_ROW_COUNT"] - ($page_number - 1) * $BBS_VAL["dm_page_rows"];
+
+    $sDatas['num'] = $list_num - $k;
+
+    $sDatas['is_secret'] = false;
+
+    $option_array = explode(",", $sDatas['wr_option']);
+
+//                    $sDatas['wr_content'] = htmlspecialchars_decode($sDatas['wr_content']);
+
+    foreach ($option_array as $v)
+    {
+        if ($v == 'secret')
+        {
+            $sDatas['wr_subject_secret'] = "비밀글입니다.";
+
+            if ($sDatas['wr_reply'])
+            {
+                $sDatas['wr_subject_secret'] = "re: 비밀글입니다.";
+            }
+
+            $sDatas['wr_content'] = "비밀글입니다.";
+
+            $sDatas['is_secret'] = true;
+        }
+    }
+
+    //회원
+    if ($is_read)
+    {
+        //뷰 링크
+        $sDatas['view_href'] = "?command=view&contentId=".$contentId.'&wr_id='.$arItem['wr_id']."&cate=".$cate."&page_number=".$page_number."&sType=".$sType."&sValue=".$sValue."&sPhoto=".$sPhoto;
+
+        if($sDatas['is_secret'] && (!$is_admin && !$is_board_admin))
+        {
+            $sDatas['view_href'] = "javascript:showPassword('".$arItem['wr_id']."', 'view');";
+        }
+    }
+    else
+    {
+        //TODO : 로그인 페이지 자동으로 바뀌어야함
+        $sDatas['view_href'] = "javascript:alert('글을 읽을 권한이 없습니다. 회원이시면 로그인해보세요');location.href='/diam/web/?contentId=99bad02247f3eae83c76aa3fe371b715';";
+    }
+
+    $sDatas['wr_subject'] = cut_str($sDatas['wr_subject'], $BBS_VAL['dm_subject_len'], '…');
+
+    $sDatas['dm_hit_url'] = "";
+    $sDatas['dm_new_url'] = "";
+
+    if ($BBS_VAL['dm_is_hit']) {
+        if ($sDatas['wr_hit'] >= $BBS_VAL['dm_hit_max']) {
+            if ($BBS_VAL['dm_hit_icon']) {
+                if (is_file($_VAR_PATH_WEB_BOARD.$BBS_VAL['dm_skin']."/images/".$BBS_VAL['dm_hit_icon'])) {
+                    $sDatas['dm_hit_url'] = $_VAR_URL_WEB_BOARD.$BBS_VAL['dm_skin']."/images/".$BBS_VAL['dm_hit_icon'];
+                } else {
+                    $sDatas['dm_hit_url'] = $_VAR_URL_WEB_BOARD.$BBS_VAL['dm_skin']."/images/ico_hit.png";
+                }
+            } else {
+                $sDatas['dm_hit_url'] = $_VAR_URL_WEB_BOARD.$BBS_VAL['dm_skin']."/images/ico_hit.png";
+            }
+        }
+    }
+
+    if ($BBS_VAL['dm_is_new']) {
+        if (date("Y-m-d H:i:s") <= date("Y-m-d H:i:s", strtotime($sDatas['wr_datetime']."+ ".$BBS_VAL['dm_new_time']. " hour"))) {
+            if ($BBS_VAL['dm_new_icon']) {
+                if (is_file($_VAR_PATH_WEB_BOARD . $BBS_VAL['dm_skin'] . "/images/" . $BBS_VAL['dm_new_icon'])) {
+                    $sDatas['dm_new_url'] = $_VAR_URL_WEB_BOARD . $BBS_VAL['dm_skin'] . "/images/" . $BBS_VAL['dm_new_icon'];
+                } else {
+                    $sDatas['dm_new_url'] = $_VAR_URL_WEB_BOARD.$BBS_VAL['dm_skin']."/images/ico_new.png";
+                }
+            } else {
+                $sDatas['dm_new_url'] = $_VAR_URL_WEB_BOARD.$BBS_VAL['dm_skin']."/images/ico_new.png";
+            }
+        }
+    }
+
+    $is_file_icon = false;
+    if ($BBS_VAL['dm_use_file_icon']) {
+        $is_file_icon = true;
+        if ($sDatas['wr_file']) {
+            $sDatas['file_icon'] = $_VAR_URL_WEB_BOARD.$BBS_VAL['dm_skin']."/images/file.png";
+        }
+    }
+
+    array_push( $BBS_DATAS, $sDatas );
+    $k++;
+}
+
+$is_list_good = false;
+if ($BBS_VAL['dm_list_good']) {
+    $is_list_good = true;
+}
+
+?>
+
+<div class="searching">
+    <div id="total">
+        Total <strong class="tcol"><?=$BBS_PAGING['TOTAL_ROW_COUNT']?></strong> <span>개</span> <em>(<?=$BBS_PAGING['PAGE_INDEX']?>/<?=$BBS_PAGING['total_page']?> page)</em>
+        <? if($sType) { ?><a href="?contentId=<?=$contentId?>" class="btn_all">전체목록</a> <? } ?>
+    </div>
+</div>
+
+<div class="board image WebZine">
+    
+        <ul>
+            <!--loop -->
+            <? if (count($BBS_DATAS) > 0) { ?>
+                <? foreach ($BBS_DATAS as $key => $value) { ?>
+                   <li class="cell">
+                    <a href="<?=$value['view_href']?>">                        
+                            <?
+                            $thumb = get_list_thumbnail($BBS_VAL["dm_table"], $value['wr_id'], $BBS_VAL['dm_gallery_width'], $BBS_VAL['dm_gallery_height'], false, true, "top");
+                            $thum = "";
+                            if ($thumb['src']) {
+                                $thum = "<div class='thumb'><img src='".$thumb['src']."' alt='".$thumb['alt']."' /></div>";  
+                            } 
+                            echo $thum;
+                            ?>              
+                        
+                        <div class="Listbox">
+                            <h4><?=$value['wr_subject']?>
+                            <em>
+                            <?
+                            //hit 아이콘
+                            if ($value['dm_hit_url']) {
+                                echo '<img src="'.$value['dm_hit_url'].'" alt="hit 아이콘" width="12" height="12" />';
+                            }
+                            // new 아이콘
+                            if ($value['dm_new_url']) {
+                                echo '<img src="'.$value['dm_new_url'].'" alt="new 아이콘" width="12" height="12" />';
+                            }
+                            // 첨부파일 아이콘
+                            if ($is_file_icon) {
+                                if ($value['file_icon']) {
+                                    echo '<img src="'.$value['file_icon'].'" alt="file 아이콘" width="15" height="15" />';
+                                }
+                            }
+
+                            
+                            ?>
+                            </em>
+                            </h4>
+                            <div class="txt"><?=strip_tags($value['wr_content'])?></div>
+                            <div class="date">
+                                <?php echo $value['wr_name']?> <em>|</em>  
+                                <?php echo date("y.m.d", strtotime($value['wr_datetime']));?> <em>|</em>             
+                                <? if ($is_list_good) { ?>
+                                <td class="good">추천수 <?=number_format($value['wr_good'])?></td>
+                                <? } ?>                                
+                            </div>
+                        </div>
+                        </a>
+                    </li>
+                <? } //endforeach ?>
+            <? } else { ?>
+                <li class="empty_li">게시물이 없습니다.</li>
+            <? } ?>
+        </ul>
+  
+    <div class="paging">
+        <?=get_view_paging($BBS_PAGING['ROWS'], $BBS_PAGING['PAGE_INDEX'], $BBS_PAGING['total_page'], "?contentId=".$contentId."&sType=".$sType."&sValue=".$sValue."&sKind=".$sKind."&command=".$command."&wr_id=".$wr_id);?>
+    </div>
+</div>
+<script>
+    $(function () {
+        img_size ();
+    });
+    $(window).resize(function () {
+        img_size ();
+    });
+    function img_size () {
+        $('.thumb').height($('.thumb').width()*0.75);
+    }
+</script>

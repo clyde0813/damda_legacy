@@ -1,0 +1,4 @@
+<div data-options="region:'center',title:'',iconCls:'icon-ok'">
+	<div id="m_frame" fit="true" border="false" class="easyui-tabs tab-main" style="margin:0px;height:auto">
+	</div>	
+</div>

@@ -1,0 +1,17 @@
+@charset "utf-8";
+
+/*Color*/
+.tcolbg
+,.layout-expand,.layout-panel-west .layout-button-left:before,.layout-panel-west .layout-button-left:after,.l-btn-plain-selected
+,.site a:hover,.accordion .accordion-header-selected
+,.accessor p,.title .btnWrap button,.btn.bt00,.btnsWrap button:nth-of-type(1),.btnsWrap a:first-child,.window .easyui-linkbutton:nth-last-child(1){background-color:#3278fa !important;}
+.tcol
+,.Theader strong,.pagination-info strong,.calendar-saturday,.fa-mobile-alt
+,.datebox .combo-arrow:after{color:#3278fa !important}
+
+.tcolb
+{border-color:#3278fa !important}
+
+.btnWrap button.bt08,.btn.bt08,.tb a{border-color:#3278fa !important;color:#3278fa !important}
+
+.l-btn-plain-selected{color:#fff !important;}

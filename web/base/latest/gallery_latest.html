@@ -1,0 +1,35 @@
+<div class="recImg">
+    <ul>
+    <? if (count($list['list']) > 0) { ?>
+        <? foreach ($list['list'] as $value) { ?>
+            <!--loop -->
+            <li>
+                <a href="<?=$value['view_href']?>">
+                    <div class="img">
+                        <?
+                        $thumb = get_list_thumbnail($list['boardInfo']["dm_table"], $value['wr_id'], $list['boardInfo']['dm_gallery_width'], $list['boardInfo']['dm_gallery_height'], false, true, "center");
+
+                        if (!$thumb['src']) {
+                            $thum = "<img src='".$_VAR_URL_WEB."common/image/b.gif'>";
+                        } else {
+                            $thum = "<img src='".$thumb['src']."' alt='".$thumb['alt']."' />";
+                        }
+                        echo $thum
+                        ?>
+                    </div>
+                    <div class="info">
+                        <strong><?=$value['wr_subject']?></strong>
+                        <span class="date"><?=date("Y-m-d", strtotime($value['wr_datetime']));?></span>
+                    </div>
+                </a>
+            </li>
+            <!--loop -->
+        <? } ?>
+    <? } else { ?>
+        <li>
+            <p>게시물이 없습니다.</p>
+        </li>
+    <? } ?>
+    </ul>
+    <a href="?contentId=<?=$list['pageInfo']['dm_uid']?>" class="more">더보기</a>
+</div>

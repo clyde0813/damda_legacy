@@ -1,0 +1,306 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+<script>
+    function selectedDg(rowIndex)
+    {
+        $('#dg').datagrid('selectRow',rowIndex);
+        var currentRow =$("#dg").datagrid("getSelected");
+        if (currentRow)
+        {
+            $("#dm_id").val(currentRow.dm_id);
+            $("#dm_parent_id").combotree('setValue', currentRow.dm_parent_id);
+            $("#dm_nm").textbox('setValue', currentRow.dm_nm);
+            $("#dm_view_title").textbox('setValue', currentRow.dm_view_title);
+            $('#dm_link_url').textbox('setValue', currentRow.dm_link_url);
+            $('#dm_access_level').combobox('setValue', currentRow.dm_access_level);
+            $('#dm_status').combobox('setValue', currentRow.dm_status);
+            $('#dm_view_order').numberspinner('setValue', currentRow.dm_view_order);
+            $('#dm_is_close').combobox('setValue', currentRow.dm_is_close);
+            $('#dm_icon').combobox('setValue', currentRow.dm_icon);
+            $('#dm_create_dt').text(currentRow.dm_create_dt);
+            $('#dm_create_id').text(currentRow.dm_create_id);
+            $('#dm_modify_dt').text(currentRow.dm_modify_dt);
+            $('#dm_modify_id').text(currentRow.dm_modify_id);
+        }
+    }
+
+    function fnRemove ()
+    {
+        if (confirm("삭제하시겠습니까?"))
+        {
+            $("#dm_mode").val('delete');
+            fnSave();
+        }
+    }
+
+    function fnNew()
+    {
+        var dm_parent_id = $("#dm_id").val();
+        $("#dm_id").val('');
+        $("#dm_parent_id").combotree('reload', '<?=$_VAR_PATH_BIZ ?>app/mng_admin_menu.php?type=select').combotree('setValue', dm_parent_id);
+        $("#dm_nm").textbox('setValue', '');
+        $("#dm_view_title").textbox('setValue', '');
+        $('#dm_link_url').textbox('setValue', '');
+        $('#dm_access_level').combobox('setValue', 1);
+        $('#dm_status').combobox('setValue', 1);
+        $('#dm_view_order').numberspinner('setValue', 1);
+        $('#dm_is_close').combobox('setValue', 1);
+        $('#dm_icon').combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1021');
+        $('#dm_create_dt').text('');
+        $('#dm_create_id').text('');
+        $('#dm_modify_dt').text('');
+        $('#dm_modify_id').text('');
+        $('#dm_mode').val('insert');
+    }
+
+    function fnSave()
+    {
+        var dm_nm = $.trim($("#dm_nm").textbox('getValue'));
+        var dm_view_title = $.trim($("#dm_view_title").textbox('getValue'));
+        var dm_access_level = $.trim($("#dm_access_level").combobox('getValue'));
+        var dm_status = $.trim($("#dm_status").combobox('getValue'));
+        var dm_parent_id = $.trim($("#dm_parent_id").combotree('getValue'));
+        var dm_mode = $.trim($("#dm_mode").val());
+        var url = "";
+
+        if (dm_mode == 'delete') {
+            url = "<?=$_VAR_PATH_BIZ?>app/mng_admin_menu.php?type=delete";
+        } else {
+            url = "<?=$_VAR_PATH_BIZ?>app/mng_admin_menu.php?type=insert";
+
+            if(dm_nm == "")
+            {
+                $.messager.alert('입력오류','메뉴명을 입력해주세요.','warning');
+                $('#dm_nm').focus();
+                return;
+            }
+            if(dm_view_title == "")
+            {
+                $.messager.alert('입력오류','출력타이틀을 입력해주세요.','warning');
+                $('#dm_view_title').focus();
+                return;
+            }
+            if(dm_access_level == "")
+            {
+                $.messager.alert('입력오류','사용권한을 입력해주세요.','warning');
+                $('#dm_access_level').focus();
+                return;
+            }
+            if(dm_status == "")
+            {
+                $.messager.alert('입력오류','사용유무를 선택해주세요.','warning');
+                $('#dm_status').focus();
+                return;
+            }
+            if(dm_parent_id == "")
+            {
+                $.messager.alert('입력오류','상위 메뉴를 선택해주세요.','warning');
+                $('#dm_parent_id').focus();
+                return;
+            }
+
+        }
+
+        var form = $("#fm")[0];
+        var formData = new FormData(form);
+
+        $.ajax({
+            url : url,
+            data : formData,
+            dataType: "json",
+            type : "post",
+            contentType: false,
+            processData: false,
+            success : function (data) {
+                var icon = 'warning';
+                if(data.result == "success") {
+                    $('#dg').datagrid('reload');
+                    $('#tt').tree('reload');
+                    $("#dm_mode").val('insert');
+                    fnNew();
+                    icon = 'info';
+                }
+                $.messager.alert('알림',data.notice,icon);
+            }
+        });
+    }
+
+    </script>
+<div class="easyui-layout" fit="true">
+    <form style="display:none;" id="delete_fm">
+        <input type="text" name="dm_id" id="delete_dm_id" value="" />
+    </form>
+    <form id="fm" method="post" novalidate>
+        <div data-options="region:'west',split:true,border:false" style="width:220px;">
+            <ul id="tt" class="easyui-tree" fit="true" width="100%" data-options="
+        url:'<?=$_VAR_PATH_BIZ?>app/mng_admin_menu.php?type=select',
+        method:'get',
+        animate:true,
+        dnd:false,
+        onSelect: function(node){
+            var rows = $('#dg').datagrid('getRows');
+            for(var i=0; i<rows.length; i++)
+			{
+				var row = rows[i];
+				if(row.dm_id == node.id)
+				{
+					selectedDg(i);
+					return;
+				}
+			}
+        }, onDrop : function (targetNode, source, point) {
+            console.log(source.id);
+        }
+
+    "></ul>
+        </div>
+        <div data-options="region:'center',border:false" style="width:100%;height:260px;padding:0px" valign="middle">
+            <div class="easyui-layout" fit="true" data-options="border:false" style="border:solid 0px #f6c1bc;">
+                <div data-options="region:'center', border:false" style="width:100%;border:solid 0px #f6c1bc;padding:5px">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td align="right" height="30"   >상위메뉴&nbsp;</td>
+                            <td align="left" colspan="3">
+                                <select id='dm_parent_id' name="dm_parent_id" class="easyui-combotree" style="width:300px;"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/mng_admin_menu.php?type=select',
+                                                method: 'get',
+                                                valueField: 'id',
+                                                textField: 'text'"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30"   >메뉴명&nbsp;</td>
+                            <td align="left" colspan="3">
+                                <input type="text" name="dm_nm" id="dm_nm" value="" class="easyui-textbox" style="width:300px;"/>
+                                <input type="hidden" name="dm_id" id="dm_id" value="" />
+                                <input type="hidden" name="dm_mode" id="dm_mode" value="" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30"   >출력타이틀&nbsp;</td>
+                            <td align="left" colspan="3">
+                                <input type="text" name="dm_view_title" id="dm_view_title" value="" class="easyui-textbox" style="width:300px;"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30"   >연결경로&nbsp;</td>
+                            <td align="left" colspan="3">
+                                <input type="text" name="dm_link_url" id="dm_link_url" value="" class="easyui-textbox" style="width:300px;"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30"   >닫기 버튼 유무&nbsp;</td>
+                            <td align="left" colspan="3">
+                                <select id="dm_is_close" name="dm_is_close" class="easyui-combobox" panelHeight="auto" style="width:300px;"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1001',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'">
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30" >사용 아이콘&nbsp;</td>
+                            <td align="left" colspan="3" id="dm_link_data_combo">
+                                <select name="dm_icon" id="dm_icon" class="easyui-combobox" style="width:300px;"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1021',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30"   >사용권한&nbsp;</td>
+                            <td align="left" colspan="3">
+                                <select id="dm_access_level" name="dm_access_level" class="easyui-combobox" panelHeight="auto" style="width:300px;"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1002',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'">
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30"   >정렬순서&nbsp;</td>
+                            <td align="left" colspan="3">
+                                <input type="text" name="dm_view_order" id='dm_view_order' value="" class="easyui-numberspinner" style="width:300px;"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30"   >사용유무&nbsp;</td>
+                            <td align="left" colspan="3">
+                                <select id="dm_status" name="dm_status" class="easyui-combobox" panelHeight="auto" style="width:300px;"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1001',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'">
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30"   >생성일자&nbsp;</td>
+                            <td align="left" colspan="3">
+                                <p id="dm_create_dt"></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30"   >생성자 ID&nbsp;</td>
+                            <td align="left" colspan="3">
+                                <p id="dm_create_id"></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30"   >수정일자&nbsp;</td>
+                            <td align="left" colspan="3">
+                                <p id="dm_modify_dt"></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="right" height="30"   >수정자 ID&nbsp;</td>
+                            <td align="left" colspan="3">
+                                <p id="dm_modify_id"></p>
+                            </td>
+                        </tr>
+                    </table>
+    </form>
+</div>
+<div data-options="region:'south'" border="false" style="height:40px;">
+    <table width="100%" height="100%" style="border:solid 0px #f6c1bc;" cellpadding="0" cellspacing="0">
+        <tr>
+            <td align="left">&nbsp;
+                <a href="#" class="easyui-linkbutton" style="width:120px;height:30px;" onclick="fnRemove()" >
+                    삭제
+                </a>
+            </td>
+            <td align="right">
+                <a href="#" class="easyui-linkbutton" style="width:120px;height:30px" onclick="fnNew()">신규생성</a>
+                <a href="#" class="easyui-linkbutton" style="width:120px;height:30px" onclick="fnSave()">저장</a>
+            </td>
+        </tr>
+    </table>
+</div>
+</div>
+</div>
+<div style="display:none;">
+    <table id="dg" class="easyui-datagrid" data-options="rownumbers:true,pagination:true,singleSelect:true, url:'<?=$_VAR_PATH_BIZ?>app/mng_admin_menu.php?type=select_table',method:'get',toolbar:'#tb',footer:'#ft',fitColumns:false,striped:true" pageList="[10,20,30,50,70,100]" pageSize="50">
+        <tr>
+            <th data-options="field:'id',width:200,align:'center'" width="100">메뉴아이디</th>
+            <th data-options="field:'dm_parent_id',width:200,align:'center'" width="100">부모메뉴아이디</th>
+            <th data-options="field:'text',width:200,align:'center'" width="100">메뉴이름</th>
+            <th data-options="field:'dm_menu_nm',width:200,align:'center'" width="100">출력타이틀</th>
+            <th data-options="field:'dm_thema',width:200,align:'center'" width="100">연결경로</th>
+            <th data-options="field:'dm_link_type',width:200,align:'center'" width="100">닫기버튼유무</th>
+            <th data-options="field:'dm_link_data',width:200,align:'center'" width="100">사용아이콘</th>
+            <th data-options="field:'dm_link_target',width:200,align:'center'" width="100">사용권한</th>
+            <th data-options="field:'dm_menu_view',width:200,align:'center'" width="100">사용유무</th>
+            <th data-options="field:'dm_menu_order',width:200,align:'center'" width="100">정렬순서</th>
+            <th data-options="field:'dm_create_dt',width:200,align:'center'" width="100">생성일자</th>
+            <th data-options="field:'dm_modify_dt',width:200,align:'center'" width="100">생성자ID</th>
+            <th data-options="field:'dm_modify_dt',width:200,align:'center'" width="100">수정일자</th>
+            <th data-options="field:'dm_modify_dt',width:200,align:'center'" width="100">수정자ID</th>
+        </tr>
+    </table>
+</div>
+</div>

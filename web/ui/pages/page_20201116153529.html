@@ -1,0 +1,304 @@
+<!-- /////////////////////////////////// Content - START /////////////////////////////////// -->
+<div id="content">
+    <section class="sec01">
+        <div class="container">
+            <div class="row">
+                <article class="Stock">
+                   <? require('./lib/inquery_stock.php'); ?>
+                </article>
+                <article class="news">
+                    <!--탑배너 S-->
+                    <div class="mainBan">
+                        <a href="" target="_blank"><img src="<?=$layout_path?>/images/banner/main01.jpg" alt="배너타이틀"></a>                    
+                    </div>
+                    <!--탑배너 E-->
+                    <!-- 탭게시판 S -->
+                    <div class="TabBox">
+                        <div class="Title">
+                            <ul>
+                                <li><a class="on" id="tab1" onClick="Chtab('tab0',1,3);Ch_Class('tab',1,3,'on')">주요뉴스</a></li>    
+                                <li><a id="tab2" onClick="Chtab('tab0',2,3);Ch_Class('tab',2,3,'on')">실시간속보</a></li>                            
+                                <li><a id="tab3" onClick="Chtab('tab0',3,3);Ch_Class('tab',3,3,'on')">국내시항</a></li>
+                            </ul>
+                        </div>
+                        <div class="Wrap">
+                            <div id="tab01"><? require('./lib/inquery_news.php');?></div>
+                            <div id="tab02"><? latest('free', 'webzine','9', '80')?></div>
+                            <div id="tab03"><? latest('humor', 'webzine','9', '80')?></div>
+                        </div>
+                    </div>
+                    <!-- 탭게시판 S -->
+                </article>
+                <article class="group">
+                    <? require($layout_path.'login.html'); ?>
+                    <div class="Board">
+                        <h2>담다 <span>NEWS</span></h2>
+                        <? latest('damnews', 'basic','12', '100')?>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+    
+    
+    <div class="container">
+        <div class="row">
+            <section class="sec02">
+                <div class="row">    
+                    <!-- 투표 결과S--> 
+                    <div class="Result col-sm-8">
+                        <h2>Up <em>&</em> Down</h2>
+                        <dl class="col-sm-4">
+                            <dt>
+                                <strong>코스피</strong>
+                                <p>4,123명 참여</p>
+                                <button type="button">참여하기</button>
+                            </dt> 
+                            <dd>
+                                <span><span style="width: 29%" class="up"></span></span>
+                                <em>상승 29%</em> <em>하락 71%</em>
+                            </dd>
+                        </dl>
+                        <dl class="col-sm-4">
+                            <dt>
+                                <strong>나스닥</strong>
+                                <p>4,123명 참여</p>
+                                <button type="button">참여하기</button>
+                            </dt> 
+                            <dd>
+                                <span><span style="width: 29%" class="up"></span></span>
+                                <em>상승 29%</em> <em>하락 71%</em>
+                            </dd>
+                        </dl>
+                        <dl class="col-sm-4">
+                            <dt>
+                                <strong>오일</strong>
+                                <p>4,123명 참여</p>
+                                <button type="button">참여하기</button>
+                            </dt> 
+                            <dd>
+                                <span><span style="width: 29%" class="up"></span></span>
+                                <em>상승 29%</em> <em>하락 71%</em>
+                            </dd>
+                        </dl>
+                        <dl class="col-sm-4">
+                            <dt>
+                                <strong>코스닥</strong>
+                                <p>4,123명 참여</p>
+                                <button type="button">참여하기</button>
+                            </dt> 
+                            <dd>
+                                <span><span style="width: 29%" class="up"></span></span>
+                                <em>상승 29%</em> <em>하락 71%</em>
+                            </dd>
+                        </dl>
+                        <dl class="col-sm-4">
+                            <dt>
+                                <strong>금</strong>
+                                <p>4,123명 참여</p>
+                                <button type="button">참여하기</button>
+                            </dt> 
+                            <dd>
+                                <span><span style="width: 29%" class="up"></span></span>
+                                <em>상승 29%</em> <em>하락 71%</em>
+                            </dd>
+                        </dl>
+                        <dl class="col-sm-4">
+                            <dt>
+                                <strong>유로</strong>
+                                <p>4,123명 참여</p>
+                                <button type="button">참여하기</button>
+                            </dt> 
+                            <dd>
+                                <span><span style="width: 29%" class="up"></span></span>
+                                <em>상승 29%</em> <em>하락 71%</em>
+                            </dd>
+                        </dl>
+                    </div> 
+                    <!-- 투표 결과E-->
+                    <!-- 투표 S-->
+                    <div class="col-sm-4">
+                        <div class="Poll">
+                            <div class="photo"><img src='<?=$_VAR_URL_WEB?>common/image/blank.png'></div>
+                            <p>당신은 현재 가입하고 있는 펀드 상품이 있나요?</p>
+                            <button type="button" class="tcolbg">참여하기</button>    
+                        </div>
+                    </div>
+                    <!-- 투표 E-->
+                </div>    
+            </section>
+        </div>
+    </div>
+    
+    <section class="sec03">
+        <div class="container">
+            <div class="row">
+                <h2>우리 회사를 소개합니다.</h2>    
+                <div class="row">
+            	   <? latest('company', 'biz','8', '100')?> 
+                </div>    
+        	</div>
+		</div>
+    </section>
+    
+	<section class="sec04">
+		<div class="container">
+            <div class="row">
+            	<h2>
+                    <a href="?contentId=a1d0c6e83f027327d8461063f4ac58a6">기업탐방<em>요청</em></a>
+                    기업탐방<em>보고</em>
+                    <a href="?contentId=17e62166fc8586dfa4d1bc0e1742c08b">기업탐방<em>일정</em></a>
+                </h2>
+                <div class="row">
+            	   <? latest('report', 'gallery','5', '100')?> 
+                </div>
+        	</div>
+		</div>
+	</section>
+    
+    <section class="sec05">            
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="row">
+                        <h3>기업분석자료</h3>
+                        <? latest('Analysis', 'webzine','5', '100')?>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="row">
+                        <h3>주식종목추천
+                            <a href="?contentId=8f14e45fceea167a5a36dedd4bea2543" class="more">더보기</a>
+                        </h3>
+                        <div class="boxStock">
+                            <?php for($i=1; $i<=6; $i++) {?>
+                            <dl>
+                                <dt>
+                                    <cite><?=$i;?></cite>
+                                    <em>06827<?=$i;?></em>
+                                    <strong>셀트리<?=$i;?></strong>
+                                </dt>
+                                <dd>
+                                    <span>
+                                        <em>매수가</em>
+                                        <strong>55,500</strong>
+                                    </span>
+                                    <span>
+                                        <em>매도가</em>
+                                        <strong>1,000</strong>
+                                    </span>
+                                    <span>
+                                        <em>손절가</em>
+                                        <strong>1,000</strong>
+                                    </span>
+                                    <span>
+                                        <em>보유기간</em>
+                                        <strong>1년 이내</strong>
+                                    </span>
+                                </dd>
+                            </dl>
+                            <? } ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>     
+    
+    <section class="sec06">        
+        <div class="container">
+            <div class="row">
+                <h2><span>추천</span> 투자아이템</h2>
+                <div class="Invest">
+                    <?php for($i=1; $i<=20; $i++) {?>
+                    <a href="#">
+                        <dl>
+                            <dt><strong>회사명</strong></dt>
+                            <dd>
+                                <span>
+                                    <em>모집금액</em>
+                                    <strong>30억원</strong>
+                                </span>                                
+                                <span>
+                                    <em>업종</em>
+                                    <strong>태양광에너지</strong>
+                                </span>                              
+                                <span>
+                                    <em>투자방식</em>
+                                    <strong>협의가능</strong>
+                                </span>                              
+                                <span>
+                                    <em>소재지</em>
+                                    <strong>서울</strong>
+                                </span>
+                            </dd>
+                        </dl>
+                    </a>
+                    <? } ?>
+                </ul>
+            </div>
+        </div>    
+    </section>    
+    
+    
+    <section class="sec07">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-5">
+                    <div class="row">
+                        <h3>공지사항</h3>
+                        <? latest('notice', 'basic','9', '100')?>
+                    </div>
+                </div>
+                <div class="col-sm-7">
+                    <div class="col-sm-6">
+                        <h3>지식 Q<em>&</em>A</h3>
+                        <? latest('qna', 'basic','9', '100')?>
+                    </div>
+                    <div class="col-sm-6">
+                        <!-- 탭게시판 S -->
+                        <div class="TabBox">
+                            <div class="Title2">
+                                <ul>
+                                    <li><a class="on" id="tabb1" onClick="Chtab('tab1',1,2);Ch_Class('tabb',1,2,'on')">자유게시판</a></li>    
+                                    <li><a id="tabb2" onClick="Chtab('tab1',2,2);Ch_Class('tabb',2,2,'on')">유머방</a></li>   
+                                </ul>
+                            </div>
+                            <div class="Wrap">
+                                <div id="tab11"><? latest('free', 'basic','9', '80')?></div>
+                                <div id="tab12"><? latest('humor', 'basic','9', '80')?></div>
+                            </div>
+                        </div>
+                        <!-- 탭게시판 S -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<!-- /////////////////////////////////// Content - END /////////////////////////////////// -->
+
+<script>
+    $(function () {
+        $.ajax({
+            url :prgm_url+"vote.php",
+            data:"type=get_vote_list",
+            dataType:"json",
+            success : function (data) {
+                console.log(data);
+            // <h2>Up <em>&</em> Down</h2>
+            //     <dl class="col-sm-4">
+            //         <dt>
+            //         <strong>코스피</strong>
+            //         <p>4,123명 참여</p>
+            //     <button type="button">참여하기</button>
+            //         </dt>
+            //         <dd>
+            //         <span><span style="width: 29%" class="up"></span></span>
+            //     <em>상승 29%</em> <em>하락 71%</em>
+            //     </dd>
+            //     </dl>
+            }
+        });
+    });
+</script>

@@ -1,0 +1,293 @@
+<?
+require('../../lib/page_header.php');
+include "../../lib/smarteditor2/editor.lib.php";
+
+$wr_id = isset($_REQUEST['wr_id']) ? trim($_REQUEST['wr_id']) : "";
+$dm_table = isset($_REQUEST['dm_table']) ? trim($_REQUEST['dm_table']) : "";
+
+if ($dm_table && $wr_id) {
+    $db = new DBSQL();
+    $db->DBconnect();
+    $query = "SELECT * FROM dm_write_".$dm_table." WHERE wr_id = '".$dm_id."'";
+    $db->ExecSql($query, "S");
+    $row = $db->Fetch();
+
+    $content_html = editor_html('wr_content', $row['wr_content'], true);
+    $content_js = '';
+    $content_js .= get_editor_js('wr_content', true);
+    $content_js .= chk_editor_js('wr_content', true);
+}
+
+?>
+    <script>
+        function selectPage()
+        {
+            var dm_table = $("#chk_dm_table").val();
+            var wr_id = $("#wr_id").val();
+
+            if (wr_id != "")
+            {
+                $.ajax({
+                    url : "<?=$_VAR_PATH_BIZ?>app/mng_write.php?type=select_write&wr_id="+wr_id+'&dm_table='+dm_table+'&mode=reply',
+                    type : "POST",
+                    cache : false,
+                    async : true,
+                    dataType : "json",
+                    data : "",
+                    success : function (data) {
+                        if(data.result == "success") {
+                            fnSetData(data.rows);
+                        } else if(data.result == "fail") {
+                            $.messager.alert('이력없음','글 정보가 존재하지 않습니다.','warning');
+                        }
+                    }, error:function(request,status,error) {
+                        alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                    }
+                });
+            } else {
+                $("#dm_mode").val('insert');
+            }
+        }
+
+        function fnSetData(row) {
+            $("#parent_wr_id").val(row.wr_id);
+            $("#dm_table").combobox('setValue', row.dm_table);
+            $("#wr_subject").val(row.wr_subject);
+            $("#wr_content").val();
+            $("#wr_name").val(row.wr_name);
+            if (row.ca_name != "")
+            {
+                $("#dm_category").combobox("setValue", row.ca_name);
+            }
+            var options = row.wr_option;
+            var option_array = options.split(",");
+            if (option_array.length > 0)
+            {
+                for (var i=0; i<option_array.length; i++)
+                {
+                    $("#"+option_array[i]).prop("checked", true);
+                }
+            }
+            if (row.wr_is_notice == "1")
+            {
+                $("#notice").prop("checked", true);
+            }
+        }
+
+        function fnRemove() {
+            if (confirm("삭제하시겠습니까?")) {
+                if ($("#dm_id").val() == "") {
+                    alert("삭제할 항목을 선택해주세요");
+                    return false;
+                }
+                $("#dm_mode").val('delete');
+                fnSave();
+            }
+        }
+
+        $(function () {
+            setBoardForm();
+            selectPage();
+
+            function fnSave() {
+                <?=$content_js?>
+                var wr_name = $.trim($("#wr_name").val());
+                var wr_subject = $.trim($("#wr_subject").val());
+                var wr_content = $.trim($("#wr_content").val());
+                var dm_mode = $.trim($("#dm_mode").val());
+
+                var url = "<?=$_VAR_PATH_BIZ?>app/mng_write.php?type="+dm_mode;
+
+                if (dm_mode != 'delete') {
+
+                    if(wr_name == "")
+                    {
+                        $.messager.alert('입력오류','작성자를 입력해주세요.','warning');
+                        return false;
+                    }
+                    if(wr_subject == "")
+                    {
+                        $.messager.alert('입력오류','제목을 입력해주세요.','warning');
+                        return false;
+                    }
+                    if(wr_content == "")
+                    {
+                        $.messager.alert('입력오류','내용을 입력해주세요.','warning');
+                        return false;
+                    }
+                }
+
+                var form = $("#fm")[0];
+                var formData = new FormData(form);
+
+                $.ajax({
+                    url : url,
+                    data : formData,
+                    dataType: "json",
+                    type : "post",
+                    contentType: false,
+                    processData: false,
+                    success : function (data) {
+                        var icon = 'warning';
+                        if(data.result == "success") {
+                            selectPage();
+
+                            icon = 'info';
+                        }
+                        $.messager.alert('알림',data.notice,icon);
+                    }
+                });
+            }
+
+            var dm_id = $("#chk_dm_id").val();
+
+            function setBoardForm()
+            {
+                var dm_table = $("#chk_dm_table").val();
+                var wr_id = $("#wr_id").val();
+
+                $.ajax({
+                    url : "<?=$_VAR_PATH_BIZ?>app/mng_write.php?type=get_board_config&wr_id="+wr_id+'&dm_table='+dm_table,
+                    type : "POST",
+                    cache : false,
+                    async : false,
+                    dataType : "json",
+                    data : "",
+                    success : function (data) {
+                        if(data.result == "success") {
+                            var board_config = data.rows;
+                            var upload_count = board_config.dm_upload_count;
+                            var is_category = board_config.dm_use_category;
+                            var is_secret = board_config.dm_use_secret;
+
+                            if (is_category == "1")
+                            {
+                                $("#dm_category").combobox({
+                                    url : '<?=$_VAR_PATH_BIZ ?>app/mng_write.php?type=get_category_select&dm_table=<?=$dm_table?>',
+                                    valueField: 'dm_code_value',
+                                    textField: 'dm_code_text'
+                                });
+                            }
+                            else
+                            {
+                                $("#category").remove();
+                            }
+
+                            if (upload_count > 0)
+                            {
+                                $("#tb").empty();
+                                for (var i=0; i<upload_count; i++)
+                                {
+                                    $("#tb").append("<p><input type='file' name='file["+i+"]' id='file"+i+"' style='width:70% !important;' /></p>");
+                                }
+                            } else {
+                                $("#tb").empty();
+                            }
+
+                            if (is_secret == '1')
+                            {
+                                $("#secret").prop("checked", true);
+                            }
+
+                        } else if(data.result == "fail") {
+                            $.messager.alert('이력없음','게시판 정보가 존재하지 않습니다.','warning');
+                        }
+                    }, error:function(request,status,error) {
+                        alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                    }
+                });
+            }
+
+            $("#fnSave").off().on('click', function () {
+                fnSave();
+            });
+
+            $("#fnCancel").off().on('click', function () {
+                window.parent.closeTab();
+            });
+        });
+
+    </script>
+
+    <div class="easyui-layout" style="width:700px;height:350px;" fit="true">
+        <div data-options="region:'north', border:false" class="title">
+            <h1>게시글 관리</h1>
+            <div class="btnWrap">
+                <button id="fnSave">저장</button>
+                <button id="fnCancel" class="bt03">취소</button>
+            </div>
+        </div>
+        <div data-options="region:'center',border:false" style="width:100%;height:260px;padding:0px" valign="middle">
+            <div class="easyui-layout" fit="true" data-options="border:false" style="border:solid 0px #f6c1bc;">
+                <div data-options="region:'center', border:true" style="width:100%;border:solid 0px #f6c1bc;padding:5px">
+                    <form id="fm" novalidate method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="dm_mode" id="dm_mode" value="reply" />
+                        <input type="hidden" name="chk_dm_table" id="chk_dm_table" value="<?=$dm_table?>"/>
+                        <input type="hidden" name="chk_dm_id" id="wr_id" value="<?=$wr_id?>"/>
+                        <input type="hidden" name="wr_id" id="wr_id" value="<?=$wr_id?>"/>
+                        <input type="hidden" name="parent_wr_id" id="parent_wr_id" value="<?=$wr_id?>"/>
+                        <div class="page">
+                            <h3>게시글 작성</h3>
+                            <dl>
+                                <dt>게시판</dt>
+                                <dd>
+                                    <select id="dm_table" name="dm_table" class="easyui-combobox" panelHeight="auto"
+                                            data-options="url: '<?=$_VAR_PATH_BIZ ?>app/mng_write.php?type=select_board',
+                                        method: 'get',
+                                        valueField: 'dm_table',
+                                        textField: 'dm_subject'"></select>
+                                </dd>
+                            </dl>
+                            <dl id="category">
+                                <dt>카테고리</dt>
+                                <dd>
+                                    <select id="dm_category" name="dm_category" class="easyui-combobox" panelHeight="auto"></select>
+                                </dd>
+                            </dl>
+                            <dl>
+                                <dt>제목</dt>
+                                <dd>
+                                    <input type="text" name="wr_subject" id="wr_subject" class="wd80" value="" />
+                                    <label><input type="checkbox" name="notice" value="1" label="공지 " id="notice">공지</label>
+                                    <label><input type="checkbox" name="secret" value="secret" label="비밀글 " id="secret">비밀글</label>
+                                </dd>
+                            </dl>
+                            <dl>
+                                <dt>작성자</dt>
+                                <dd>
+                                    <input type="text" name="wr_name" id="wr_name" value="<?=getSession('chk_dm_name')?>">
+                                </dd>
+                            </dl>
+                            <dl class="file">
+                                <dt>파일첨부
+                                    <!--                                    <a class="btn"><i class="fas fa-plus"></i></a>-->
+                                    <!--                                    <a class="btn"><i class="fas fa-minus"></i></a>-->
+                                </dt>
+                                <dd id="tb">
+                                    <!--                                    <p class="noty">파일은 최대 10개까지 다중업로드가 지원됩니다. 파일 업로드 최대 사이즈는 2M입니다.</p>-->
+                                    <p><input type="file"></p>
+                                </dd>
+                            </dl>
+                            <dl>
+                                <dt>내용</dt>
+                                <dd>
+                                    <?=$content_html?>
+                                </dd>
+                            </dl>
+                            <!-- 최고관리자만 노출 S-->
+                            <dl>
+                                <dt>작성일</dt>
+                                <dd>
+                                    <input type="text" class="easyui-datebox" value="<?=date("Y-m-d");?>" data-options="formatter:myformatter,parser:myparser">
+                                </dd>
+                            </dl>
+                            <!-- 최고관리자만 노출 S-->
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+<?
+require('../../lib/page_bottom.php');
+?>

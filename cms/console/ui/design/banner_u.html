@@ -1,0 +1,378 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+<script>
+    $(function () {
+        $('#dg').datagrid();
+
+        $("#dm_image").filebox({
+            buttonText: '파일선택',
+            accept: 'image/*'
+        });
+
+        $("#dm_order").numberspinner({
+            min:0,
+            max:100
+        })
+        
+        closeDialog();
+        
+         $("#fnNew").off().on('click', function () {            
+            $("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+        });
+
+        $("#fnClose").off().on('click', function () {
+            closeDialog();
+        });
+    });
+
+    function selectedDg(rowIndex)
+    {
+        $('#dg').datagrid('selectRow',rowIndex);
+        var currentRow =$("#dg").datagrid("getSelected");
+        console.log(currentRow);
+        if (currentRow)
+        {
+            $("#dm_id").val(currentRow.id);
+            $("#dm_parent_id").combotree('setValue', currentRow.dm_parent_id);
+            $("#dm_banner_nm").textbox('setValue', currentRow.text);
+            $('#dm_link').textbox('setValue', currentRow.dm_link);
+            if (currentRow.dm_image != "")
+            {
+                $(".del_image").show();
+                $('#dm_register_image').text(currentRow.dm_image);
+                $('#dm_image_url').attr('src', currentRow.dm_image_url);
+            } else {
+                $(".del_image").hide();
+                $('#dm_register_image').text('');
+                $('#dm_image_url').attr('src', '');
+
+            }
+            $("#dm_del_image").checkbox({
+                checked:false
+            });
+            $("#dm_order").numberspinner('setValue', currentRow.dm_order);
+            $("#dm_status").combobox('setValue', currentRow.dm_status);
+            $("#dm_type").combobox('setValue', currentRow.dm_type);
+            $("#dm_mode").val("update");
+        }
+    }
+
+    function fnNew()
+    {
+        var dm_parent_id = $("#dm_id").val();
+        $("#dm_id").val('');
+        $("#dm_parent_id").combotree('setValue', dm_parent_id);
+        $("#dm_banner_nm").textbox('setValue', '');
+        $('#dm_link').textbox('setValue', '');
+        $('#dm_image').textbox('setValue', '');
+        $(".del_image").hide();
+        $('#dm_register_image').text('');
+        $('#dm_image_url').attr('src', '');
+        $("#dm_order").numberspinner('setValue', 1);
+        $("#dm_type").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1017');
+        $("#dm_status").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1006');
+        $("#dm_mode").val("insert");
+        $("#dm_del_image").checkbox({
+            checked:false
+        })
+    }
+
+    function fnSave() {
+        var dm_banner_nm = $.trim($("#dm_banner_nm").textbox('getValue'));
+        var dm_type = $.trim($("#dm_type").combobox('getValue'));
+        var dm_mode = $.trim($("#dm_mode").val());
+        var url = "<?=$_VAR_PATH_BIZ?>app/mng_banner.php?type="+dm_mode;
+
+        if (dm_mode != 'delete') {
+            if(dm_banner_nm == "")
+            {
+                $.messager.alert('입력오류','이름을 입력해주세요.','warning');
+                return;
+            }
+            if(dm_type == "")
+            {
+                $.messager.alert('입력오류','화면 타입을 선택해주세요.','warning');
+                return;
+            }
+        }
+
+        $('#fm').form('submit',{
+            url: url,
+            onSubmit: function(){
+                return $(this).form('validate');
+            },
+            success: function(response){
+                var res = eval('('+response+')');
+                if(res.result == "success")
+                {
+                    g_node_id = res._return;
+                    $('#dg').datagrid('reload');
+                    $('#tt').tree('reload');
+                    $("#dm_parent_id").combotree("reload", "<?=$_VAR_PATH_BIZ ?>app/mng_banner.php?type=select");
+                    $("#dm_banner_nm").textbox('setValue', '');
+                    $('#dm_link').textbox('setValue', '');
+                    $('#dm_image').textbox('setValue', '');
+                    $(".del_image").hide();
+                    $('#dm_register_image').text('');
+                    $('#dm_image_url').attr('src', '');
+                    $("#dm_order").numberspinner('setValue', 1);
+                    $("#dm_type").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1017');
+                    $("#dm_status").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1006');
+                    $("#dm_mode").val("insert");
+                    $("#dm_del_image").checkbox({
+                        checked:false
+                    })
+                }
+            }
+        });
+    }
+    
+    function closeDialog()
+    {
+        $("#dlg").dialog('close');
+    }
+    
+    function fnRemove() {
+        alert("준비중입니다.");
+    }
+</script>
+
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+            <div class="btnWrap">
+                <button id="fnNew" class="bt08">+ 배너등록</button>
+                <!--<button id="fnSave">저장</button>
+                <button id="fnRemove" class="bt09">취소</button>-->
+            </div>
+        </div>
+        <div class="Srchbox">
+            <div>  
+                <dl>
+                    <dt><strong>기간검색</strong></dt>
+                    <dd>
+                        <input type="text" class="easyui-datebox" id="search_start_date" value="<?=date("Y-m-d");?>" data-options="formatter:myformatter,parser:myparser"> ~
+                        <input type="text" class="easyui-datebox" id="search_end_date" value="<?=date("Y-m-d");?>" data-options="formatter:myformatter,parser:myparser">
+                        <a onclick="DateSearch.getToday();" class="btn">오늘</a>
+                        <a onclick="DateSearch.getThisWeek();" class="btn">이번주</a>
+                        <a onclick="DateSearch.getThisMonth();" class="btn">이번달</a>
+                        <a onclick="DateSearch.getNextSevenDays()" class="btn">1주일</a>
+                        <a onclick="DateSearch.getNextFiftheenDays()" class="btn">15일</a>
+                        <a onclick="DateSearch.getMonthAgo()" class="btn">1개월</a>
+                        <a onclick="DateSearch.getThreeMonthAgo()" class="btn">3개월</a>
+                        <a onclick="DateSearch.getSixMonthAgo()" class="btn">6개월</a>
+                        <a onclick="DateSearch.resetDate()" class="btn">전체</a>
+                    </dd>
+                </dl>
+                <article id="Dsearch">
+                <dl>
+                    <dt><strong>사용</strong></dt>
+                    <dd>
+                        <label><input type="radio">전체</label>
+                        <label><input type="radio">사용</label>
+                        <label><input type="radio">미사용  </label>  
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><strong>출력</strong></dt>
+                    <dd>
+                        <label><input type="radio">전체</label>
+                        <label><input type="radio">PC</label>
+                        <label><input type="radio">모바일</label>
+                    </dd>
+                </dl>
+                </article>
+                <dl>
+                    <dt><strong>통합검색</strong></dt>
+                    <dd>
+                        <select name="search_type" id="search_type">
+                            <option value="all">통합검색</option>
+                        </select>
+                        <input type="text" name="search_value" value="" id="stx">
+                    </dd>
+                </dl>
+            </div>
+            <button class="btn bt00" id="search_btn">검색</button>
+            <button class="btn" onclick="allList()">초기화</button>
+            <button class="btn bt07" id="detail_search">상세검색</button>
+        </div>
+    </div>    
+    <div data-options="region:'center', border:false" class="Contents">
+        <table class="tb">
+            <thead>
+            <tr>
+                <th width="30"><input type="checkbox"></th>
+                <th width="180">이미지</th>
+                <th>배너정보</th>
+                <th width="120">노출기간</th>
+                <th width="80">출력</th>
+                <th width="80">사용</th>
+                <th width="100">등록일/수정일</th>
+                <th width="120">관리</th>
+            </tr>
+            </thead>
+            <tbody>
+             <tr>   
+                <td>
+                    <input type="checkbox">
+                </td>
+                <td class="thumb">
+                    <img src="http://diamkr.design-iam.co.kr/diam/web/data/popup/20201013133354_845efc08c66d89564ea88dac004085f4.jpg">
+                </td>
+                <td></td>
+                <td>
+                    <p>2020-08-04 ~</p> 
+                    <p>2020-08-04</p>
+                </td>
+                <td>
+                    <i class="fas fa-desktop" title="PC"></i> &nbsp;
+                    <i class="fas fa-mobile-alt" title="모바일"></i>
+                </td>
+                <td>사용</td>
+                <td>
+                    <p>2020-08-04</p> 
+                    <p>2020-08-10</p>
+                </td>
+                <td>
+                    <p><a class="btn bt08">수정</a></p>
+                    <p><a class="btn">삭제</a></p>
+                </td>
+              </tr>
+            </tbody>
+        </table>
+        
+        <div id="dlg" class="easyui-dialog">
+            <form id="fm" method="post" novalidate>
+                <input type="hidden" name="dm_mode" id="dm_mode" value="insert"/>
+                <input type="hidden" name="dm_id" value="" id="dm_id" />
+                <div class="page">
+                    <h3>배너 기본설정</h3>
+                    <dl>
+                        <dt>배너위치</dt>
+                        <dd>
+                            <select name="" id="" onchange="">
+                                <option value="메인중앙" selected="">메인중앙</option>
+                                <option value="메인배너1">메인배너1</option>
+                                <option value="메인배너2">메인배너2</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>출력</dt>
+                        <dd>
+                            <label><input type="radio">전체</label>
+                            <label><input type="radio">PC</label>
+                            <label><input type="radio">모바일</label>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>사용</dt>
+                        <dd>
+                            <label><input type="radio">사용</label>
+                            <label><input type="radio">미사용</label>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>노출기간</dt>
+                        <dd>
+                            <label><input type="radio">상시노출</label>
+                            <label><input type="radio">기간노출</label>
+                            <input type="text" name="dm_start_dt" id="dm_start_dt" class="easyui-datebox" data-options="formatter:myformatter,parser:myparser" /> ~
+                            <input type="text" name="dm_end_dt" id="dm_end_dt" class="easyui-datebox">
+                        </dd>
+                    </dl>
+                    
+                    <h3>
+                        <ul class="Tabs">
+                            <li class="on"><a href="#DescriptionPC">PC 팝업 내용</a></li>
+                            <li><a href="#DescriptionMobile">모바일 팝업 내용</a></li>
+                        </ul>
+                        <em class="pr"><label><input type="checkbox">PC/모바일 동일사용</label></em>
+                    </h3>
+                    <div id="DescriptionPC">
+                    <dl>
+                        <dt>배너 이미지</dt>
+                        <dd>
+                            <table class="tb">
+                                <thead>
+                                    <tr>
+                                        <th width="30">순서</th>
+                                        <th width="50"><input type="checkbox"></th>
+                                        <th width="150">이미지</th>
+                                        <th>배너정보</th>
+                                        <th width="80">사용</th>
+                                        <th width="220">노출기간</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><input type="checkbox"></td>
+                                        <td class="thumb">&nbsp;</td>
+                                        <td>
+                                            URL
+                                            <input type="text" class="wd75">
+                                            <select name="">
+                                                <option value="" selected="selected">현재창</option>
+                                                <option value="_blank">새창</option>
+                                            </select>
+                                            <p class="mt5"><input type="text" class="wd97"></p>   
+                                        </td>
+                                        <td><label><input type="checkbox">사용</label></td>
+                                        <td>
+                                        <p><label><input type="radio">상시노출</label>
+                                        <label><input type="radio">기간노출</label></p>
+                                        <p>시작일 <input type="text" name="dm_start_dt" id="dm_start_dt" class="easyui-datebox"></p>
+                                        <p>종료일 <input type="text" name="dm_end_dt" id="dm_end_dt" class="easyui-datebox"></p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <dl class="Bottom">
+                                <dd>
+                                    <button type="button" class="btn" title="맨아래"><i class="fas fa-angle-double-down"></i></button>
+                                    <button type="button" class="btn" title="아래"><i class="fas fa-angle-down"></i></button>
+                                    <button type="button" class="btn" title="위"><i class="fas fa-angle-up"></i></button>
+                                    <button type="button" class="btn" title="맨위"><i class="fas fa-angle-double-up"></i></button>
+                                </dd>
+                                <dd>
+                                    <a class="btn">배너추가</a>
+                                    <a class="btn">선택삭제</a>
+                                </dd>
+                            </dl>
+                        </dd>
+                    </dl>
+                    </div>
+                    <div id="DescriptionMobile" style="display: none">
+                    <dl>
+                        <dt>배너 이미지</dt>
+                        <dd>&nbsp;
+                            
+                        </dd>
+                    </dl>
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <a href="javascript:void(0);" id="fnClose" class="easyui-linkbutton" style="width:120px;height:30px">취소</a>
+                    <a href="javascript:void(0);" id="fnSave" class="easyui-linkbutton" style="width:120px;height:30px">저장</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div data-options="region:'south'">
+        <dl class="Tbottom">
+            <dd>
+                <button class="btn" id="fnRemove">선택삭제</button>
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<?
+require('../../lib/page_bottom.php');
+?>

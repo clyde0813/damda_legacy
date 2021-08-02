@@ -1,0 +1,150 @@
+<?
+require('../../lib/page_header.php');
+$start_date = date("Y-m")."-01";
+?>
+
+<script>
+    $(function () {
+
+        $('#dg').datagrid({
+            // data:[{dm_date: '2020-06-18', dm_count: 2000, progressbar: 30}, {dm_date: '2020-06-18', dm_count: 2022, progressbar: 60}],
+            emptyMsg: '데이터가 없습니다.'
+        });
+
+        function doSearch() {
+            var search_start_date = $('#search_start_date').val();
+            var search_end_date = $('#search_end_date').val();
+
+            $('#dg').datagrid('load',
+                {
+                    search_start_date : encodeURIComponent(search_start_date),
+                    search_end_date : encodeURIComponent(search_end_date)
+                })
+        }
+
+        function getTodayAccessor() {
+            var search_start_date = $('#search_start_date').val();
+            var search_end_date = $('#search_end_date').val();
+
+            $.ajax({
+                url:"<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=today_accessor",
+                type:'post',
+                dataType:'json',
+                data:'search_start_date='+search_start_date+'&search_end_date='+search_end_date,
+                success:function (data)
+                {
+                    $("#today_accessor").text(data.current_date_count);
+                    $("#month_accessor").text(data.current_month);
+                    $("#search_accessor").text(data.search_count);
+                }
+            })
+        }
+
+        getTodayAccessor();
+
+        $("#search_value").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        $("#search_btn").off().on('click', function () {
+            getTodayAccessor();
+            doSearch();
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+    });
+
+    function formatProgress(value){
+        if (value){
+            var s = '<div style="width:100%;border:1px solid #ccc;background-color:#D4D4D4">' +
+                '<div style="width:' + value + '%;background-color:rgb(42, 90, 155);color:#fff;"><strong>' + value + '%' + '</strong></div>'+
+            '</div>';
+            return s;
+        } else {
+            return '';
+        }
+    }
+
+    function allList() {
+        $("#search_start_date").datebox('setValue', '<?=$start_date?>');
+        $("#search_end_date").datebox('setValue', '<?=date("Y-m-d")?>');
+
+        $("#dg").datagrid('load', {
+            search_start_date: '<?=$start_date?>',
+            search_end_date : '<?=date("Y-m-d")?>'
+        });
+    }
+</script>
+
+    <div class="easyui-layout" fit="true">
+        <div data-options="region:'north', border:false">
+            <div class="title">
+                <h1><?=$current_page_info['dm_view_title']?></h1>
+            </div>
+            <div class="accessor">
+                <p><span>금일 방문자수 <strong id="today_accessor">0</strong></span></p>
+                <p><span>금월 방문자수 <strong id="month_accessor">0</strong></span></p>
+                <p><span>기간 방문자수 <strong id="search_accessor">0</strong></span></p>
+            </div>
+            <div class="Srchbox">
+                <div>
+                    <dl>
+                        <dt><strong>기간</strong></dt>
+                        <dd>
+                            <input type="text" class="easyui-datebox" id="search_start_date" value="<?=$start_date?>" data-options="formatter:myformatter,parser:myparser"> ~
+                            <input type="text" class="easyui-datebox" id="search_end_date" value="<?=date("Y-m-d")?>" data-options="formatter:myformatter,parser:myparser">
+                            <a onclick="DateSearch.getToday();" class="btn">오늘</a>
+                            <a onclick="DateSearch.getThisWeek();" class="btn">이번주</a>
+                            <a onclick="DateSearch.getThisMonth();" class="btn">이번달</a>
+                            <a onclick="DateSearch.getNextSevenDays()" class="btn">1주일</a>
+                            <a onclick="DateSearch.getNextFiftheenDays()" class="btn">15일</a>
+                            <a onclick="DateSearch.getMonthAgo()" class="btn">1개월</a>
+                            <a onclick="DateSearch.getThreeMonthAgo()" class="btn">3개월</a>
+                            <a onclick="DateSearch.getSixMonthAgo()" class="btn">6개월</a>
+                            <a onclick="DateSearch.resetDate()" class="btn">전체</a>
+                        </dd>
+                    </dl>
+                </div>
+                <button class="btn bt00" id="search_btn">검색</button>
+                <button class="btn" onclick="allList()">초기화</button>
+            </div>
+        </div>
+        <div data-options="region:'center', border:false" class="Contents">
+            <table id="dg" class="easyui-datagrid" data-options="pagePosition:'top',rownumbers:true,pagination:true, url:'<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=select_accessor&search_start_date=<?=$start_date?>&search_end_date=<?=date("Y-m-d");?>',method:'get', singleSelect:true,fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false"  fit="true" border="false" pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+                <thead>
+                <tr>
+                    <th data-options="field:'dm_datetime',width:200,align:'center',fixed:true">날짜</th>
+                    <th data-options="field:'dm_count',width:200,align:'center',fixed:true">방문자수</th>
+                    <th data-options="field:'progressbar',width:120,formatter:formatProgress">그래프</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+        <!--
+        <div id="tb" style="padding:2px 8px;border:solid 0px #f6c1bc;">
+            <table width="100%">
+                <tr>
+                    <td>
+                        <span>기간</span>
+                        <input type="text" class="easyui-datebox" id="search_start_date" value="<?=$start_date?>" data-options="formatter:myformatter,parser:myparser" /> ~
+                        <input id="search_end_date" value="<?=date("Y-m-d");?>" style="width:150px;" class="easyui-datebox" data-options="formatter:myformatter,parser:myparser" />
+                        <button class="btn" id="search_btn">검색</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        -->
+    </div>
+
+<?
+require('../../lib/page_bottom.php');
+?>

@@ -1,0 +1,125 @@
+<?
+	require('../../lib/page_header.php');
+?>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+        </div>
+    </div>
+    
+    <div data-options="region:'center', border:false" class="Contents">
+        <?
+            require('mail_tab.html');
+        ?>
+         <div class="page">
+             <h3>자동메일 설정</h3>
+            <dl>
+                <dt>유형선택</dt>
+                <dd>
+                    <label><input name="" id="1" type="radio" onClick="$('.Mail').hide();$('#dormancy').show();">휴면전환사전안내</label> 
+                    <label><input name="" id="2" type="radio" onClick="$('.Mail').hide();$('#email').show();">이메일수신거부</label>
+                    <label><input name="" id="3" type="radio" onClick="$('.Mail').hide();$('#agree').show();">정보수신동의설정</label> 
+                    <label><input name="" id="4" type="radio" onClick="$('.Mail').hide();$('#password2').show();">비밀번호변경알림</label>
+                </dd>
+            </dl>
+            <div class="Mail" id="dormancy">
+                <dl>
+                    <dt>발송여부</dt>
+                    <dd>
+                        <label><input name="" id="" type="radio" value="y">발송함</label>
+                        <label><input name="" id="" type="radio" value="n">발송안함</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>발송자이메일</dt>
+                    <dd><input name="" type="text" class="wd50"> <span class="noty">발송자 이메일 정보가 없으면 자동메일이 발송되지 않습니다.</span></dd>
+                </dl>
+                <dl>
+                    <dt>제목</dt>
+                    <dd><input name="" type="text" value="" placeholder="{사이트명} 1년 이상 미접속으로 인한 휴면회원 전환 사전 안내드립니다."></dd>
+                </dl>
+                <dl>
+                    <dt>내용</dt>
+                    <dd>
+                       에디터 메일폼내용
+                    </dd>
+                </dl>
+            </div>
+
+            <div class="Mail" id="email" style="display: none">
+                 <dl>
+                    <dt>발송여부</dt>
+                    <dd>
+                        <label><input name="" id="" type="radio" value="y">발송함</label>
+                        <label><input name="" id="" type="radio" value="n">발송안함</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>발송자이메일</dt>
+                    <dd><input name="" type="text" class="wd50"> <span class="noty">발송자 이메일 정보가 없으면 자동메일이 발송되지 않습니다.</span></dd>
+                </dl>
+                <dl>
+                    <dt>제목</dt>
+                    <dd><input name="" type="text" value="" placeholder="{사이트명} 이메일 수신거부가 정상적으로 처리되었습니다."></dd>
+                </dl>
+                <dl>
+                    <dt>내용</dt>
+                    <dd>
+                         에디터 메일폼내용
+                    </dd>
+                </dl>   
+            </div>
+
+            <div class="Mail" id="agree" style="display: none">
+                <dl>
+                    <dt>발송여부</dt>
+                    <dd>
+                        <label><input name="" id="" type="radio" value="y">발송함</label>
+                        <label><input name="" id="" type="radio" value="n">발송안함</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>발송자이메일</dt>
+                    <dd><input name="" type="text" class="wd50"> <span class="noty">발송자 이메일 정보가 없으면 자동메일이 발송되지 않습니다.</span></dd>
+                </dl>
+                <dl>
+                    <dt>제목</dt>
+                    <dd><input name="" type="text" value="" placeholder="{사이트명} 정보수신동의 설정 변경내역을 알려드립니다."></dd>
+                </dl>
+                <dl>
+                    <dt>내용</dt>
+                    <dd>
+                         에디터 메일폼내용
+                    </dd>
+                </dl>   
+            </div>  
+
+            <div class="Mail" id="password2" style="display: none">
+                <dl>
+                    <dt>발송여부</dt>
+                    <dd>
+                        <label><input name="" id="" type="radio" value="y">발송함</label>
+                        <label><input name="" id="" type="radio" value="n">발송안함</label>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>발송자이메일</dt>
+                    <dd><input name="" type="text" class="wd50"> <span class="noty">발송자 이메일 정보가 없으면 자동메일이 발송되지 않습니다.</span></dd>
+                </dl>
+                <dl>
+                    <dt>제목</dt>
+                    <dd><input name="" type="text" value="" placeholder="{사이트명} 비밀번호가 변경되었습니다."></dd>
+                </dl>
+                <dl>
+                    <dt>내용</dt>
+                    <dd>
+                         에디터 메일폼내용
+                    </dd>
+                </dl>  
+            </div>   
+    </div>    
+
+<?
+	require('../../lib/page_bottom.php');
+?>

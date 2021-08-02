@@ -1,0 +1,13 @@
+<link rel="stylesheet" href="<?=$layout_path?>css/gallery.css">
+<div class="certi_plaque">
+    <ul class="gallery01 li05">
+        <? foreach ($certificateList as $value) { ?>
+            <li>
+                <div class="img"><img src="/web/data/certificate/<?=$value['dm_certificate_image']?>" alt="<?=$value['dm_certificate_nm']?>"/></div>
+                <div class="info">
+                    <h5><?=$value['dm_certificate_nm']?></h5>
+                </div>
+            </li>
+        <? } ?>
+    </ul>
+</div>

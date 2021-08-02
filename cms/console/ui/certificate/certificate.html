@@ -1,0 +1,329 @@
+<?
+require('../../lib/page_header.php');
+?>
+<script>
+    $(function () {
+
+        function fnNew() {
+            $("#dm_id").val('');
+            $("#dm_certificate_nm").val('');
+            $(".del_image").hide();
+            $("#dm_certificate_image").filebox('clear');
+            $('#dm_register_image').text('');
+            $('#dm_image_url').attr('src', '');
+            $("#dm_del_image").checkbox({
+                checked:false
+            });
+            $("#dm_status").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1001');
+            $("#dm_mode").val('insert');
+        }
+
+        function fnSave() {
+            var dm_certificate_nm = $("#dm_certificate_nm").val();
+            var dm_mode = $("#dm_mode").val();
+            var url = "<?=$_VAR_PATH_BIZ?>app/mng_certificate.php?type="+dm_mode;
+
+            if (dm_mode != 'delete') {
+                if(dm_certificate_nm == "")
+                {
+                    $.messager.alert('입력오류','이름을 입력해주세요.','warning');
+                    return;
+                }
+            }
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>app/mng_certificate.php?type="+dm_mode,
+                data : formData,
+                dataType: "json",
+                type : "post",
+                contentType: false,
+                processData: false,
+                success : function (data) {
+
+                    var icon = 'warning';
+                    if(data.result == "success") {
+                        $('#dg').datagrid('reload');
+                        $("#dm_certificate_nm").val('');
+                        $("#dm_certificate_image").filebox('clear');
+                        $(".del_image").hide();
+                        $('#dm_register_image').text('');
+                        $('#dm_image_url').attr('src', '');
+                        $("#dm_status").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1006');
+                        $("#dm_mode").val("insert");
+                        $("#dialog_title").text('인증서 등록');
+                        $("#dm_del_image").checkbox({
+                            checked:false
+                        });
+                        icon = 'info';
+                    }
+                    $.messager.alert('알림',data.notice,icon);
+                    closeDialog();
+                }
+            });
+        }
+
+        function fnRemove() {
+            var ids = [];
+            var rows = $('#dg').datagrid('getChecked');
+
+            if (rows.length > 0) {
+                for(var i=0; i<rows.length; i++){
+                    ids.push(rows[i].dm_id);
+                }
+
+                $.each(ids, function (index, value) {
+                        $.post('<?=$_VAR_PATH_BIZ?>app/mng_certificate.php?type=delete',{dm_id:value},function(result){
+                            if (result.success){
+                                console.log(result);
+                            }
+                        },'json')
+                    }
+
+                );
+                $('#dg').datagrid('reload');    // reload the user data
+            } else {
+                $.messager.alert('경고', "삭제할 항목을 선택해주세요", 'warning');
+            }
+        }
+
+        function doSearch() {
+            var search_type = $('#search_type').val();
+            var search_value = $('#stx').val();
+            var search_status = $('#search_status').combobox('getValue');
+
+            $('#dg').datagrid('load',
+                {
+                    search_type : encodeURIComponent(search_type),
+                    search_value : encodeURIComponent(search_value),
+                    search_status : encodeURIComponent(search_status)
+                })
+        }
+
+        function closeDialog()
+        {
+            $("#dlg").dialog('close');
+        }
+
+        $('#dg').datagrid({
+            onDblClickCell : function(rowIndex, field, value) {
+                selectedDg(rowIndex);
+            },
+            emptyMsg:'데이터가 없습니다.'
+        });
+
+        $("#dm_certificate_image").filebox({
+            buttonText: '파일선택',
+            accept: 'image/*'
+        });
+
+        $("#stx").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        $("#search_btn").off().on('click', function () {
+            doSearch();
+        });
+
+        $("#fnNew").off().on('click', function () {
+            $("#dialog_title").text("인증서 등록");
+            $("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+            fnNew();
+        });
+
+        $("#fnClose").off().on('click', function () {
+            closeDialog();
+        });
+
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    fnRemove();
+                }
+            });
+        });
+
+        closeDialog();
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+        $("#detail_search").off().on('click', function () {
+            $("#Dsearch").toggle();
+        });
+
+    });
+
+    function selectedDg(rowIndex)
+    {
+        $('#dg').datagrid('selectRow',rowIndex);
+        var currentRow =$("#dg").datagrid("getSelected");
+        if (currentRow)
+        {
+            $("#dm_id").val(currentRow.dm_id);
+            $("#dm_certificate_nm").val(currentRow.dm_certificate_nm);
+            if (currentRow.dm_certificate_image != "")
+            {
+                $(".del_image").show();
+                $('#dm_register_image').text(currentRow.dm_certificate_image);
+                $('#dm_image_url').attr('src', currentRow.dm_image_url);
+            } else {
+                $(".del_image").hide();
+                $('#dm_register_image').text('');
+                $('#dm_image_url').attr('src', '');
+            }
+            $("#dm_del_image").checkbox({
+                checked:false
+            });
+            $("#dm_status").combobox('setValue', currentRow.dm_status);
+            $("#dm_mode").val("update");
+            $("#dialog_title").text(currentRow.dm_certificate_nm + ' 수정');
+            $("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+        }
+    }
+
+    function allList() {
+        $("#search_type").val('all');
+        $("#stx").val('');
+        $("#search_status").combobox('reload');
+        $("#dg").datagrid('load', {
+            search_type: '',
+            search_value : '',
+            search_status :''
+        });
+    }
+
+</script>
+
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+            <div class="btnWrap">
+                <!--            <button id="fnSave">저장</button>-->
+                <button id="fnNew" class="bt08">+ 등록</button>
+            </div>
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>상태</strong></dt>
+                    <dd>
+                        <select id="search_status" name="search_status" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&search=1&group=1001',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><strong>통합검색</strong></dt>
+                    <dd>
+                        <select name="search_type" id="search_type">
+                            <option value="all">통합검색</option>
+                            <option value="dm_certificate_nm">이름</option>
+                            <option value="dm_certificate_image">인증서이미지</option>
+                            <option value="dm_create_dt">등록일</option>
+                        </select>
+                        <input type="text" name="search_value" value="" id="stx">
+                    </dd>
+                </dl>
+            </div>
+            <button class="btn bt00" id="search_btn">검색</button>
+            <button class="btn" onclick="allList()">초기화</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <table id="dg"
+               class="easyui-datagrid" fit="true" border="false"
+               data-options="pagePosition:'top',rownumbers:true,pagination:true, singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_certificate.php?type=select',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false,footer:'#ft'"
+               pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+            <thead>
+            <tr>
+                <th data-options="field:'ck',width:100,align:'center',checkbox:true,
+                editor:{
+                    type:'checkbox',
+                    options:{
+                        on:'Y',
+                        off:'N'
+                    }
+                }">-</th>
+                <th data-options="field:'dm_certificate_nm',width:300,align:'center'">이름</th>
+                <th data-options="field:'dm_certificate_image',width:350,align:'center'">인증서이미지</th>
+                <th data-options="field:'dm_status_text',width:200,align:'center'">상태</th>
+                <th data-options="field:'dm_create_dt',width:200,align:'center'">등록일</th>
+            </tr>
+            </thead>
+        </table>
+        <div id="dlg" class="easyui-dialog" style="width:600px; height: 650px;">
+            <form id="fm" method="post" novalidate enctype="multipart/form-data">
+                <input type="hidden" name="dm_id" id="dm_id" />
+                <input type="hidden" id="dm_mode" name="dm_mode" value="insert">
+                <div class="page">
+                    <h3 id="dialog_title">도메인 등록</h3>
+                    <dl>
+                        <dt>이름</dt>
+                        <dd><input type="text" name="dm_certificate_nm" id="dm_certificate_nm" /></dd>
+                    </dl>
+                    <dl>
+                        <dt>이미지</dt>
+                        <dd>
+                            <input type="text" name="dm_certificate_image" class="easyui-filebox" id="dm_certificate_image" style="width:300px;" />
+                            <p style="display:none;" class="del_image">
+                                등록된 이미지 :<span id="dm_register_image"></span><br>
+                                <img src="" id="dm_image_url" width="250" height="250"/>
+                            </p>
+                            <p style="display:none;" class="del_image">
+                                <input type="checkbox" name="dm_del_image" id='dm_del_image' value="1" class="easyui-checkbox" label="이미지 삭제" />
+                            </p>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>상태</dt>
+                        <dd>
+                            <select id="dm_status" name="dm_status" class="easyui-combobox" panelHeight="auto"
+                                    data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1001',
+                                                    method: 'get',
+                                                    valueField: 'dm_code_value',
+                                                    textField: 'dm_code_name'" ></select>
+                        </dd>
+                    </dl>
+                </div>
+                <div style="text-align: center;">
+                    <a href="javascript:void(0);" id="fnClose" class="easyui-linkbutton" style="width:120px;height:30px">취소</a>
+                    <!--                            <button class="btn" style="width:">저장</button>-->
+                    <a href="javascript:void(0);" id="fnSave" class="easyui-linkbutton" style="width:120px;height:30px">저장</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div data-options="region:'south'">
+        <dl class="Tbottom">
+            <dd>
+                <button class="btn" id="fnRemove">선택삭제</button>
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<?
+require('../../lib/page_bottom.php');
+?>
+

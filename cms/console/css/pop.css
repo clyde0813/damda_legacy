@@ -1,0 +1,35 @@
+@charset "utf-8";
+
+@import url('reset.css');
+
+body{padding:20px;background:#fff}
+#title{margin-bottom:15px;border-bottom:2px solid #666;position:relative;}
+#title h1{font-size:150%;padding-bottom:7px;;display:block;font-family:"Nanum Square"}
+#title .close{position:absolute;right:0;top:10px;font-size:0;text-align:center;width:20px;height:20px;display:block;}
+#title .close:before,#title .close:after{content:'';width:20px;height:1px;background:#666;display:block;}
+#title .close:before{transform:rotate(45deg)}
+#title .close:after{transform:rotate(135deg)}
+
+.btnsWrap{text-align:center;margin-top:25px;}
+.btnsWrap button,.btnsWrap a{border:1px solid rgba(0,0,0,0.1);font-size:115%;font-weight:bold;min-width:100px;height:40px;cursor:pointer;padding:0 10px;vertical-align:middle;margin:0 2px}
+.btnsWrap a{display:inline-block;}
+.btnsWrap a:after{content:'';width:0px;height:calc(100% + 4px);vertical-align: inherit;display:inline-block;vertical-align:middle}
+.btnsWrap button:nth-of-type(1),.btnsWrap a:first-child{ color:#fff}
+
+
+/*Modal*/
+.window{border-radius:0;vertical-align:middle;background:#fff;border-color:rgba(0,0,0,0.5);}
+.window-shadow{display:none !important;}
+.window .window-body,.window .panel-header{border:0;}
+.window .panel-header{ position: relative;z-index:10}
+.window .window-header{padding:0}
+.window .panel-title{font-family:"Nanum Square";height:auto;font-size:18px;font-weight:900;line-height:normal; height: 0}
+.window .window-header .panel-tool{height: auto;top:15px;right:10px; margin: 0}
+.window .window-header .panel-tool a{opacity: 1; background-color: transparent !important; }
+.window .panel-tool-close{ width: 22px; height: 22px; background: url(../images/window_close.png) no-repeat;}
+
+.window .panel-body .page{padding:15px 15px 30px}
+.window .easyui-linkbutton:nth-last-child(1),.window .easyui-linkbutton:nth-last-child(2){height:40px !important;}
+.window .easyui-linkbutton > span{margin:0 !important;display: table; width: 100%; height: inherit;}
+.window .easyui-linkbutton > span > span{display: table-cell;vertical-align: middle;text-align: center; font-weight: 600; font-size: 110%}
+.window .easyui-linkbutton:nth-last-child(1){color: #fff}

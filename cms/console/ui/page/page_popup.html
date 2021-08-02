@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <?
+    include "../../lib/lib.php";
+    include "../../lib/smarteditor2/editor.lib.php";
+
+    $db = new DBSQL();
+    $db -> DBconnect();
+
+    $dm_id = isset($_REQUEST['dm_id']) ? $_REQUEST['dm_id'] : "";
+
+    if (!$dm_id) {
+        alert_close("수정할 파일이 없습니다.");
+        exit;
+    }
+    $query = "SELECT * FROM dm_pages WHERE dm_id = '$dm_id'";
+
+    $db->ExecSql($query, "S");
+
+    if ($db->Num > 0) {
+        $pageInfo = $db->Fetch();
+
+        if (is_file($_VAR_PAGE_PATH.$pageInfo['dm_file_name'])) {
+            $file_name = $_VAR_PAGE_PATH.$pageInfo['dm_file_name'];
+            $fp = fopen($file_name, 'r');
+            $content = fread($fp, filesize($file_name));
+            fclose($fp);
+        }
+    } else {
+        die("페이지 정보가 없습니다.");
+    }
+
+    $editor_html = editor_html('txt_content', $content, true);
+    $editor_js = '';
+    $editor_js .= get_editor_js('txt_content', false);
+    $editor_js .= chk_editor_js('txt_content', true);
+
+    ?>
+    <title><?=$_TITLE?></title>
+    <script type="text/javascript" src="<?=$_VAR_PATH_JS?>jquery/jquery-1.4.3.min.js"></script>
+    <script type="text/javascript" src="<?=$_VAR_PATH_JS?>jquery/jquery-1.10.2.js"></script>
+    <script type="text/javascript" src="<?=$_VAR_PATH_JS?>common.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_JS?>easyui/themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_JS?>easyui/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_JS?>easyui/themes/color.css">
+    <link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_CSS?>pop.css">
+    <script type="text/javascript" src="<?=$_VAR_PATH_JS?>easyui/jquery.easyui.min.js"></script>
+    <meta http-equiv="Content-Type" charset="UTF-8">
+
+    <script language="javascript">
+        var lib_url = '<?=$_VAR_PATH_LIB?>';
+
+        function regForm()
+        {
+
+            <?php echo $editor_js; // 에디터 사용시 자바스크립트에서 내용을 폼필드로 넣어주며 내용이 입력되었는지 검사함   ?>
+
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>app/mng_page.php?type=file_update",
+                data : formData,
+                dataType: "json",
+                type : "post",
+                contentType: false,
+                processData: false,
+                success : function (data) {
+                    if(data.result == "success") {
+                        alert("수정되었습니다.");
+                        // self.close();
+                    }
+                }
+            });
+        }
+
+    </script>
+<body>
+
+<form method="post" enctype="multipart/form-data" id="fm">
+    <input type="hidden" name="mode" value="file_update" />
+    <input type="hidden" name="type" value="file_update" />
+    <input type="hidden" name="dm_id" value="<?=$dm_id?>" />
+    <div id="title">
+    	<h1><?=$current_page_info['dm_view_title']?></h1>
+        <a class="close" onClick="self.close()">닫기</a>
+    </div>
+    <div class="Contents">
+        <?=$editor_html?>
+    </div>
+    <div class="btnsWrap">
+        <button onClick="javascript:regForm()">저장</button>
+        <a onClick="self.close()">닫기</a>
+    </div>
+</form>
+</body>
+</html>

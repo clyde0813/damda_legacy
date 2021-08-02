@@ -1,0 +1,428 @@
+<?
+
+	require('../../lib/page_header.php');
+    include "../../lib/smarteditor2/editor.lib.php";
+
+    $dm_content = editor_html('dm_content', "", true);
+    $dm_content_js = '';
+    $dm_content_js .= get_editor_js('dm_content', true);
+    $dm_content_js .= chk_editor_js('dm_content', true);
+
+    $dm_id = isset($_REQUEST['dm_id']) ? $_REQUEST['dm_id'] : "";
+?>
+<script>
+    $(function () {
+        function fnSend() {
+            <?=$dm_content_js?>
+
+            var subject = $("#dm_subject").val();
+            var content = $("#dm_content").val();
+            var member = [];
+            var from_email = $("#dm_from_email").val();
+
+            var to_type = $("input[name='ma_target']").val();
+
+            var url = "<?=$_VAR_PATH_BIZ?>app/mng_member.php?type=send_mail";
+
+            if(subject == "") {
+                $.messager.alert("", "제목을 입력해주세요");
+                return;
+            }
+
+            if(content == "") {
+                $.messager.alert("", "내용을 입력해주세요");
+                return;
+            }
+
+            if (to_type == "") {
+                $.messager.alert("", "대상 회원을 선택해주세요");
+                return;
+            }
+
+            if (to_type == 'user') {
+                member = $(".selected_member").length;
+                if (member.length < 0) {
+                    $.messager.alert("", "대상 회원을 선택해주세요");
+                    return;
+                }
+            }
+
+            if (from_email == "") {
+                $.messager.alert("", "발송자 이메일을 입력해주세요");
+                return;
+            }
+
+            var param = $("#fm").serialize();
+
+            $.ajax({
+                url: url,
+                dataType:"json",
+                type:"post",
+                data:param,
+                success: function(data){
+                    if(data.result == "success") {
+                        $("#dm_subject").val('');
+                        $("#dm_content").val('');
+                        $("#dm_from_email").val('');
+                    }
+                    $.messager.alert({title:'알림', msg:data.notice, fn:function (){
+                        location.href='/diam/cms/console/ui/member/mail_member_u.html';
+                    }});
+                }
+            });
+        }
+
+        function doSearch() {
+            var search_type = $('#search_type').val();
+            var search_value = $('#stx').val();
+            var search_start_date = $('#search_start_date').datebox('getValue');
+            var search_end_date = $('#search_end_date').datebox('getValue');
+            var search_level = $('#search_level').combobox('getValue');
+            var search_gender = $('#search_gender').combobox('getValue');
+
+            $('#dg').datagrid('load',
+                {
+                    search_type : encodeURIComponent(search_type),
+                    search_value : encodeURIComponent(search_value),
+                    search_start_date : encodeURIComponent(search_start_date),
+                    search_end_date : encodeURIComponent(search_end_date),
+                    search_level : encodeURIComponent(search_level),
+                    search_gender : encodeURIComponent(search_gender)
+                    , emptyMsg:'데이터가 없습니다.'
+                });
+        }
+
+        function allList() {
+            $("#search_type").val('all');
+            $("#stx").val('');
+            $("#search_level").combobox('reload');
+            $("#search_start_date").datebox('setValue', '<?=date("Y-m-d");?>');
+            $("#search_end_date").datebox('setValue', '<?=date("Y-m-d");?>');
+
+            $("#dg").datagrid('load', {
+                search_type: '',
+                search_value : '',
+                search_level : '',
+            });
+        }
+
+        $("input[name='ma_target']").off().on('click', function () {
+            var val = $(this).val();
+            if (val == 'user') {
+                $("#dm_level_span").hide();
+                $("#dlg").dialog('open');
+                $("#level_member").hide();
+                $("#all_member").hide();
+            } else if (val == 'level') {
+                $("#dm_level_span").show();
+                $(".combo").css("width", "300px !important");
+                $("#dlg").dialog('close');
+                $("#user dd").empty();
+                $("#user").hide();
+                $("#level_member").show();
+                $("#all_member").hide();
+            } else {
+                $("#dm_level_span").hide();
+                $("#dlg").dialog('close');
+                $("#user dd").empty();
+                $("#user").hide();
+                $("#level_member").hide();
+                $("#all_member").show();
+            }
+        });
+
+        $("#member_select").off().on('click', function ()  {
+            var ids = [];
+            var rows = $('#dg').datagrid('getChecked');
+            for(var i=0; i<rows.length; i++){
+                ids.push(rows[i].dm_id);
+            }
+
+            $(".selected_member").each(function (key, value) {
+                if ($(this).val() == ids[key]) {
+                    ids[key] = '';
+                }
+            });
+
+            $.each(ids, function (index, value) {
+                if (value != 'undefined' && value) {
+                    $("#user dd").append("<p><a class='btn unselected_member' data-id='"+value+"'>삭제</a> "+value+"<input type='hidden' name='dm_id[]' value='"+value+"' class='selected_member' /></p>");
+                    $("#user").show();
+                }
+            });
+            $('#dg').datagrid('reload');    // reload the user data
+            $("#dlg").dialog('close');
+        });
+
+        $("#search_btn").off().on('click', function () {
+            doSearch();
+        });
+
+        $("#fnSend").off().on('click', function () {
+            fnSend();
+        });
+
+        $("#stx").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        $(document).on('click', ".unselected_member", function () {
+            $(this).parent("p").remove();
+            if ($("#user dd p").length < 1) {
+                $("#user").hide();
+            }
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+        $("#detail_search").off().on('click', function () {
+            $("#Dsearch").toggle();
+
+            var dl_count = $("#Dsearch dl").length;
+            dl_count = Math.ceil(dl_count / 2);
+            var margin_top = dl_count * $("#Dsearch dl").height();
+
+            if($("#Dsearch").is(":visible")) {
+                $(".Contents").css("margin-top", margin_top+"px");
+            } else {
+                $(".Contents").css("margin-top", "0px");
+            }
+        });
+
+        $("#dlg").dialog('close');
+        $("#dm_level_span").hide();
+        if($("#user dd p").length > 0) {
+            $("#user").show();
+            $("input:radio[name='ma_target']:radio[value='user']").prop('checked', true);
+            $("#level_member").hide();
+            $("#all_member").hide();
+        }
+    });
+</script>
+<style>
+    .page dl dd .textbox{width:150px !important;}
+</style>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+            <div class="btnWrap">
+                <button id="fnSend" tyle="button">메일보내기</button>
+            </div>
+        </div>        
+    </div>
+    
+    <div data-options="region:'center', border:false" class="Contents">
+        <form id="fm" method="post">
+            <div class="page">
+                <h3>개별/전체메일발송
+                <div class="Tooltip">
+                    <a class="icon">도움말</a>
+                        <div class="tip">
+                            <div class="explain">
+                                <strong>도움말</strong>
+                                - 전체회원 또는 선택한 특정 사이트 회원에게 메일을 발송할 수 있습니다. <br>
+                                - 사이트 프로모션 및 이벤트 안내 메일이나 전체회원대상 공지메일 등을 발송할 수 있습니다.<br>
+                                - 개별/전체메일은 무료메일 잔여건수가 있어야 발송됩니다. 무료메일 건수는 월 단위로 3000건씩 운영자에게 부과되며,<br>
+                                <em class="pl7"></em>무료메일 잔여건수는 3000건에서 메일 발송 성공한 건수를 제외한 건수입니다.<br>
+                                - 발송 시 필수 입력 항목은 “제목/발송자이메일/내용/대상회원”입니다.<br>
+                                <b class="red">* 영리목적의 광고성 정보를 발송하는 경우 반드시 수신동의를 받은 회원에게만 발송해야 하며, 메일 내용에 전송자의 명칭/연락처/수신거부기능이 포함되어야 합니다.</b><br>
+                                <b class="red"><em class="pl8"></em>수신거부회원에게 메일 발송 시 과태료가 부과되므로 유의 바랍니다.</b>
+                                <a class="close">닫기</a>
+                            </div>
+                        </div>
+                    </div>
+                </h3>
+                <dl>
+                    <dt>제목
+                        <div class="Tooltip2">
+                            <a class="icon">도움말</a>
+                            <div class="tip">
+                                <div class="explain">
+                                    영리목적의 광고성 정보 발송 시 제목 첫머리에 (광고)표시
+                                </div>
+                            </div>
+                        </div>
+                    </dt>
+                    <dd>
+                        <input name="dm_subject" type="text" id="dm_subject" value="" required>
+                        <p class="noty">정보통신망법에 따라 영리목적의 광고성 정보 발송 시 사전 수신동의한 회원을 대상으로 해야 하며,제목에 (광고)를 표시해야 합니다.</p>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>발송자이메일</dt>
+                    <dd>
+                        <input name="dm_from_email" id="dm_from_email" type="text" placeholder="대표이메일">
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>대상회원 선택</dt>
+                    <dd>
+                        <p><input name="ma_target" id="ma_target1" type="radio" value="user"><label for="ma_target1">회원직접선택</label></p>
+                        <p class="mt5">
+                            <input name="ma_target" id="ma_target2" type="radio" value="level"><label for="ma_target2">회원등급별</label>
+                            &nbsp;
+                            <span id="dm_level_span">
+                                <select id="dm_level" name="dm_level" class="easyui-combobox" panelHeight="auto" style="width:300px !important;"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1002',
+                                                    method: 'get',
+                                                    valueField: 'dm_code_value',
+                                                    textField: 'dm_code_name'">
+                                </select>
+                            </span>
+                            <span id="level_out"></span>
+                            &nbsp;<span id="level_member" style="display:none;"><input name="ma_agree1" id="ma_agree1" type="checkbox" value="y""><label for="ma_agree1">수신동의한 회원에게만 발송</label></span>
+                        </p>
+                        <p class="mt3">
+                            <input name="ma_target" id="ma_target3" type="radio" value="all"" checked><label for="ma_target3">전체회원</label> &nbsp;
+                            <span id="all_out"></span>
+                            <span id="all_member"><input name="ma_agree2" id="ma_agree2" type="checkbox" value="y""><label for="ma_agree2">수신동의한 회원에게만 발송</label></span>
+                        </p>
+                        <p class="noty">정보통신망법에 따라 수신거부한 회원에게는 광고성정보를 발송할 수 없으며, 위반 시 과태료가 부과됩니다.</p>
+                    </dd>
+                </dl>
+                <dl id="user" style="display: none">
+                    <dt>대상회원</dt>
+                    <dd>
+                        <? if ($dm_id) {
+                            echo "<p><a class='btn unselected_member' data-id='".$dm_id."'>삭제</a> ".$dm_id."<input type='hidden' name='dm_id[]' value='".$dm_id."' class='selected_member' /></p>";
+                        } ?>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>내용</dt>
+                    <dd>
+                        <?=$dm_content?>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>수신동의</dt>
+                    <dd>
+                        <label><input name="ma_agree" id="ma_agree" type="checkbox" value="y" checked>수신동의문구를 메일에 포함합니다.</label>
+                        <span class="noty">[메일내용]에 자체 수신거부기능을 넣으신 경우, 체크해제를 하면 됩니다.</span>
+                        <textarea class="twrap" rows="1"  disabled>본 메일은 정보통신망 이용촉진 및 정보보호 등에 관한 법률시행규칙 등 관련규정에 의거하여 <?=date('Y')?>년 <?=date('m')?>월 <?=date('d')?>일 기준, 회원님의 이메일 수신 동의 여부를 확인한 결과 회원님께서 수신에 동의하셨기에 발송되었습니다.</textarea>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>수신거부
+                        <div class="Tooltip2">
+                            <a class="icon">도움말</a>
+                            <div class="tip">
+                                <div class="explain">
+                                    본문에 수신거부기능 및 문구 미포함 시 수신거부 필수 체크
+                                </div>
+                            </div>
+                        </div>
+                    </dt>
+                    <dd>
+                        <input name="ma_refusal" id="ma_refusal" type="checkbox" value="y" checked><label>수신거부문구를 메일에 포함합니다.</label>
+                        <span class="noty">[메일내용]에 자체 수신거부기능을 넣으신 경우, 체크해제를 하면 됩니다.</span>
+                        <textarea class="twrap" rows="3" disabled>수신을 원하지 않으시면, [수신거부]를 클릭하셔서 정보메일 수신동의를 수정하여 주시기 바랍니다.
+    If you don’t want this type of information or e-mail, please click the refuse here.
+    본 메일은 발신전용입니다. 이외 문의사항이나 이용안내는 OOO@OOO.com 또는 000-000-0000(고객센터)를이용하여 주십시오.</textarea>
+                    </dd>
+                </dl>
+            </div>
+        </form>
+        <div id="dlg" class="easyui-dialog" style="width:1280px; height: 1000px !important;">
+            <div class="Srchbox">
+                <div>
+                    <dl>
+                        <dt><strong>가입 기간</strong></dt>
+                        <dd>
+                            <input type="text" class="easyui-datebox" id="search_start_date" value="<?=date("Y-m-d");?>" data-options="formatter:myformatter,parser:myparser"> ~
+                            <input type="text" class="easyui-datebox" id="search_end_date" value="<?=date("Y-m-d");?>" data-options="formatter:myformatter,parser:myparser">
+                            <a onclick="DateSearch.getToday();" class="btn">오늘</a>
+                            <a onclick="DateSearch.getThisWeek();" class="btn">이번주</a>
+                            <a onclick="DateSearch.getThisMonth();" class="btn">이번달</a>
+                            <a onclick="DateSearch.getNextSevenDays()" class="btn">1주일</a>
+                            <a onclick="DateSearch.getNextFiftheenDays()" class="btn">15일</a>
+                            <a onclick="DateSearch.getMonthAgo()" class="btn">1개월</a>
+                            <a onclick="DateSearch.getThreeMonthAgo()" class="btn">3개월</a>
+                            <a onclick="DateSearch.getSixMonthAgo()" class="btn">6개월</a>
+                            <a onclick="DateSearch.resetDate()" class="btn">전체</a>
+                        </dd>
+                    </dl>
+                    <article id="Dsearch">
+                        <dl>
+                            <dt><strong>권한</strong></dt>
+                            <dd>
+                                <select id="search_level" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&search=1&group=1002',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'">
+                                </select>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt><strong>성별</strong></dt>
+                            <dd>
+                                <select id="search_gender" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&search=1&group=1003',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'">
+                                </select>
+                            </dd>
+                        </dl>
+                    </article>
+                    <dl>
+                        <dt><strong>통합검색</strong></dt>
+                        <dd>
+                            <select name="search_type" id="search_type">
+                                <option value="all">통합검색</option>
+                                <option value="dm_id">아이디</option>
+                                <option value="dm_name">이름</option>
+                                <option value="dm_nick">닉네임</option>
+                                <option value="dm_hp">전화번호</option>
+                                <option value="dm_datetime">회원가입일</option>
+                                <option value="dm_today_login">마지막로그인</option>
+                            </select>
+                            <input type="text" name="search_value" value="" id="stx">
+                        </dd>
+                    </dl>
+                </div>
+                <button class="btn bt00" id="search_btn">검색</button>
+                <button class="btn" onclick="allList()">초기화</button>
+                <button class="btn bt07" id="detail_search">상세검색</button>
+                <button class="btn bt01" id="member_select">선택</button>
+            </div>
+            <table id="dg"
+                   class="easyui-datagrid" fit="true" border="false"
+                   data-options="pagePosition:'top',rownumbers:true,pagination:true,singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_member.php?type=select&rows=30',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false" pageList="[10,20,30,50,70,100]" pageSize="30" fit="true">
+                <thead>
+                <tr>
+                    <th data-options="field:'ck',width:100,align:'center',checkbox:true,
+                editor:{
+                    type:'checkbox',
+                    options:{
+                        on:'Y',
+                        off:'N'
+                    }
+                }"></th>
+                    <th data-options="field:'dm_id',width:150,align:'center'">아이디</th>
+                    <th data-options="field:'dm_nick',width:100,align:'center'">닉네임</th>
+                    <th data-options="field:'dm_name',width:100,align:'center'">이름</th>
+                    <th data-options="field:'dm_level_text',width:70,align:'center'">등급</th>
+                    <th data-options="field:'dm_datetime',width:120,align:'center'">회원가입일</th>
+                    <th data-options="field:'dm_today_login',width:120,align:'center'">최종로그인</th>
+                    <th data-options="field:'dm_visit_count',width:80,align:'center'">방문횟수</th>
+                    <th data-options="field:'dm_state',width:100,align:'center'">상태</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>    
+<?
+	require('../../lib/page_bottom.php');
+?>

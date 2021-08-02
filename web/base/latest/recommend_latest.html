@@ -1,0 +1,34 @@
+<ul>
+    <? if (count($list['list']) > 0) { ?>
+    <? foreach ($list['list'] as $value) { ?>
+    <li>
+        <a href="?command=view&contentId=<?=$list['pageInfo']['dm_uid']?>&wr_id=<?=$value['wr_id']?>&cate=<?=$value['ca_name']?>">
+            <?
+            $thumb = get_list_thumbnail($list['boardInfo']["dm_table"], $value['wr_id'], $list['boardInfo']['dm_gallery_width'], $list['boardInfo']['dm_gallery_height'], false, true, "center");
+            $thum = "";
+            if ($thumb['src']) {
+                $thum = "<div class='thumb'><img src='".$thumb['src']."' alt='".$thumb['alt']."' /></div>";
+            }
+            echo $thum
+            ?>
+            <div class="listbox">
+                <div class="name"><?=$value['dm_append_1']?></div>
+                <div class="txt"><?=$value['dm_append_7']?></div>
+                <div class="sell">
+                    <p class="blue">목표수익율<em> <?=number_format($value['dm_append_3'])?>%</em></p>
+                    <p class="red">매수가<em> <?=number_format($value['dm_append_2'])?></em></p>
+                </div>
+                <div class="date">
+                    <span><?=$value['dm_nick']?> ( <?=$value['level_text']?> ) </span>
+                    <span><?=date("Y.m.d", strtotime($value['wr_datetime']))?></span>
+                </div>
+            </div>
+        </a>
+    </li>
+        <? } ?>
+    <? } else { ?>
+    <li>
+        <p>게시물이 없습니다.</p>
+    </li>
+    <? } ?>
+</ul>

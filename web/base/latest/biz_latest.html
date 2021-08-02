@@ -1,0 +1,41 @@
+<div class="recZine">
+    <ul>
+    <? if (count($list['list']) > 0) { ?>
+        <? foreach ($list['list'] as $value) { ?>
+            <!--loop -->
+            <li>
+                <a href="?command=view&contentId=<?=$list['pageInfo']['dm_uid']?>&wr_id=<?=$value['wr_id']?>&cate=<?=$value['ca_name']?>">
+                        <?
+                        //$thum = "<img src='".$_VAR_URL_WEB."common/image/blank.png'>";
+                        if ($value['wr_file']) {
+                            $file_array = explode("|", $value['wr_file']);
+                            foreach ($file_array as $val) {
+                                $temp = explode(".", $val);
+                                $ext_array = array("gif", "png", "jpg", "jpeg", "bmp", "GIF", "PNG", "JPG", "JPEG", "BMP");
+
+                                if (in_array($temp[1], $ext_array)) {
+                                    $thum = '<div class="img"><img src="' . $_VAR_URL_WEB_DATA . 'file/' . $val . '" alt="">
+                    </div>';
+                                    break;
+                                }
+                            }
+                        }
+                        ?>
+                        <?=$thum?>
+                    <div class="info">
+                        <strong><?=$value['wr_subject']?></strong>
+                        <p><?=$value['wr_content']?></p>
+                    </div>
+                    <span class="date"><?=date("Y-m-d", strtotime($value['wr_datetime']));?></span>
+                </a>
+            </li>
+            <!--loop -->
+        <? } ?>
+    <? } else { ?>
+        <li>
+            <p>게시물이 없습니다.</p>
+        </li>
+    <? } ?>
+    </ul>
+    <a href="?contentId=<?=$list['pageInfo']['dm_uid']?>" class="more">더보기</a>
+</div>

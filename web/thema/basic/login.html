@@ -1,0 +1,52 @@
+
+<form id="fm" name="fm" autocomplete="off" action="" method="POST">
+<? if (getSession("chk_dm_id")) { ?>
+     <fieldset class="out">
+        <div class="scUser">
+            <p class="name"><?=$MEMBER['dm_name']?><em>님 </em> </p>
+            <p class="idbox">
+                <span><?=$MEMBER['dm_nick']?></span>
+                <span class="Level"><em>레벨</em><?=$MEMBER['level_text']?></span>
+                <span><?=$GROUP['dm_group_name']?></span>
+            </p>
+            <div class="money">
+                <span>현재 내 <?=$CONFIG['point_text']?></span><strong><?=number_format($MEMBER['dm_point'])?></strong>
+                <a href="?contentId=4570b0631e28dc84ca427be2f6ad260a">충전하기</a>
+            </div>
+            <button type="button" onClick="javascript:logout();">로그아웃</button>
+        </div> <!--//scUser-->
+        <ul class="myTab">
+            <li><a href="?contentId=d38f6d8badc81ddd0c677801a87b9dbc">마이페이지</a></li>
+            <li><a href="?contentId=2317477c33c11a25c3ad40c467b991f3">내가 쓴 글</a></li>
+            <li><a href="?contentId=b20b83137999bbb5a21fdde943c98a21">내가 쓴 댓글</a></li>
+        </ul>
+
+    </fieldset>
+<? } else{ ?>
+    <h2>회원 로그인</h2>
+    <fieldset class="form">
+        <div class="loginIpt">
+            <span class="inputBox">
+            <input type="text" name="dm_mb_id" id="dm_mb_id" autocomplete="off" placeholder="아이디" maxlength="41" value="<? if($_COOKIE['userId']) echo $_COOKIE['userId'] ?>">
+            <input type="password" name="dm_mb_password" id="dm_mb_password" placeholder="비밀번호" maxlength="20">
+            </span>
+            <button type="button" onclick="fnLogin();" class="btlog">로그인</button>
+        </div>
+        <div class="login-check-box">
+            <span>
+                <input type="checkbox" name="saveId" id="saveId" value="1" <? if($_COOKIE['userId']) echo "checked" ?>>
+                <label for="saveId">아이디 저장</label>
+            </span>
+            <span>
+                <input type="checkbox" name="autoLogin" id="autoLogin" value="1">
+                <label for="autoLogin">자동 로그인</label>
+            </span>
+        </div>
+        <div class="loginSet">
+            <a href="?contentId=ed9412b7aa3eb07c21772f26d7678ab0">회원가입</a>
+            <a href="?contentId=1b94af05377c864b4e15bc14f2ab26a6">아이디 찾기</a>
+            <a href="?contentId=01ebf71f8e052407e0a939fe2387fec6">비밀번호 찾기</a>
+        </div>
+    </fieldset>
+<? } ?>	
+</form>

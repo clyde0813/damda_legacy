@@ -1,0 +1,7 @@
+<ul class="Tabs mt30">
+    <li<?php if(preg_match("/all_member_u/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a  onclick="location.href='/diam/cms/console/ui/statistics/all_member_u.html'">일별 회원 현황</a></li>
+    <li<?php if(preg_match("/all_month/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a onclick="location.href='/diam/cms/console/ui/statistics/all_month.html'">월별 회원 현황</a></li>
+    <li<?php if(preg_match("/all_sex/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a onclick="location.href='/diam/cms/console/ui/statistics/all_sex.html'">회원 성별 현황</a></li>
+    <li<?php if(preg_match("/all_age/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a onclick="location.href='/diam/cms/console/ui/statistics/all_age.html'">회원 연령별 현황</a></li>
+</ul>
+<script>var widthSize = $('.Contents').width();</script>

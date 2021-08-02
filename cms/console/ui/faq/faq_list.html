@@ -1,0 +1,195 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+<script>
+    $(function () {
+        function deleteFaq(){
+            var ids = [];
+            var rows = $('#dg').datagrid('getChecked');
+            if (rows.length > 0) {
+                for(var i=0; i<rows.length; i++){
+                    ids.push(rows[i].dm_id);
+                }
+
+                $.each(ids, function (index, value) {
+                        $.post('<?=$_VAR_PATH_BIZ?>app/mng_faq.php?type=delete',{dm_id:value},function(result){
+                            if (result.success){
+                                console.log(result);
+                            }
+                        },'json')
+                    }
+
+                );
+                $('#dg').datagrid('reload');    // reload the user data
+            } else {
+                $.messager.alert('경고', "삭제할 항목을 선택해주세요", 'warning');
+            }
+        }
+
+        function doSearch() {
+            var search_type = $('#search_type').val();
+            var search_value = $('#stx').val();
+            var search_status = $('#search_status').combobox('getValue');
+
+            $('#dg').datagrid('load',
+                {
+                    search_type : encodeURIComponent(search_type),
+                    search_value : encodeURIComponent(search_value),
+                    search_status : encodeURIComponent(search_status)
+                })
+        }
+
+        function newFaq()
+        {
+            window.parent.addTab('FAQ 생성','<?=$_VAR_PATH_UI?>faq/faq_form.html',true,'','');
+        }
+
+        $('#dg').datagrid({
+            onDblClickCell: function(index,field,value){
+                $('#dg').datagrid('selectRow',index);
+                var currentRow = $("#dg").datagrid("getSelected");
+                window.parent.addTab("<" + currentRow.dm_question + "> 세부정보",'<?=$_VAR_PATH_UI?>faq/faq_form.html?dm_id='+currentRow.dm_id,true,'','');
+            },
+            emptyMsg:'데이터가 없습니다.',
+            onLoadSuccess:function(){
+                var p = $(this).datagrid('getPanel');
+                // $.parser.parse(p);
+            }
+        });
+
+        $("#fnNew").off().on('click', function () {
+            newFaq();
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    deleteFaq();
+                }
+            });
+        });
+
+        $("#stx").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        $("#search_btn").off().on('click', function () {
+            doSearch();
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+        $("#detail_search").off().on('click', function () {
+            $("#Dsearch").toggle();
+            var dl_count = $("#Dsearch dl").length;
+            dl_count = Math.ceil(dl_count / 2);
+            var margin_top = dl_count * $("#Dsearch dl").height();
+
+            if($("#Dsearch").is(":visible")) {
+                $(".Contents").css("margin-top", margin_top+"px");
+            } else {
+                $(".Contents").css("margin-top", "0px");
+            }
+        });
+
+    });
+
+    function allList() {
+        $("#search_type").val('all');
+        $("#search_value").val('');
+        $("#search_status").combobox('reload');
+        $("#dg").datagrid('load', {
+            search_type: '',
+            search_value : '',
+            search_status : ''
+        });
+    }
+
+    function formatDetail(value,row){
+        return '<a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" row-id="'+row.id+'">Remove Entry</a>';
+    }
+
+</script>
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/datagrid-detailview.js"></script>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+            <div class="btnWrap">
+                <button id="fnNew" class="bt08">+ 등록</button>
+            </div>
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>상태</strong></dt>
+                    <dd>
+                        <select id="search_status" name="search_status" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&search=1&group=1001',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><strong>통합검색</strong></dt>
+                    <dd>
+                        <select name="search_type" id="search_type">
+                            <option value="all">통합검색</option>
+                            <option value="dm_question">질문</option>
+                            <option value="dm_answer">답변</option>
+                        </select>
+                        <input type="text" name="search_value" value="" id="stx">
+                    </dd>
+                </dl>
+            </div>
+            <button class="btn bt00" id="search_btn">검색</button>
+            <button class="btn" onclick="allList()">초기화</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <table id="dg"
+               class="easyui-datagrid" fit="true" border="false"
+               data-options="pagePosition:'top',rownumbers:true,pagination:true, singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_faq.php?type=select',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false,footer:'#ft'"
+               pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+            <thead>
+            <tr>
+                <th data-options="field:'ck',width:100,align:'center',checkbox:true,
+                editor:{
+                    type:'checkbox',
+                    options:{
+                        on:'Y',
+                        off:'N'
+                    }
+                }">-</th>
+                <th data-options="field:'dm_question',width:350,align:'center'">질문</th>
+                <th data-options="field:'dm_answer',width:700,align:'center'">답변</th>
+                <th data-options="field:'dm_status_text',width:50,align:'center'">상태</th>
+                <th data-options="field:'dm_order',width:50,align:'center'">정렬순서</th>
+<!--                <th data-options="field:'dm_category',width:200,align:'center'">카테고리</th>-->
+                <th data-options="field:'dm_modify_dt',width:150,align:'center'">최종수정일자</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+    <div data-options="region:'south'">
+        <dl class="Tbottom">
+            <dd>
+                <button class="btn" id="fnRemove">선택삭제</button>
+            </dd>
+        </dl>
+    </div>
+</div>
+<?
+require('../../lib/page_bottom.php');
+?>

@@ -1,0 +1,65 @@
+﻿<script src="<?=$_VAR_WEB_PATH?>js/common.js"></script>
+<script src="<?=$_VAR_WEB_PATH?>js/diam.js"></script>
+<?
+	require('./lib/lib.php');
+?>
+<?
+	$expired =  isset($_REQUEST['expired']) ? $_REQUEST['expired'] : "";
+	$dm_id =  isset($_REQUEST['dm_id']) ? $_REQUEST['dm_id'] : "";
+	$dm_type =  isset($_REQUEST['dm_type']) ? $_REQUEST['dm_type'] : "";
+
+	$layout = $LAYOUT_VAL["dm_layout_type"];
+	
+	$page = $PAGE_VAL["dm_file_src"];
+
+	if($layout == "0")
+	{
+		require($page);
+	}elseif($layout == "1")
+	{
+		$layout_path = $_VAR_LAYOUT_PATH."".$LAYOUT_VAL["dm_top_content"]."/";
+		$layout_top = $layout_path."/top.html";
+		require($layout_top);
+		require($page);
+	}else
+	{
+		$layout_path = $_VAR_LAYOUT_PATH."".$LAYOUT_VAL["dm_top_content"]."/";
+		$layout_top = $layout_path."/top.html";
+		$layout_path = $_VAR_LAYOUT_PATH."".$LAYOUT_VAL["dm_bottom_content"]."/";
+		$layout_bottom = $layout_path."/bottom.html";
+		$page = $PAGE_VAL["dm_file_src"];
+		
+		require($layout_top);
+		require($page);
+		require($layout_bottom);
+	}
+?>
+<script type="text/javascript">
+$(document).ready(function() {
+
+});	
+function onClose()
+{
+	var dm_id = '<?=$dm_id?>';
+	var dm_type = '<?=$dm_type?>';
+	var expired = '<?=$expired?>';
+	var checked = $("input:checkbox[id='chk_expired']").is(":checked");
+	
+	if(expired > -1 && checked)
+	{
+		closeCooKie(dm_id, expired);
+	}
+	if(dm_type == "1")
+	{
+		//parent.parentRemove(dm_type, dm_id)
+		this.close();
+	}else
+	{
+		parent.parentRemove(dm_type, dm_id)
+	}
+}
+</script>
+<div class="layer_btns_area">
+		<div class="layer_"><input type="checkbox" id="chk_expired" name="chk_expired" class="pop_chk">&nbsp;<label for="chk_expired"><b>[<?=$expired?>]</b> 시간동안 창 열지 않음</label></div>
+		<a onclick="onClose();" class="close_pop" style="cursor:hand;">닫기</a>
+</div>

@@ -1,0 +1,182 @@
+<?
+require('../../lib/page_header.php');
+
+?>
+    <SCRIPT LANGUAGE="JavaScript">
+
+        $(document).ready(function(){
+            function newBbs()
+            {
+                window.parent.addTab('게시판 생성','<?=$_VAR_PATH_UI?>bbs/bbs_form.html',true,'','');
+            }
+
+            function fnRemove() {
+                var ids = [];
+                var rows = $('#dg').datagrid('getChecked');
+
+                if (rows.length > 0) {
+                    for(var i=0; i<rows.length; i++){
+                        ids.push(rows[i].dm_id);
+                    }
+
+                    $.each(ids, function (index, value) {
+                            $.post('<?=$_VAR_PATH_BIZ?>bbs/bbs.php?type=delete',{dm_id:value},function(result){
+                                if (result.success){
+                                    console.log(result);
+                                }
+                            },'json')
+                        }
+
+                    );
+                    $('#dg').datagrid('reload');    // reload the user data
+                } else {
+                    $.messager.alert('경고', "삭제할 항목을 선택해주세요", 'warning');
+                }
+            }
+
+            function doSearch() {
+                var search_type = $('#search_type').val();
+                var search_value = $('#stx').val();
+
+                $('#dg').datagrid('load',
+                    {
+                        search_type : encodeURIComponent(search_type),
+                        search_value : encodeURIComponent(search_value)
+                    })
+            }
+
+            $("#search_btn").off().on('click', function () {
+                doSearch();
+            });
+
+            $("#stx").keypress(function(e){
+                if(e.keyCode === 13){
+                    e.preventDefault();
+                    doSearch();
+                }
+            });
+
+            $('#dg').datagrid({
+                onDblClickCell: function(index,field,value){
+                    $('#dg').datagrid('selectRow',index);
+                    var currentRow = $("#dg").datagrid("getSelected");
+
+                    window.parent.addTab("<" + currentRow.dm_subject + "> 세부정보",'<?=$_VAR_PATH_UI?>bbs/bbs_form.html?dm_id='+currentRow.dm_id,true,'','');
+                }
+            });
+
+            $("#fnNew").off().on('click', function () {
+                newBbs();
+            });
+
+            $("#fnRemove").off().on('click', function () {
+                $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                    if (r) {
+                        fnRemove();
+                    }
+                });
+            });
+
+            var pager = $('#dg').datagrid('getPager');
+            pager.pagination ({
+                showPageList: true,
+                layout:['info','sep','first','prev','links','next','last','list'],
+                displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+            });
+        });
+
+        function allList() {
+            $("#search_type").val('all');
+            $("#stx").val('');
+            $("#dg").datagrid('load', {
+                search_type: '',
+                search_value : ''
+            });
+        }
+        function formatDetail(value,row){
+            var href = '<?=$_VAR_WEB_URL?>?contentId='+row.dm_uid;
+            return '<a href="' + href + '" class="btn bt08">수정</a> <a href="' + href + '" class="btn">삭제</a> <a href="' + href + '" class="btn" target="_blank">보기</a>';
+        }
+    </script>
+    <div class="easyui-layout" fit="true">
+        <div data-options="region:'north', border:false">
+            <div class="title">
+                <h1><?=$current_page_info['dm_view_title']?></h1>
+                <div class="btnWrap">
+                    <button id="fnNew" class="bt08">+ 게시판 추가</button>
+                </div>
+            </div>
+            <div class="Srchbox">
+                <div>
+                    <dl>
+                        <dt><strong>게시판유형</strong></dt>
+                        <dd>
+                            <label><input type="checkbox">전체</label>
+                            <label><input type="checkbox">리스트형</label>
+                            <label><input type="checkbox">공지사항</label>
+                            <label><input type="checkbox">갤러리형</label>
+                            <label><input type="checkbox">동영상</label>
+                            <label><input type="checkbox">FAQ형</label>
+                            <label><input type="checkbox">QnA형</label>
+                            <label><input type="checkbox">1:1문의형</label>
+                            <label><input type="checkbox">달력형</label>
+                            <label><input type="checkbox">이벤트형</label>
+                            <label><input type="checkbox">배너형</label>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt><strong>통합검색</strong></dt>
+                        <dd>
+                            <select name="search_type" id="search_type">
+                                <option value="all">통합검색</option>
+                                <option value="dm_subject">게시판명</option>
+                                <option value="dm_table">테이블</option>
+                                <option value="dm_skin">스킨</option>
+                            </select>
+                            <input type="text" name="search_value" value="" id="stx">
+                        </dd>
+                    </dl>
+                </div>
+                <button class="btn bt00" id="search_btn">검색</button>
+                <button class="btn" onclick="allList()">초기화</button>
+            </div>
+        </div>
+        <div data-options="region:'center'" class="Contents">
+            <table id="dg"
+                   class="easyui-datagrid" fit="true" border="false"
+                   data-options="pagePosition:'top',rownumbers:true,pagination:true, singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>bbs/bbs.php?type=select',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false,footer:'#ft'
+               ,toolbar:'#tb'"
+                   pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+                <thead>
+                <tr>
+                    <th data-options="field:'ck',align:'center',checkbox:true,
+                    editor:{
+                        type:'checkbox',
+                        options:{
+                            on:'Y',
+                            off:'N'
+                        }
+                    }">-</th>
+                    <th data-options="field:'dm_table',width:150,align:'left'"><p align="center">게시판ID</p><th>
+                    <th data-options="field:'dm_subject',width:200,align:'left'"><p align="center">게시판명</p></th>
+                    <th data-options="field:'',width:100,align:'center'">출력</th>
+                    <th data-options="field:'dm_skin',width:100,align:'center'">유형</th>
+                    <th data-options="field:'',width:80,align:'center'">신규</th>
+                    <th data-options="field:'',width:80,align:'center'">전체</th>
+                    <th data-options="field:'',width:80,align:'center'">미답변</th>
+                    <th field ="detail" width = "70" formatter="formatDetail" align="center">관리</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+        <div data-options="region:'south'">
+            <dl class="Tbottom">
+                <dd>
+                    <button class="btn" id="fnRemove">선택삭제</button>
+                </dd>
+            </dl>
+        </div>
+    </div>
+<?
+require('../../lib/page_bottom.php');
+?>

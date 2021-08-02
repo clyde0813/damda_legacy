@@ -1,0 +1,120 @@
+<?
+require('../../lib/page_header.php');
+?>
+<div class="Contents">
+    <div class="title">
+        <h1>관리자관리</h1>
+        <div class="btnWrap">
+        	<button class="bt08">+ 관리자등록</button>
+        </div>
+    </div>
+    <div class="Srchbox">
+        <div>
+            <dl>
+                <dt><strong>분류명</strong></dt>
+                <dd>
+                    <input type="text" class="easyui-datebox" id="search_start_date" value="<?=$start_date?>" data-options="formatter:myformatter,parser:myparser"> ~
+                    <input type="text" class="easyui-datebox" id="search_end_date" value="<?=$end_date?>" data-options="formatter:myformatter,parser:myparser">
+                    <a onclick="#" class="btn">오늘</a>
+                    <a onclick="#" class="btn">이번주</a>
+                    <a onclick="#" class="btn">이번달</a>
+                    <a onclick="#" class="btn">1주일</a>
+                    <a onclick="#" class="btn">15일</a>
+                    <a onclick="#" class="btn">1개월</a>
+                    <a onclick="#" class="btn">3개월</a>
+                    <a onclick="#" class="btn">6개월</a>
+                    <a onclick="#" class="btn">전체</a>
+                </dd>
+            </dl>
+            <article id="Dsearch">
+            <dl>
+                <dt><strong>분류명</strong></dt>
+                <dd>
+                    <select id="search_type" class="easyui-combobox" panelHeight="auto" data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&search=1&group=1024',method: 'get',valueField: 'dm_code_value',textField: 'dm_code_name'"><option>분류선택</option></select>
+                </dd>
+            </dl>
+            <dl>
+                <dt><strong>분류명</strong></dt>
+                <dd>
+                    <select id="search_type" class="easyui-combobox" panelHeight="auto" data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&search=1&group=1024',method: 'get',valueField: 'dm_code_value',textField: 'dm_code_name'"><option>분류선택</option></select>
+                </dd>
+            </dl>
+            </article>
+            <dl>
+                <dt><strong>통합검색</strong></dt>
+                <dd>
+                    <select name="sfl" id="sfl" class="easyui-combobox">
+                        <option value="">통합검색</option>
+                        <option value="mb_id">아이디</option>
+                        <option value="mb_name">이름</option>
+                        <option value="mb_email">이메일</option>
+                    </select>
+                    <input type="text" name="stx" value="" id="stx">
+                </dd>
+            </dl>
+        </div>
+        <button type="submit" class="btn bt00">검색</button>
+        <button class="btn" onclick="location.reload();">초기화</button>
+        <button type="button" onclick="$('#Dsearch').toggle();" class="btn bt07">상세검색</button>
+    </div>
+    <section>
+        <dl class="Theader">
+            <dd>검색 <strong>1</strong>개 / 전체 <strong>1</strong>개</dd>
+            <dd>
+                <select id="page_rows" name="page_rows" onchange="">
+                    <option value="10" selected="">10개 보기</option>
+                    <option value="20">20개 보기</option>
+                    <option value="30">30개 보기</option>
+                    <option value="40">40개 보기</option>
+                    <option value="50">50개 보기</option>
+                    <option value="60">60개 보기</option>
+                    <option value="70">70개 보기</option>
+                    <option value="80">80개 보기</option>
+                    <option value="90">90개 보기</option>
+                    <option value="100">100개 보기</option>
+                    <option value="200">200개 보기</option>
+                    <option value="300">300개 보기</option>
+                    <option value="500">500개 보기</option>
+                </select>
+            </dd>
+        </dl>
+        <table class="tb">
+			<colgroup><col width="30"><col class="wd05"><col span="2"><col span="2" width="100"><col width="80"></colgroup>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="chk"></th>
+                    <th>번호</th>
+                    <th>아이디/닉네임</th>
+                    <th>이름</th>
+                    <th>전화번호</th>
+                    <th>등록일</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <input type="checkbox" name="chk_id[]" id="chk_id_0" value="0">
+                    </td>
+                    <td>1</td>
+                    <td>
+                        <a class="layerOn">admin</a>
+                        <span>(관리자)</span>
+                    </td>
+                    <td>관리자</td>
+                    <td>
+                        <p></p>
+                        <p></p>
+                    </td>
+                    <td>2016-09-08<br>16:20:27</td>
+                    <td><button class="layerOn btn bt08" onclick="showLayer('admin');">수정</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+        <dl class="Tbottom">
+            <dd>
+            	<button type="submit" class="btn" onclick="return submitForm(this.value);">선택삭제</button>
+            </dd>
+        </dl>

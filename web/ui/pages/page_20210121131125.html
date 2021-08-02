@@ -1,0 +1,58 @@
+<style>
+    .contentWrap{border:0;background-color:transparent;padding-top:0;padding-left:0;}
+    .contentWrap > h2{display:none;}
+</style>
+
+<div class="comnMain">
+
+    <div class="sec02">
+        <dlv class="fl">
+            <div class="box">  
+                <div class="tit">
+                    <h2>공지사항</h2>
+                </div>
+                <? latest('notice', 'basic','5', '80') ?>
+            </div>
+        </dlv><!--//fl-->
+        <dlv class="fr">            
+            <div class="box"> 
+                <div class="tit">
+                    <h2>자유게시판</h2>
+                </div>
+                <? latest('free', 'basic','5', '80') ?>
+            </div>
+        </dlv><!--//fr-->
+    </div><!--//sec02-->
+    <div class="sec02">
+        <dlv class="fl">
+            <div class="box">  
+                <div class="tit">
+                    <h2>유머방 </h2>
+                </div>
+                <? latest('humor', 'basic','5', '80') ?>
+            </div>
+        </dlv><!--//fl-->
+        <dlv class="fr">            
+            <div class="box"> 
+                <div class="tit">
+                    <h2>좋은 정보 공유합시다</h2>
+                </div>
+                <? latest('information', 'basic','5', '80') ?>
+            </div>
+        </dlv><!--//fr-->
+    </div><!--//sec02-->
+    <div class="sec03">
+        <div class="titbox">
+            <h2>무엇이든 물어보세요</h2>
+        </div>
+        <? latest('qna', 'damnews','3', '80') ?>
+    </div><!--//sec01-->
+   <div class="sec01">
+        <div class="titbox">
+            <h2>교육자료</h2>
+        </div>
+        <div class="box">
+        <? latest('education', 'damdatv','9', '80') ?>
+        </div>
+    </div><!--//sec01-->
+</div><!--//comnMain-->

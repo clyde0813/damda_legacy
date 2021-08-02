@@ -1,0 +1,234 @@
+<?
+//@ini_set("display_errors", 'On');
+//@error_reporting(E_ALL);
+	require('./lib/lib.php');
+    autoLogin()
+?>
+<?
+
+	$layout = $LAYOUT_VAL["dm_layout_type"];
+	$page = $PAGE_VAL["dm_file_src"];
+    levelUp();
+
+	$menu_array = getMenuArray(1);
+	$menu_text = array();
+	$menu_id = array();
+	$TopText = $CONFIG['dm_company_name'];
+
+	foreach( $menu_array AS $key => $value )
+	{
+		if($value["rows"]["dm_link_data"] == $PAGE_VAL["dm_uid"])
+		{
+			$TopText = $CONFIG['dm_company_name']." > ".$value["rows"]["dm_menu_text"];
+            $menu_text[0] = $value["rows"]["dm_menu_text"];
+            $menu_id[0] = $value["rows"]["dm_link_data"];
+		}
+		foreach( $value["children"] AS $sMenuKey => $sMenu )
+		{
+			if($sMenu["rows"]["dm_link_data"] == $PAGE_VAL["dm_uid"])
+			{
+				$TopText = $CONFIG['dm_company_name']." > ".$value['rows']["dm_menu_text"]." > ".$sMenu["rows"]["dm_menu_text"];
+                $menu_text[0] = $value["rows"]["dm_menu_text"];
+                $menu_text[1] = $sMenu["rows"]["dm_menu_text"];
+                $menu_id[0] = $value["rows"]["dm_link_data"];
+                $menu_id[1] = $sMenu["rows"]["dm_link_data"];
+			}
+			foreach( $sMenu["children"] AS $s2MenuKey => $s2Menu )
+			{
+				if($s2Menu["rows"]["dm_link_data"] == $PAGE_VAL["dm_uid"])
+				{
+                    $menu_text[0] = $value["rows"]["dm_menu_text"];
+                    $menu_text[1] = $sMenu["rows"]["dm_menu_text"];
+                    $menu_text[2] = $s2Menu["rows"]["dm_menu_text"];
+                    $menu_id[0] = $value["rows"]["dm_link_data"];
+                    $menu_id[1] = $sMenu["rows"]["dm_link_data"];
+                    $menu_id[2] = $s2Menu["rows"]["dm_link_data"];
+					$TopText = $CONFIG['dm_company_name']." > ".$value["rows"]["dm_menu_text"]." > ".$sMenu["rows"]["dm_menu_text"]." > ".$s2Menu["rows"]["dm_menu_text"]."";
+				}
+				foreach( $s2Menu["children"] AS $s3MenuKey => $s3Menu )
+				{
+					if($s3Menu["rows"]["dm_link_data"] == $PAGE_VAL["dm_uid"])
+					{
+                        $menu_text[0] = $value["rows"]["dm_menu_text"];
+                        $menu_text[1] = $sMenu["rows"]["dm_menu_text"];
+                        $menu_text[2] = $s2Menu["rows"]["dm_menu_text"];
+                        $menu_text[3] = $s3Menu["rows"]["dm_menu_text"];
+                        $menu_id[0] = $value["rows"]["dm_link_data"];
+                        $menu_id[1] = $sMenu["rows"]["dm_link_data"];
+                        $menu_id[2] = $s2Menu["rows"]["dm_link_data"];
+                        $menu_id[3] = $s3Menu["rows"]["dm_link_data"];
+						$TopText = $CONFIG['dm_company_name']." > ".$value["rows"]["dm_menu_text"]." > ".$sMenu["rows"]["dm_menu_text"]." > ".$s2Menu["rows"]["dm_menu_text"]." > ".$s3Menu["rows"]["dm_menu_text"]."";
+					}
+				}
+			}
+		}
+	}
+
+	if($layout == "0")
+	{
+        $layout_path = $_VAR_LAYOUT_PATH."".$LAYOUT_VAL["dm_top_content"]."/";
+		require($page);
+	}elseif($layout == "1")
+	{
+		$layout_path = $_VAR_LAYOUT_PATH."".$LAYOUT_VAL["dm_top_content"]."/";
+		$layout_top = $layout_path."/top.html";
+		require($layout_top);
+        $pageType = selectCommonCode(1030);
+        $pageType = $pageType[$PAGE_VAL['dm_page_type']];
+
+        if ($pageType)
+        {
+            require(${'_VAR_PATH_WEB_' . $PAGE_VAL['dm_page_type']} . "$pageType.php");
+        }
+
+        if($PAGE_VAL["dm_page_type"] == "BOARD")
+        {
+
+            $BBS = $_VAR_PATH_WEB_BOARD."".$BBS_VAL["dm_skin"]."/";
+
+            insert_visit($BBS_VAL['dm_table'], $BBS_VAL['dm_subject']);
+
+            $BBS_URL = $_VAR_URL_WEB_BOARD . $BBS_VAL["dm_skin"] . "/";
+
+            $bbsCode = selectCommonCode(2010);
+
+            $codeName = $bbsCode[$command];
+
+            $bbsFile = $pageType.$codeName;
+
+
+            echo $BBS_VAL['dm_header_content'];
+
+            require($BBS.$bbsFile);
+
+            echo $BBS_VAL['dm_footer_content'];
+
+        } else {
+            require($page);
+        }
+	}else
+	{
+		$layout_path = $_VAR_LAYOUT_PATH."".$LAYOUT_VAL["dm_top_content"]."/";
+		$layout_top = $layout_path."/top.html";
+
+		$layout_path = $_VAR_LAYOUT_PATH."".$LAYOUT_VAL["dm_bottom_content"]."/";
+		$layout_bottom = $layout_path."/bottom.html";
+		$page = $PAGE_VAL["dm_file_src"];
+
+		require($layout_top);
+
+
+        if ($PAGE_VAL["dm_main_content"] != "1" && $PAGE_VAL['dm_page_type'] != "LOGIN" && $PAGE_VAL['dm_page_type'] != "MEMBER") {
+//            require($layout_path."/_top.sub.html");
+        }
+
+        $pageType = selectCommonCode(1030);
+        $pageType = $pageType[$PAGE_VAL['dm_page_type']];
+
+        if ($pageType)
+        {
+            require(${'_VAR_PATH_WEB_' . $PAGE_VAL['dm_page_type']} . "$pageType.php");
+        }
+
+        if ($PAGE_VAL["dm_main_content"] != "1") {
+            echo "<div class='contentWrap'>";
+            echo "<h2>".$current_menu['dm_menu_nm']."</h2>";
+        }
+
+
+        if($PAGE_VAL["dm_page_type"] == "BOARD")
+        {
+
+            $BBS = $_VAR_PATH_WEB_BOARD."".$BBS_VAL["dm_skin"]."/";
+
+            insert_visit($BBS_VAL['dm_table'], $BBS_VAL['dm_subject']);
+
+            $BBS_URL = $_VAR_URL_WEB_BOARD . $BBS_VAL["dm_skin"] . "/";
+
+            $bbsCode = selectCommonCode(2010);
+
+            $codeName = $bbsCode[$command];
+
+            $bbsFile = $pageType.$codeName;
+
+
+            echo $BBS_VAL['dm_header_content'];
+
+            require($BBS.$bbsFile);
+
+            echo $BBS_VAL['dm_footer_content'];
+
+        }  else {
+            insert_visit('page', $PAGE_VAL['dm_page_name']);
+            require($page);
+        }
+
+        if ($PAGE_VAL["dm_main_content"] != "1") {
+            echo "</div>";
+        }
+
+        if ($layout == 6) {
+            $layout_path = $_VAR_LAYOUT_PATH."".$LAYOUT_VAL["dm_right_content"]."/";
+            $layout_right = $layout_path."/right.html";
+            require ($layout_right);
+        }
+
+        if ($PAGE_VAL["dm_main_content"] != "1") {
+//            require($layout_path."/_bottom.sub.html");
+        }
+
+		require($layout_bottom);
+
+        $ip = $_SERVER['REMOTE_ADDR'];
+        $url = $_SERVER['HTTP_REFERER'];
+        $agent = $_SERVER["HTTP_USER_AGENT"];
+        $code = 'common';
+        $result = 0;
+        $array = array();
+
+        insert_web_log($ip, $code, $result, $url, $agent, $array, $PAGE_VAL['dm_page_name']);
+        insert_env();
+
+        if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1800)) {
+            // 30분동안 사용하지 않았으면 세션 종료
+            setSession("chk_dm_level", "");
+            setSession("chk_dm_name", "");
+            setSession("chk_dm_id", "");
+            setSession("is_member", "");
+            setSession("is_admin", "");
+            session_unset();     // unset $_SESSION variable for the run-time
+            session_destroy();   // destroy session data in storage
+
+        }
+        $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
+
+	}
+?>
+
+<?
+	if($PAGE_VAL["dm_main_content"] == "1")
+	{
+		//$Query = "SELECT * FROM dm_popup popup INNER JOIN dm_pages page ON (popup.dm_popup_page = page.dm_uid) WHERE popup.dm_start_dt <= NOW() AND popup.dm_end_dt >= NOW() AND popup.dm_status ='1'";
+		$Query = "SELECT * FROM dm_popup WHERE dm_start_dt <= NOW() AND dm_end_dt >= NOW() AND dm_status ='1'";
+		$db->ExecSql($Query, "S");
+        while ( $arItem = $db->Fetch() )
+        {
+            $link_data = $_VAR_URL_ROOT."web/popup.html?contentId=".$arItem["dm_popup_page"]."&expired=".$arItem["dm_popup_expired"]."&dm_id=".$arItem["dm_id"]."&dm_type=".$arItem["dm_popup_type"];
+
+            $dm_id = $arItem["dm_id"];
+            $dm_popup_left = $arItem["dm_popup_left"];
+            $dm_popup_top = $arItem["dm_popup_top"];
+            $dm_popup_width = $arItem["dm_popup_width"];
+            $dm_popup_height = $arItem["dm_popup_height"];
+            $dm_popup_type = $arItem["dm_popup_type"];
+            $dm_content_type = $arItem["dm_content_type"];
+            $dm_popup_page = $arItem["dm_popup_page"];
+            $dm_popup_expired = $arItem["dm_popup_expired"];
+            $dm_link = $arItem["dm_link"];
+            $dm_link_type = $arItem["dm_link_type"];
+            echo "<script>openPopup('$link_data','','$dm_id','$dm_popup_left','$dm_popup_top','$dm_popup_width','$dm_popup_height','$dm_popup_type','false', '$dm_content_type', '$dm_popup_page', '$dm_popup_expired', '$dm_link', '$dm_link_type');</script>";
+            //echo "<script>$('#result').load('$link_data');</script>";
+        }
+        insert_visit_orgin();
+	}
+?>

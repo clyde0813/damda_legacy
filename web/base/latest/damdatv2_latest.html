@@ -1,0 +1,31 @@
+<ul>
+    <? if (count($list['list']) > 0) { ?>
+        <? foreach ($list['list'] as $value) { ?>
+            <li class="thumbList">
+                <a href="?command=view&contentId=<?=$list['pageInfo']['dm_uid']?>&wr_id=<?=$value['wr_id']?>&cate=<?=$value['ca_name']?>">
+                    <div class="thumb">
+                        <?
+                        $thumb = get_list_thumbnail($list['boardInfo']["dm_table"], $value['wr_id'], $list['boardInfo']['dm_gallery_width'], $list['boardInfo']['dm_gallery_height'], false, true, "center");
+                        if($value['wr_1']) {
+                            $youtube_id = str_replace("https://youtu.be/", "", $value['wr_1']);
+                            $thum = '<img src="https://img.youtube.com/vi/'.$youtube_id.'/mqdefault.jpg" width="'.$BBS_VAL['bo_gallery_width'].'" height="'.$BBS_VAL['bo_gallery_height'].'">';
+                        } else if($thumb['src']) {
+                            $thum = '<img src="' . $thumb['src'] . '" alt="' . $thumb['alt'] . '" width="' . $BBS_VAL['bo_gallery_width'] . '" height="' . $BBS_VAL['bo_gallery_height'] . '">';
+                        } else {
+                            $thum = "<img src='".$_VAR_URL_WEB."common/image/b.gif'>";
+                        }
+                        echo $thum;
+                        ?>
+                    </div>
+                    <p><?=$value['wr_subject']?></p>
+                    <span class="date"><?=date("Y-m-d", strtotime($value['wr_datetime']))?></span>
+                </a>
+            </li>
+      
+    <? } ?>
+<? } else { ?>
+    <li>
+        <p>게시물이 없습니다.</p>
+    </li>
+<? } ?>
+</ul>

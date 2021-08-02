@@ -1,0 +1,304 @@
+﻿<?
+require('../../lib/page_header.php');
+?>
+<script>
+$(document).ready(function(){
+    $('#dg').datagrid({
+        onDblClickCell : function(rowIndex, field, value) {
+            selectedDg(rowIndex);
+        },
+        emptyMsg:'데이터가 없습니다.'
+    });
+
+    function doSearch() {
+        var search_type = $('#search_type').val();
+        var search_value = $('#stx').val();
+
+        $('#dg').datagrid('load',
+            {
+                search_type : encodeURIComponent(search_type),
+                search_value : encodeURIComponent(search_value)
+            })
+    }
+
+    function selectedDg(rowIndex) {
+        $('#dg').datagrid('selectRow',rowIndex);
+        var currentRow =$("#dg").datagrid("getSelected");
+        if (currentRow)
+        {
+            $("#dm_id").val(currentRow.dm_id);
+            $("#dm_domain_nm").val(currentRow.dm_domain_nm);
+            $("#dm_domain_url").val(currentRow.dm_domain_url);
+            $("#dm_domain_root").val(currentRow.dm_domain_root);
+            $("#dm_domain_admin").val(currentRow.dm_domain_admin);
+            $('#dm_domain_status').combobox('setValue', currentRow.dm_domain_status);
+            $("#dm_domain_description").val(currentRow.dm_domain_description);
+            $("#dm_mode").val("update");
+            $("#dialog_title").text("도메인수정");
+            $("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+        }
+    }
+
+    function closeDialog() {
+        $("#dlg").dialog('close');
+    }
+
+    function fnSave() {
+        var dm_id = $.trim($("#dm_id").val());
+        var dm_domain_nm = $.trim($("#dm_domain_nm").val());
+        var dm_domain_url = $.trim($("#dm_domain_url").val());
+        var dm_domain_root = $.trim($("#dm_domain_root").val());
+        var dm_domain_admin = $.trim($("#dm_domain_admin").val());
+        var dm_domain_description = $.trim($("#dm_domain_description").val());
+        var dm_domain_status = $.trim($("#dm_domain_status").combobox('getValue'));
+        var dm_mode = $.trim($("#dm_mode").val());
+
+        var  url = "<?=$_VAR_PATH_BIZ?>app/mng_site.php?type="+dm_mode;
+
+        if (dm_mode == 'delete') {
+            url = "<?=$_VAR_PATH_BIZ?>app/mng_site.php?type=delete";
+        } else {
+            if(dm_domain_nm == "") {
+                $.messager.alert('입력오류','사이트 이름을 입력해주세요.','warning');
+                $('#dm_domain_nm').focus();
+                return;
+            }
+
+            if(dm_domain_url == "") {
+                $.messager.alert('입력오류', 'URL을 입력해주세요.','warning');
+                $('#dm_domain_url').focus();
+                return;
+            }
+
+            if(dm_domain_root == "") {
+                $.messager.alert('입력오류', 'Root 경로를 입력해주세요.','warning');
+                $('#dm_domain_root').focus();
+                return;
+            }
+
+            if(dm_domain_admin == "") {
+                $.messager.alert('입력오류', '사이트관리자를 입력해주세요.','warning');
+                $('#dm_domain_admin').focus();
+                return;
+            }
+        }
+
+        var mode = $("#dm_mode").val();
+        // var dm_site_name = $.trim($("#dm_site_name").textbox('getValue'));
+        var form = $("#fm")[0];
+        var formData = new FormData(form);
+
+        $.ajax({
+            url : url,
+            data : formData,
+            dataType: "json",
+            type : "post",
+            contentType: false,
+            processData: false,
+            success : function (data) {
+                var icon = 'warning';
+                if(data.result == "success") {
+                    $('#dg').datagrid('reload');
+                    icon = 'info';
+                }
+                $.messager.alert('알림',data.notice,icon);
+                closeDialog();
+            }
+        });
+    }
+
+    function fnRemove() {
+        var ids = [];
+        var rows = $('#dg').datagrid('getChecked');
+
+        if (rows.length > 0) {
+            for(var i=0; i<rows.length; i++){
+                ids.push(rows[i].dm_id);
+            }
+
+            $.each(ids, function (index, value) {
+                    $.post('<?=$_VAR_PATH_BIZ?>app/mng_site.php?type=delete',{dm_id:value},function(result){
+                        if (result.success){
+                            console.log(result);
+                        }
+                    },'json')
+                }
+
+            );
+            $('#dg').datagrid('reload');    // reload the user data
+        } else {
+            $.messager.alert('경고', "삭제할 항목을 선택해주세요", 'warning');
+        }
+    }
+
+    closeDialog();
+
+    $("#stx").keypress(function(e){
+        if(e.keyCode === 13){
+            e.preventDefault();
+            doSearch();
+        }
+    });
+
+    $("#fnNew").off().on('click', function () {
+        $("#dialog_title").text("도메인등록");
+        $("#dlg").dialog({
+            title : "&nbsp;&nbsp;"
+        }).dialog('open');
+    });
+
+    $("#fnClose").off().on('click', function () {
+        closeDialog();
+    });
+
+    $("#fnSave").off().on('click', function () {
+        fnSave();
+    });
+
+    $("#fnRemove").off().on('click', function () {
+        $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+            if (r) {
+                fnRemove();
+            }
+        });
+    });
+
+    $("#search_btn").off().on('click', function () {
+        doSearch();
+    });
+
+    var pager = $('#dg').datagrid('getPager');
+    pager.pagination ({
+        showPageList: true,
+        layout:['info','sep','first','prev','links','next','last','list'],
+        displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+    });
+
+});
+
+function allList() {
+    $("#search_type").val('all');
+    $("#stx").val('');
+    $("#dg").datagrid('load', {
+        search_type: '',
+        search_value : ''
+    });
+}
+</script>
+ <?
+	/*if($ck_user_id == "")
+	{
+		echo "<script>$(window.top.location).attr('href','/jseng/ui/login.html')</script>";	
+		//exit();
+	}
+	*/
+?>
+<div class="easyui-layout" style="width:700px;height:350px;" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+        <h1><?=$current_page_info['dm_view_title']?></h1>
+            <div class="btnWrap">
+    <!--            <button id="fnSave">저장</button>-->
+                <button id="fnNew" class="bt01">신규생성</button>
+                <button id="fnRemove" class="bt03">삭제</button>
+            </div>
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>통합검색</strong></dt>
+                    <dd>
+                        <select name="search_type" id="search_type">
+                            <option value="all">통합검색</option>
+                            <option value="dm_domain_nm">도메인</option>
+                            <option value="dm_domain_url">URL</option>
+                            <option value="dm_domain_admin">관리자</option>
+                        </select>
+                        <input type="text" name="search_value" value="" id="stx">
+                    </dd>
+                </dl>
+            </div>
+            <button class="btn bt00" id="search_btn">검색</button>
+            <button class="btn" onclick="allList();">초기화</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <table id="dg"
+               class="easyui-datagrid" fit="true" border="false"
+               data-options="pagePosition:'top',rownumbers:true,pagination:true, singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_site.php?type=select',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false,footer:'#ft'"
+               pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+            <thead>
+            <tr>
+                <th data-options="field:'ck',width:100,align:'center',checkbox:true,
+                editor:{
+                    type:'checkbox',
+                    options:{
+                        on:'Y',
+                        off:'N'
+                    }
+                }">-</th>
+                <th data-options="field:'dm_domain_nm',width:250,align:'center'">도메인</th>
+                <th data-options="field:'dm_domain_url',width:200,align:'center'">URL</th>
+                <th data-options="field:'dm_domain_root',width:200,align:'center'">Root 경로</th>
+                <th data-options="field:'dm_domain_admin',width:200,align:'center'">관리자</th>
+                <th data-options="field:'dm_domain_description',width:200,align:'center'">비고</th>
+                <th data-options="field:'dm_domain_status_text',width:200,align:'center'">상태</th>
+            </tr>
+            </thead>
+        </table>
+        <div id="dlg" class="easyui-dialog" style="width:600px; height: 650px;">
+            <form id="fm" method="post" novalidate>
+                <input type="hidden" name="dm_id" id="dm_id" />
+                <input type="hidden" id="dm_mode" name="dm_mode" value="insert">
+                <div class="page">
+                    <h3 id="dialog_title">도메인 등록</h3>
+                    <dl>
+                        <dt>사이트이름</dt>
+                        <dd><input name="dm_domain_nm" id="dm_domain_nm" type="text" ></dd>
+                    </dl>
+                    <dl>
+                        <dt>URL</dt>
+                        <dd>
+                            <input id="dm_domain_url" name="dm_domain_url" type="text" />
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>Root 경로&nbsp;</dt>
+                        <dd>
+                            <input id="dm_domain_root" name="dm_domain_root" type="text"/>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>사이트 관리자</dt>
+                        <dd>
+                            <input id="dm_domain_admin" name="dm_domain_admin" type="text" />
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>상태</dt>
+                        <dd>
+                            <select id="dm_domain_status" name="dm_domain_status" class="easyui-combobox" panelHeight="auto"
+                                    data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1001',
+                                            method: 'get',
+                                            valueField: 'dm_code_value',
+                                            textField: 'dm_code_name'">
+                            </select>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>비고</dt>
+                        <dd>
+                            <textarea id="dm_domain_description" name="dm_domain_description"  maxlength="500"></textarea>
+                        </dd>
+                    </dl>
+                </div>
+                <div style="text-align: center;">
+                    <a href="javascript:void(0);" id="fnClose" class="easyui-linkbutton" style="width:120px;height:30px">취소</a>
+                    <a href="javascript:void(0);" id="fnSave" class="easyui-linkbutton" style="width:120px;height:30px">저장</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

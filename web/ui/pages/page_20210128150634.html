@@ -1,0 +1,95 @@
+<?
+	$sCode = isset($_REQUEST['sCode']) ? $_REQUEST['sCode'] : "";
+
+	$url_popular = "https://finance.naver.com/item/main.nhn?code=".$sCode;
+
+	$curl = curl_init();
+	curl_setopt_array($curl, array(
+	  CURLOPT_URL => $url_popular,
+	  CURLOPT_RETURNTRANSFER => true,
+	  CURLOPT_ENCODING => "",
+	  CURLOPT_MAXREDIRS => 10,
+	  CURLOPT_TIMEOUT => 0,
+	  CURLOPT_FOLLOWLOCATION => true,
+	  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+	  CURLOPT_CUSTOMREQUEST => "GET",
+	));
+	$response = curl_exec($curl);
+	curl_close($curl);
+	$response = iconv("EUC-KR", "UTF-8", $response);
+
+
+	$start_word = "<div class=\"wrap_company\">";
+	$pupular_detail = selectData($response, $start_word, "</div>", $out);
+
+	$company_nm = selectData($pupular_detail, "window.location.reload();\">", "</a>", 0, $out);
+
+//echo "<BR><BR><BR>-------><BR>";
+	$company_cd = selectData($pupular_detail, "<span class=\"code\">", "</span>", $out, $out);
+
+	$company_dt = selectData($pupular_detail, "<span id=\"time\">", "</span>", $out, $out);
+
+
+	$company_today = selectData($response, "<div class=\"today\">", "</div>", 0, $out);
+	$company_no_info = selectData($response, "class=\"no_info\">", "</table>", $out, $out);
+
+	$company_no_info = str_replace("<col><col width=\"214\"><col width=\"157\">", "<col><col><col>", $company_no_info);
+
+	$company_chart = selectData($response, "<img id=\"img_chart_area\" src=\"", "\" width=\"700\"", $out, $out);
+
+	//echo $company_chart;
+
+	//echo $response;
+	//exit();
+
+?>
+<div class="new_totalinfo">
+    <div class="h_company">
+        <div class="wrap_company">
+            <h2><a href="#" onclick="clickcr(this, 'sop.title', '', '', event);window.location.reload();"><?=$company_nm?></a></h2>
+            <div class="description">
+                <span class="code"><?=$company_cd?></span>
+                    <img src="https://ssl.pstatic.net/imgstock/item_renewal/btn_kospi.gif" width="33" height="16" alt="코스피" class="kospi">
+                <span class="blind">날짜</span>
+                <span id="time"><?=$company_dt?></span></em> </span>
+                <em class="realtime">
+                    <span class="blind">실시간</span>
+                </em>
+            </div><!--//description-->
+        </div><!--//wrap_company-->
+    </div><!--//h_company-->    
+    
+    <div class="spot">
+        <div class="rate_info">
+            <div class="today">
+                <?=$company_today?>
+            </div><!--//today-->
+            <table summary="주요 시세(전일종가, 시고저가, 거래량, 거래대금)을 제공합니다." class="no_info">
+
+           <?=$company_no_info?>
+            </table>
+        </div><!--//rate_info-->    
+        
+    <div class="chart">
+        <p class="blind">종목 시세 차트</p>
+        <h5 class="blind">이미지 차트</h5>
+        <img id="img_chart_area" src="<?=$company_chart?>" width="700" height="289" alt="이미지 차트" onerror="this.src='https://ssl.pstatic.net/imgstock/chart3/world2008/error_700x289.png'">
+    </div><!--//chart-->
+        
+        
+    </div><!--//spot-->    
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</div><!--//new_totalinfo-->

@@ -1,0 +1,134 @@
+﻿<?php
+include ('./lib/lib.php');
+
+if (getSession("chk_dm_id")) {
+    if (getSession('chk_dm_level') >= 6) {
+        echo "<script>location.href='".$_VAR_PATH_UI."main.html'</script>";
+    }
+}
+
+?>
+<!doctype html>
+<head>
+    <title>디자인아이엠 CMS</title>
+    <script type="text/javascript" src="<?=$_VAR_PATH_JS?>jquery/jquery-1.4.3.min.js"></script>
+    <script type="text/javascript" src="<?=$_VAR_PATH_JS?>jquery/jquery-1.10.2.js"></script>
+    <script type="text/javascript" src="<?=$_VAR_PATH_JS?>common.js"></script>
+
+    <!-- <link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_JS?>easyui/themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_JS?>easyui/themes/icon.css"> -->
+    <link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_CSS?>reset.css">
+    <link rel="stylesheet" type="text/css" href="<?=$_VAR_PATH_CSS?>login.css">
+    <script type="text/javascript" src="<?=$_VAR_PATH_JS?>easyui/jquery.easyui.min.js"></script>
+</head>
+
+<script type="text/javascript">
+    var filter = "win16|win32|win64|mac";
+
+    if(navigator.platform){
+        if(0 > filter.indexOf(navigator.platform.toLowerCase())){
+
+        }else{
+
+        }
+    }
+</script>
+
+<body>
+
+<div class="login">
+    <div class="logo"></div>
+    <div class="login_form" data-options="region:'center', border:false" >
+        <h2><b>CMS ADMINISTRATOR</b></h2>
+        <form method="post" id="fm">
+            <input type="hidden" name="command" value="login">
+            <div class="id_pw">
+                <dl>
+                    <dt>아이디</dt>
+                    <dd><input type="text" class="easyui-textbox" name="dm_mb_id" id="dm_mb_id" /></dd>
+                </dl>
+                <dl>
+                    <dt>비밀번호</dt>
+                    <dd><input type="password" name="dm_mb_password" id="dm_mb_password" /></dd>
+                </dl>
+            </div>
+            <div class="submit">
+                <a href="#" class="easyui-linkbutton" onclick="fnLogin()">로그인</a>
+            </div>
+
+            <div class="login_text">
+                <dl>
+                    <dt>이용권한을 받으신분에 한하여 이용이 제한되오니, 관계자외 접근을 금합니다.</dt>
+                </dl>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    function fnLogin() {
+
+        if($.trim($("#dm_mb_id").textbox('getValue')) == ""){
+            alert('아이디를 입력해 주십시오.');
+            $("#dm_mb_id").textbox('textbox').focus();
+            return false;
+        }
+
+        if($.trim($("#dm_mb_password").val()) == ""){
+            alert('패스워드를 입력해 주십시오.');
+            $("#dm_mb_password").focus();
+            return false;
+        }
+
+        var param = $("#fm").serialize();
+
+        jQuery.ajax({
+            url : "<?=$_VAR_PATH_BIZ?>app/mng_login.php",
+            data:param,
+            type : 'POST',
+            cache : false,
+            async : false,
+            dataType : 'json',
+            success:function(data)
+            {
+                if(data.result == "1")
+                {
+                    location.href = "<?=$_VAR_PATH_UI?>main.html";
+                }else
+                {
+                    alert("아래와 같은 이류로 사용자 로그인에 실패하였습니다.\r\n -" + data.notice + "\r\n관리자에게 문의하세요.","로그인 실패");
+                }
+            },
+            error:function(data)
+            {
+            }
+        });
+        //return true;
+    }
+    function LogCss()
+    {
+        $('.login').css("margin-top",-$('.login').outerHeight()*0.5 + "px").css("margin-left",-$('.login').outerWidth()*0.5 + "px");
+    }
+    $(function () {
+        LogCss();
+        $("#dm_mb_id").textbox('textbox').focus();
+
+        $("#dm_mb_id").textbox('textbox').keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                fnLogin();
+            }
+        });
+        $("#dm_mb_password").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                fnLogin();
+            }
+        });
+
+        $(window).resize(function() {
+            LogCss();
+        });
+    })
+</script>
+</body>
+</html>

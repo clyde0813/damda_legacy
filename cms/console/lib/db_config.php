@@ -1,0 +1,1 @@
+<?$GLOBALS = array('HOSTNAME' => 'localhost','DBNAME' => 'iam0075_damda','USERID' => 'iam0075_damda','PASSWD' => 'design0912!@');?>

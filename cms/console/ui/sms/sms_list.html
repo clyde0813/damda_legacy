@@ -1,0 +1,397 @@
+<?php
+require('../../lib/page_header.php');
+$start_date = date("Y-m")."-01";
+?>
+
+
+<script>
+    var state = false;
+
+    function getSmsConfig()
+    {
+        $.ajax({
+            url:"<?=$_VAR_PATH_BIZ?>app/mng_sms.php?type=get_sms_config",
+            type:'post',
+            dataType:'json',
+            success:function (data)
+            {
+                $("#dm_remain").text(AddComma(data.dm_remain)+" 원");
+                $("#dm_sms_price").text(AddComma(data.dm_sms_price)+" 원");
+                $("#dm_lms_price").text(AddComma(data.dm_lms_price)+" 원");
+                $("#dm_mms_price").text(AddComma(data.dm_mms_price)+" 원");
+                $("#dm_phone").text(data.dm_phone);
+                $("#dm_sms_count").text(AddComma(data.dm_sms_count)+" 건");
+                $("#dm_lms_count").text(AddComma(data.dm_lms_count)+" 건");
+                $("#dm_mms_count").text(AddComma(data.dm_mms_count)+" 건");
+            }
+        });
+    }
+
+    function byte_check(content, sms_bytes)
+    {
+
+        var conts = document.getElementById(content);
+        var bytes = document.getElementById(sms_bytes);
+        var max_bytes = document.getElementById("sms_max_bytes");
+
+        var i = 0;
+        var cnt = 0;
+        var exceed = 0;
+        var ch = '';
+        for (i=0; i<conts.value.length; i++)
+        {
+            ch = conts.value.charAt(i);
+            if (escape(ch).length > 4) {
+                cnt += 2;
+            } else {
+                cnt += 1;
+            }
+        }
+
+        bytes.innerHTML = cnt;
+
+        if (cnt > 90 && !state)
+        {
+            alert ("90바이트를 초과하면 LMS 형식으로 전송됩니다.");
+            $("input[name='sms_type']").val('lms');
+            state = true;
+        }
+
+        if(cnt > 90)
+            max_bytes.innerHTML = 1500;
+        else
+            max_bytes.innerHTML = 90;
+
+        if (cnt > 1500)
+        {
+            exceed = cnt - 1500;
+            alert('메시지 내용은 1500바이트를 넘을수 없습니다.\n\n작성하신 메세지 내용은 '+ exceed +'byte가 초과되었습니다.\n\n초과된 부분은 자동으로 삭제됩니다.');
+            var tcnt = 0;
+            var xcnt = 0;
+            var tmp = conts.value;
+            for (i=0; i<tmp.length; i++)
+            {
+                ch = tmp.charAt(i);
+                if (escape(ch).length > 4) {
+                    tcnt += 2;
+                } else {
+                    tcnt += 1;
+                }
+
+                if (tcnt > 1500) {
+                    tmp = tmp.substring(0,i);
+                    break;
+                } else {
+                    xcnt = tcnt;
+                }
+            }
+            conts.value = tmp;
+            bytes.innerHTML = xcnt;
+            return;
+        }
+    }
+
+    getSmsConfig();
+
+
+    $(function () {
+        function fnNew() {
+            // byte_check('content', 'sms_bytes');
+            $("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+
+            $("#file").filebox({
+                buttonText: '파일선택',
+                accept: 'image/*'
+            });
+        }
+
+        function fnSave()
+        {
+            if(!$("#to").textbox("getValue")) {
+                $.messager.alert('경고', "수신번호를 입력해주세요",'warning');
+                return false;
+            }
+
+            var url = '';
+
+            if (!$("#file").filebox('getValue')) {
+                url = '<?=$_VAR_PATH_LIB?>sms.php';
+            } else {
+                url = '<?=$_VAR_PATH_LIB?>mms.php';
+            }
+
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url : url,
+                data : formData,
+                dataType: "json",
+                type : "post",
+                contentType: false,
+                processData: false,
+                success : function (data) {
+
+                    var icon = 'warning';
+                    if(data.result == "success") {
+                        $("#to").textbox("setValue", "");
+                        $("#content").val("");
+                        $("#file").filebox("setValue", "");
+                        closeDialog();
+                        getSmsConfig();
+
+                        icon = 'info';
+                    }
+                    $.messager.alert('알림',data.notice,icon);
+                }
+            });
+        }
+
+        function closeDialog()
+        {
+            $("#dlg").dialog('close');
+        }
+
+        function doSearch() {
+            var search_type = $('#search_type').val();
+            var search_value = $('#stx').val();
+
+            var search_status = $("#search_status").combobox("getValue");
+            var search_kind = $("#search_kind").combobox("getValue");
+            var search_start_date = $("#search_start_date").datebox('getValue');
+            var search_end_date = $("#search_end_date").datebox('getValue');
+
+            $('#dg').datagrid('load',
+                {
+                    search_type : encodeURIComponent(search_type),
+                    search_value : encodeURIComponent(search_value),
+                    search_status : encodeURIComponent(search_status),
+                    search_kind : encodeURIComponent(search_kind),
+                    search_start_date : encodeURIComponent(search_start_date),
+                    search_end_date : encodeURIComponent(search_end_date),
+                })
+        }
+
+        $('#dg').datagrid({
+            // data:[{dm_date: '2020-06-18', dm_count: 2000, progressbar: 30}, {dm_date: '2020-06-18', dm_count: 2022, progressbar: 60}],
+            emptyMsg: '데이터가 없습니다.'
+        });
+        closeDialog();
+
+        $("#search_btn").off().on('click', function () {
+            doSearch();
+        });
+
+        $("#fnClose").off().on('click', function () {
+            closeDialog();
+        });
+
+        $("#fnNew").off().on('click', function () {
+            fnNew();
+        });
+
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        $("#stx").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+        $("#detail_search").off().on('click', function () {
+            $("#Dsearch").toggle();
+        });
+    });
+
+    function allList() {
+        $("#search_type").val('all');
+        $("#stx").val('');
+        $("#search_status").combobox("reload");
+        $("#search_kind").combobox("reload");
+        $("#search_start_date").datebox('setValue', '<?=$start_date?>');
+        $("#search_end_date").datebox('setValue', '<?=date("Y-m-d");?>');
+
+        $("#dg").datagrid('load', {
+            search_type: '',
+            search_value : '',
+            search_status : '',
+            search_kind : '',
+            search_start_date : '<?=$start_date?>',
+            search_end_date : '<?=date("Y-m-d");?>'
+        });
+    }
+</script>
+    <div class="easyui-layout" fit="true">
+        <div data-options="region:'north', border:false">
+            <div class="title">
+                <h1><?=$current_page_info['dm_view_title']?></h1>
+                <div class="btnWrap">
+                    <button class="bt05" id="fnNew">SMS 전송</button>
+                </div>
+            </div>
+            <div class="accessor">
+                <p><span>잔액 <strong id="dm_remain">0</strong></span></p>
+                <p><span>SMS 가격 <strong id="dm_sms_price">0</strong></span></p>
+                <p><span>전송가능 SMS 건수 <strong id="dm_sms_count">0</strong></span></p>
+                <p><span>LMS 가격 <strong id="dm_lms_price">0</strong></span></p>
+                <p><span>전송가능 LMS 건수<strong id="dm_lms_count"></strong></span></p>
+                <p><span>MMS 가격 <strong id="dm_mms_price">0</strong></span></p>
+                <p><span>전송가능 MMS 건수<strong id="dm_mms_count"></strong></span></p>
+            </div>
+            <div class="Srchbox">
+                <div>
+                    <dl>
+                        <dt><strong>기간</strong></dt>
+                        <dd>
+                            <input type="text" class="easyui-datebox" id="search_start_date" value="<?=$start_date?>" data-options="formatter:myformatter,parser:myparser"> ~
+                            <input type="text" class="easyui-datebox" id="search_end_date" value="<?=date("Y-m-d");?>" data-options="formatter:myformatter,parser:myparser">
+                            <a onclick="DateSearch.getToday();" class="btn">오늘</a>
+                            <a onclick="DateSearch.getThisWeek();" class="btn">이번주</a>
+                            <a onclick="DateSearch.getThisMonth();" class="btn">이번달</a>
+                            <a onclick="DateSearch.getNextSevenDays()" class="btn">1주일</a>
+                            <a onclick="DateSearch.getNextFiftheenDays()" class="btn">15일</a>
+                            <a onclick="DateSearch.getMonthAgo()" class="btn">1개월</a>
+                            <a onclick="DateSearch.getThreeMonthAgo()" class="btn">3개월</a>
+                            <a onclick="DateSearch.getSixMonthAgo()" class="btn">6개월</a>
+                            <a onclick="DateSearch.resetDate()" class="btn">전체</a>
+                        </dd>
+                    </dl>
+                    <article id="Dsearch">
+                        <dl>
+                            <dt><strong>SMS전송타입</strong></dt>
+                            <dd>
+                                <select id="search_kind" class="easyui-combobox" panelHeight="auto" style="width:150px;height:30px;"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&search=1&group=1024',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'">
+
+                                </select>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt><strong>전송결과</strong></dt>
+                            <dd>
+                                <select id="search_status" class="easyui-combobox" panelHeight="auto" style="width:150px;height:30px;"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&search=1&group=1025',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'">
+                                </select>
+                            </dd>
+                        </dl>
+                    </article>
+                    <dl>
+                        <dt><strong>통합검색</strong></dt>
+                        <dd>
+                            <select name="search_type" id="search_type">
+                                <option value="all">통합검색</option>
+                                <option value="dm_request_dt">요청시간</option>
+                                <option value="dm_sms_no">sms 전송 번호</option>
+                            </select>
+                            <input type="text" name="search_value" value="" id="stx">
+                        </dd>
+                    </dl>
+                </div>
+                <button class="btn bt00" id="search_btn">검색</button>
+                <button class="btn" onclick="allList()">초기화</button>
+            </div>
+        </div>
+        <div data-options="region:'center', border:false" class="Contents">
+            <table id="dg" class="easyui-datagrid" data-options="pagePosition:'top',rownumbers:true,pagination:true, url:'<?=$_VAR_PATH_BIZ?>app/mng_sms.php?type=select&search_start_date=<?=$start_date?>&search_end_date=<?=date("Y-m-d");?>',method:'get',
+             singleSelect:true,fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false,toolbar:'#tb'"  fit="true" border="false" pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+                <thead>
+                <tr>
+                    <th data-options="field:'dm_request_dt',width:200,align:'center'">요청시간</th>
+                    <th data-options="field:'dm_send_dt',width:200,align:'center'">전송시간</th>
+                    <th data-options="field:'dm_sms_type_text',width:100,align:'center'">sms 전송타입</th>
+                    <th data-options="field:'dm_customer_name',width:100,align:'center'">고객이름</th>
+                    <th data-options="field:'dm_customer_info',width:100,align:'center'">고객정보</th>
+                    <th data-options="field:'dm_sms_no',width:100,align:'center'">sms 전송 번호</th>
+                    <th data-options="field:'dm_content',width:100,align:'center'">sms 전송 내역</th>
+                    <th data-options="field:'dm_att_file1',width:100,align:'center'">첨부파일1</th>
+                    <th data-options="field:'dm_att_file2',width:100,align:'center'">첨부파일2</th>
+                    <th data-options="field:'dm_att_file3',width:100,align:'center'">첨부파일3</th>
+                    <th data-options="field:'dm_sms_result_text',width:100,align:'center'">sms 전송 결과</th>
+                    <th data-options="field:'dm_sms_result_info',width:100,align:'center'">sms 결과 코드</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+        <!--
+        <div id="tb" style="padding:2px 8px;border:solid 0px #f6c1bc;">
+            <table>
+                <tr>
+                    <td>
+                        <span>기간</span>
+                        <input type="text" class="easyui-datebox" id="search_start_date" value="<?=$start_date?>" data-options="formatter:myformatter,parser:myparser" /> ~
+                        <input id="search_end_date" value="<?=date("Y-m-d");?>" style="width:150px;" class="easyui-datebox" data-options="formatter:myformatter,parser:myparser" />
+                    </td>
+                    <td>
+                        <span></span>
+
+                    </td>
+                    <td>
+                        <span></span>
+
+
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn" id="search_btn">검색</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        -->
+        <div id="dlg" class="easyui-dialog" style="width:600px; height: 550px;">
+            <form id="fm" method="post" novalidate enctype="multipart/form-data">
+                <input type="hidden" name="sms_type" value="sms" />
+                <div class="page">
+                    <h3>SMS 전송</h3>
+                    <dl>
+                        <dt>발신번호</dt>
+                        <dd><p id="dm_phone"></p></dd>
+                    </dl>
+                    <dl>
+                        <dt>수신번호</dt>
+                        <dd><input type="text" name="to" class="easyui-textbox" id="to" value="" style="width:300px;"/></dd>
+                    </dl>
+                    <dl>
+                        <dt>내용</dt>
+                        <dd>
+                            <textarea id="content" name="text" onkeyup="byte_check('content', 'sms_bytes');"></textarea>
+                            <p id="byte"> <span id="sms_bytes">0</span> / <span id="sms_max_bytes">90</span> byte</p>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>첨부파일</dt>
+                        <dd>
+                            <input type="text" name="file" id="file" class="easyui-filebox" style="width:300px;" />
+                        </dd>
+                    </dl>
+                    <p>이미지는 jpg만 전송할 수 있으며, 500KB이하로 전송해야 합니다.</p>
+                </div>
+            </form>
+            <div style="text-align: center;">
+                <button id="fnClose" class="btn">취소</button>
+                <button id="fnSave" class="btn">저장</button>
+            </div>
+        </div>
+    </div>
+
+<?
+require('../../lib/page_bottom.php');
+?>

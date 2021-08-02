@@ -1,0 +1,89 @@
+<?php
+include "../../lib/lib.php";
+
+$type =  isset($_REQUEST['type']) ? $_REQUEST['type'] : "select";
+
+if($type == "select") {
+
+    $db = new DBSQL();
+    $db->DBconnect();
+
+    $page = isset($_REQUEST['page']) ? intval($_REQUEST['page']) : 1;
+    $rows = isset($_REQUEST['rows']) ? intval($_REQUEST['rows']) : 50;
+
+    $search_name = isset($_REQUEST['search_name']) ? $_REQUEST['search_name'] : "";
+    $search_status = isset($_REQUEST['search_status']) ? $_REQUEST['search_status'] : "";
+
+    $search_query = "";
+
+
+    if ($search_status != "") {
+        //$search_query .= " AND dm_domain_status = '".$search_status."'";
+    }
+
+    $query = "SELECT count(*) FROM dm_board WHERE 1 = 1 ".$search_query;
+
+    $db->ExecSql($query, "S");
+    $row = $db->GetPosition(0);
+    $total_count = $row[0];
+
+    $query = "SELECT * FROM dm_board WHERE 1 = 1 ".$search_query." ORDER BY dm_order ASC ";
+
+    $db->ExecSql($query, "S");
+
+    $arData = array();
+
+    $ar_status = selectCommonCode('1001');
+
+    if ($db-Num > 0) {
+        while ($arItem = $db->Fetch()) {
+            //$arItem['dm_domain_status_text'] = $ar_status[$arItem['dm_domain_status']];
+            array_push($arData, $arItem);
+        }
+        $arResult = array("result" => "success", "_return" => "", "total" => $total_count, "rows" => $arData);
+    } else {
+        $arResult = array( "result" => "success", "_return" => "","total" => $total_count, "rows" => $arData);
+    }
+
+    echo json_encode($arResult);
+
+} else if($type=='insert') {
+
+	$Query ="insert into dm_board(";
+	$qField = "";
+	$qValue = "";
+	foreach($_POST as $key => $value)
+	{
+		$vKey = substr($key,0,3);
+		$DKey = substr($key,4);
+		if($vKey != "chk")
+		{
+			if($qField != "") $qField .=", ";
+			if($qValue != "") $qValue .=", ";
+			$qField .=$DKey;
+			if($vKey == "int")
+			{
+				if($value == "on") 
+				{
+					$value = "1";
+				}else
+				{
+					$value = "0";
+				}
+				$qValue .=$value;
+			}elseif($vKey == "txt")
+			{
+				$qValue .="'".$value."'";
+			}
+
+		}
+		
+		
+		//echo "$vKey ==> $DKey (".$value.")\r\n";
+		//echo "$key ==> $value <br>";
+	}
+	$Query .= $qField.") values(".$qValue.")";
+	echo $Query;
+}
+
+?>

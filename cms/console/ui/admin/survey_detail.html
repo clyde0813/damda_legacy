@@ -1,0 +1,193 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+<script>
+    $(function () {
+
+        function fnRemove() {
+            var ids = [];
+            var rows = $('#dg').datagrid('getChecked');
+
+            if (rows.length > 0) {
+                for(var i=0; i<rows.length; i++){
+                    ids.push(rows[i].dm_id);
+                }
+
+                $.each(ids, function (index, value) {
+                        $.post('<?=$_VAR_PATH_BIZ?>app/mng_survey.php?type=delete_detail',{dm_id:value},function(result){
+                            if (result.success){
+                                console.log(result);
+                            }
+                        },'json')
+                    }
+
+                );
+                $('#dg').datagrid('reload');    // reload the user data
+            } else {
+                $.messager.alert('경고', "삭제할 항목을 선택해주세요", 'warning');
+            }
+        }
+
+        function doSearch() {
+            var search_type = $('#search_type').val();
+            var search_value = $('#stx').val();
+            var search_survey = $('#search_survey').val();
+
+            $('#dg').datagrid('load',
+                {
+                    search_type : encodeURIComponent(search_type),
+                    search_value : encodeURIComponent(search_value),
+                    search_survey : encodeURIComponent(search_survey)
+                })
+        }
+
+        $('#dg').datagrid({
+            emptyMsg:'데이터가 없습니다.'
+        });
+
+
+        $("#fnClose").off().on('click', function () {
+            closeDialog();
+        });
+
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    fnRemove();
+                }
+            });
+        });
+
+        $("#search_btn").off().on('click', function () {
+            doSearch();
+        });
+
+        $("#stx").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+        $("#detail_search").off().on('click', function () {
+            $("#Dsearch").toggle();
+        });
+
+        $.ajax({
+            url :"<?=$_VAR_PATH_BIZ ?>app/mng_survey.php?type=select",
+            dataType:"json",
+            success : function (data) {
+                $("#search_survey").empty();
+                $("#search_survey").append("<option value='전체'>전체</option>");
+                $.each(data, function (key, value) {
+                    $("#search_survey").append("<option value='"+value.dm_id+"'>"+value.dm_survey_name+"</option>")
+                });
+            }
+        });
+
+        $(document).on('click', ".private_delete", function () {
+            var currentRow = $('#dg').datagrid('getSelected');
+                $.post('<?=$_VAR_PATH_BIZ?>app/mng_survey.php?type=delete_detail',{dm_id:currentRow.dm_id},function(result){
+                    if (result.success){
+                        console.log(result);
+                    }
+                },'json')
+            $('#dg').datagrid('reload');    // reload the user data
+        });
+    });
+
+    function allList() {
+        $("#search_type").val('all');
+        $("#stx").val('');
+        $("#search_survey").val('전체');
+        $("#dg").datagrid('load', {
+            search_type: '',
+            search_value : '',
+            search_survey : ''
+        });
+    }
+
+    function formatDetail(value,row){
+        return '<a data-id="'+row.dm_id+'" class="btn private_delete" target="_blank">삭제</a>';
+    }
+</script>
+
+<div class="easyui-layout" style="width:700px;height:350px;" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>설문조사</strong></dt>
+                    <dd>
+                        <select id="search_survey" name="search_survey"></select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><strong>통합검색</strong></dt>
+                    <dd>
+                        <select name="search_type" id="search_type">
+                            <option value="all">통합검색</option>
+                            <option value="b.dm_survey_name">설문조사제목</option>
+                            <option value="a.dm_datetime">답변일</option>
+                            <option value="a.mb_id">답변자아이디</option>
+                        </select>
+                        <input type="text" name="search_value" value="" id="stx">
+                    </dd>
+                </dl>
+            </div>
+            <button class="btn bt00" id="search_btn">검색</button>
+            <button class="btn" onclick="allList()">초기화</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <table id="dg"
+               class="easyui-datagrid" fit="true" border="false"
+               data-options="pagePosition:'top',rownumbers:true,pagination:true, singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_survey.php?type=survey_detail',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false,footer:'#ft'"
+               pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+            <thead>
+            <tr>
+                <th data-options="field:'ck',width:100,align:'center',checkbox:true,
+            editor:{
+                type:'checkbox',
+                options:{
+                    on:'Y',
+                    off:'N'
+                }
+            }">-</th>
+                <th data-options="field:'dm_survey_name',width:80,align:'center'">설문조사명</th>
+                <th data-options="field:'dm_survey_question',width:200,align:'center'">질문</th>
+                <th data-options="field:'dm_answer',width:200,align:'center'">답변</th>
+                <th data-options="field:'mb_id',width:80,align:'center'">답변자</th>
+                <th data-options="field:'dm_datetime',width:80,align:'center'">답변일</th>
+                <th field ="detail" width = "80" formatter="formatDetail" align="center">관리</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+    <div data-options="region:'south'">
+        <dl class="Tbottom">
+            <dd>
+                <button class="btn" id="fnRemove">선택삭제</button>
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<?
+require('../../lib/page_bottom.php');
+?>

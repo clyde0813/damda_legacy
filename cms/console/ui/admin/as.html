@@ -1,0 +1,383 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+<script>
+    $(function () {
+
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        function fnSave() {
+            var wr_4 = $("#wr_4").val();
+            var dm_mode = $("#dm_mode").val();
+            var url = "<?=$_VAR_PATH_BIZ?>app/mng_as.php?type="+dm_mode;
+
+            if (dm_mode != 'delete') {
+                if(wr_4 == "")
+                {
+                    $.messager.alert('입력오류','답변을 입력해주세요.','warning');
+                    return;
+                }
+            }
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url : url,
+                data : formData,
+                dataType: "json",
+                type : "post",
+                contentType: false,
+                processData: false,
+                success : function (data) {
+
+                    var icon = 'warning';
+                    if(data.result == "success") {
+                        $('#dg').datagrid('reload');
+                        $("#wr_1").text('');
+                        $("#wr_2").val('1');
+                        $("#wr_3").text('');
+                        $("#wr_4").val('');
+                        $("#wr_id").val('');
+                        $("#wr_name").text('');
+                        $("#wr_email").text('');
+                        $("#wr_content").text('');
+                        $("#wr_datetime").text('');
+                        $("#file").empty();
+                        icon = 'info';
+                        closeDialog();
+                    }
+                    $.messager.alert('알림',data.notice,icon);
+                    closeDialog();
+                }
+            });
+        }
+
+        function fnRemove(){
+            var ids = [];
+            var dm_table = [];
+            var rows = $('#dg').datagrid('getChecked');
+
+            if (rows.length > 0) {
+                for(var i=0; i<rows.length; i++){
+                    ids.push(rows[i].wr_id);
+                    //dm_table.push(rows[i].dm_table);
+					dm_table.push("as");
+                }
+
+                $.each(ids, function (index, value) {
+                        $.post('<?=$_VAR_PATH_BIZ?>app/mng_write.php?type=delete',{wr_id:value, dm_table:dm_table[index]},function(result){
+                            if (result.success){
+                                console.log(result);
+                            }
+                        },'json')
+                    }
+
+                );
+                $('#dg').datagrid('reload');    // reload the user data
+            } else {
+                $.messager.alert('경고', "삭제할 항목을 선택해주세요", 'warning');
+            }
+        }
+
+        function closeDialog()
+        {
+            $("#dlg").dialog('close');
+        }
+
+        function doSearch() {
+            var search_type = $('#search_type').val();
+            var search_value = $('#stx').val();
+            var search_start_date = $("#search_start_date").datebox('getValue');
+            var search_end_date= $("#search_end_date").datebox('getValue');
+
+            $('#dg').datagrid('load',
+                {
+                    search_type : encodeURIComponent(search_type),
+                    search_value : encodeURIComponent(search_value),
+                    search_start_date : encodeURIComponent(search_start_date),
+                    search_end_date : encodeURIComponent(search_end_date),
+                    search_board : encodeURIComponent('as'),
+                })
+        }
+
+        $('#dg').datagrid({
+            onDblClickCell: function(index,field,value){
+                //$('#dg').datagrid('selectRow',index);
+                //var currentRow = $("#dg").datagrid("getSelected");
+                //window.parent.addTab("<" + currentRow.wr_subject + "> 세부정보",'<?//=$_VAR_PATH_UI?>//write/write_view.html?wr_id='+currentRow.wr_id+'&dm_table='+currentRow.dm_table,true,'','');
+            },
+            emptyMsg:'데이터가 없습니다.'
+        });
+
+        $("#stx").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        $("#fnNew").off().on('click', function () {
+            fnNew();
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    fnRemove();
+                }
+            });
+        });
+
+        $("#search_btn").off().on('click', function () {
+            doSearch();
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+        $("#detail_search").off().on('click', function () {
+            $("#Dsearch").toggle();
+            var dl_count = $("#Dsearch dl").length;
+            dl_count = Math.ceil(dl_count / 2);
+            var margin_top = dl_count * $("#Dsearch dl").height();
+
+            if($("#Dsearch").is(":visible")) {
+                $(".Contents").css("margin-top", margin_top+"px");
+            } else {
+                $(".Contents").css("margin-top", "0px");
+            }
+        });
+
+        $(document).on('click', ".open_form", function () {
+            var row = $('#dg').datagrid('getSelected');
+            selectedDg(row);
+        });
+
+        $(document).on('click', ".private_delete", function () {
+            var dm_id = $(this).data("id");
+            var dm_table = $(this).data("table");
+            $.messager.confirm("", "정말 삭제하시겠습니까?", function (r) {
+                if (r) {
+                    $.post('<?=$_VAR_PATH_BIZ?>app/mng_write.php?type=delete',{wr_id:dm_id, dm_table:dm_table},function(result){
+                        if (result.result == 'success'){
+                            $('#dg').datagrid('reload');    // reload the user data
+                        }
+                    },'json');
+                }
+            });
+        });
+
+        $("#fnClose").off().on('click', function () {
+            closeDialog();
+        });
+
+        closeDialog();
+    });
+
+    function allList() {
+        $("#search_type").val('all');
+        $("#stx").val('');
+        var fullDate = DateSearch.makeFullDate(DateSearch.date.curYear, DateSearch.date.curMonth, DateSearch.date.curDate);
+        $("#search_start_date").datebox('setValue', fullDate);
+        $("#search_end_date").datebox('setValue', fullDate);
+        $("#search_board").combobox('reload');
+
+        $("#dg").datagrid('load', {
+            search_type: '',
+            search_value : '',
+            search_start_date : fullDate,
+            search_end_date : fullDate,
+            search_board : 'as',
+        });
+    }
+
+    function selectedDg(row)
+    {
+        var currentRow =$("#dg").datagrid("getSelected");
+        if (currentRow)
+        {
+            $("#wr_id").val(currentRow.wr_id);
+            $("#wr_name").text(currentRow.wr_name);
+            $("#wr_2").val(currentRow.wr_2);
+            $("#wr_4").val(currentRow.wr_4);
+            $("#wr_3").text(currentRow.wr_3);
+            $("#wr_email").text(currentRow.wr_email);
+            $("#wr_1").text(currentRow.wr_1);
+            $("#wr_content").text(currentRow.wr_content);
+            $("#wr_datetime").text(currentRow.wr_datetime);
+            var wr_file = currentRow.wr_file;
+            var ori_file = currentRow.wr_ori_file_name;
+
+            if (wr_file != "") {
+                var file_array = wr_file.split("|");
+                var ori_file_array = ori_file.split("|");
+                $("#file").empty();
+                for (var i=0; i<file_array.length; i++) {
+                    var file_path = file_array[i].split("/");
+
+                    $("#file").append(
+                        '<p>'+ori_file_array[i]+'<a href="<?=$_VAR_PATH_LIB?>file_download.php?dm_table='+file_path[0]+'&file_name='+file_path[1]+'&ori_file_name='+ori_file_array[i]+'" class="file_link btn">다운로드</a></p>'
+                    )
+                }
+            }
+            $("#dm_mode").val("update");
+            $("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+        }
+    }
+
+    function formatDetail2(value,row){
+        if (row.dm_url == '') {
+            row.dm_url = "javascript:alert('페이지 정보가 없습니다.');";
+        } else {
+            row.dm_url = "window.open('"+row.dm_url+"')";
+        }
+        return '<a onclick="'+row.dm_url+'" class="btn">새창</a>';
+    }
+
+    function formatDetail(value,row){
+        return '<a class="btn bt08 open_form" data-id="'+row.wr_id+'" data-table="'+row.dm_table+'" data-subject="'+row.wr_subject+'">수정</a> <a class="btn private_delete" data-id="'+row.wr_id+'" data-table="'+row.dm_table+'">삭제</a>';
+    }
+</script>
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/datagrid-detailview.js"></script>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>기간</strong></dt>
+                    <dd>
+                        <input type="text" class="easyui-datebox" id="search_start_date" value="" data-options="formatter:myformatter,parser:myparser"> ~
+                        <input type="text" class="easyui-datebox" id="search_end_date" value="" data-options="formatter:myformatter,parser:myparser">
+                        <a onclick="DateSearch.getToday();" class="btn">오늘</a>
+                        <a onclick="DateSearch.getThisWeek();" class="btn">이번주</a>
+                        <a onclick="DateSearch.getThisMonth();" class="btn">이번달</a>
+                        <a onclick="DateSearch.getNextSevenDays()" class="btn">1주일</a>
+                        <a onclick="DateSearch.getNextFiftheenDays()" class="btn">15일</a>
+                        <a onclick="DateSearch.getMonthAgo()" class="btn">1개월</a>
+                        <a onclick="DateSearch.getThreeMonthAgo()" class="btn">3개월</a>
+                        <a onclick="DateSearch.getSixMonthAgo()" class="btn">6개월</a>
+                        <a onclick="DateSearch.resetDate()" class="btn">전체</a>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><strong>통합검색</strong></dt>
+                    <dd>
+                        <select name="search_type" id="search_type">
+                            <option value="all">통합검색</option>
+                            <option value="wr_subject">제목</option>
+                            <option value="wr_name">작성자</option>
+                        </select>
+                        <input type="text" name="search_value" value="" id="stx">
+                    </dd>
+                </dl>
+            </div>
+            <button class="btn bt00" id="search_btn">검색</button>
+            <button class="btn" onclick="allList()">초기화</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <table id="dg"
+               class="easyui-datagrid" fit="true" border="false"
+               data-options="pagePosition:'top',rownumbers:true,pagination:true,singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_as.php?type=select&search_board=as',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false" pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+            <thead>
+            <tr>
+                <th data-options="field:'ck',width:100,align:'center',checkbox:true,
+                editor:{
+                    type:'checkbox',
+                    options:{
+                        on:'Y',
+                        off:'N'
+                    }
+                }">-</th>
+                <th data-options="field:'wr_subject',width:300,align:'center'">제목</th>
+                <th data-options="field:'wr_name',width:150,align:'center'">작성자</th>
+                <th data-options="field:'wr_1',width:150,align:'center'">휴대폰번호</th>
+                <th data-options="field:'wr_email',width:150,align:'center'">이메일</th>
+                <th data-options="field:'dm_status_text',width:150,align:'center'">답변여부</th>
+                <th data-options="field:'wr_datetime',width:120,align:'center'">등록일</th>
+                <th data-options="field:'wr_3',width:120,align:'center'">답변일</th>
+                <th field ="detail" width = "100" formatter="formatDetail" align="center">관리</th>
+            </tr>
+            </thead>
+        </table>
+        <div id="dlg" class="easyui-dialog" style="width:600px; height: 700px;">
+            <form id="fm" method="post" novalidate enctype="multipart/form-data">
+                <input type="hidden" name="wr_id" id="wr_id" />
+                <input type="hidden" id="dm_mode" name="dm_mode" value="insert">
+                <div class="page">
+                    <h3 id="dialog_title">서비스 답변</h3>
+                    <dl>
+                        <dt>이름</dt>
+                        <dd id="wr_name"></dd>
+                    </dl>
+                    <dl>
+                        <dt>휴대폰번호</dt>
+                        <dd id="wr_1"></dd>
+                    </dl>
+                    <dl>
+                        <dt>이메일</dt>
+                        <dd id="wr_email"></dd>
+                    </dl>
+                    <dl>
+                        <dt>첨부파일</dt>
+                        <dd id="file"></dd>
+                    </dl>
+                    <dl>
+                        <dt>내용</dt>
+                        <dd id="wr_content"></dd>
+                    </dl>
+                    <dl>
+                        <dt>등록일</dt>
+                        <dd id="wr_datetime"></dd>
+                    </dl>
+                    <dl>
+                        <dt>상태</dt>
+                        <dd>
+                            <select name="wr_2" id="wr_2">
+                                <option value="1">답변준비중</option>
+                                <option value="2">답변완료</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>답변내용</dt>
+                        <dd>
+                            <textarea name="wr_4" id="wr_4"></textarea>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>답변일</dt>
+                        <dd id="wr_3"></dd>
+                    </dl>
+                </div>
+                <div style="text-align: center;">
+                    <a href="javascript:void(0);" id="fnClose" class="easyui-linkbutton" style="width:120px;height:30px">취소</a>
+                    <!--                            <button class="btn" style="width:">저장</button>-->
+                    <a href="javascript:void(0);" id="fnSave" class="easyui-linkbutton" style="width:120px;height:30px">저장</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div data-options="region:'south'">
+        <dl class="Tbottom">
+            <dd>
+                <button class="btn" id="fnRemove">선택삭제</button>
+            </dd>
+        </dl>
+    </div>
+</div>
+<?
+require('../../lib/page_bottom.php');
+?>

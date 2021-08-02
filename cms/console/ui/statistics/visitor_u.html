@@ -1,0 +1,176 @@
+<?
+	require('../../lib/page_header.php');
+?>
+<script>
+    $(function () {
+        fnSetData();
+
+        function fnSetData() {
+
+            $.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=total_accessor",
+                type:"post",
+                dataType : "json",
+                success : function (data) {
+                    $("#today").text(data.today);
+                    $("#today_date").text(data.today_date);
+                    $("#max_count").text(data.max_count);
+                    $("#max_date").text(data.max_date);
+                    $("#min_count").text(data.min_count);
+                    $("#min_date").text(data.min_date);
+                    $("#total_pv").text(data.total_pv);
+                    $("#max_pv").text(data.max_pv_count);
+                    $("#max_pv_date").text(data.max_pv_date);
+                    $("#min_pv").text(data.min_pv_count);
+                    $("#min_pv_date").text(data.min_pv_date);
+                }
+            });
+        }
+
+    });
+</script>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <?
+            require('visitor_tab.html');
+        ?>
+        
+        <div class="State">
+            <table class="tb">
+                <thead>
+                    <tr>
+                        <th>당일 방문자수</th>
+                        <th>최대 방문자수</th>
+                        <th>최소 방문자수</th>
+                        <th>총 페이지뷰</th>
+                        <th>최대 페이지뷰</th>
+                        <th>최소 페이지뷰</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                    <td>
+                        <strong id="today">13</strong>
+                        <em id="today_date">2020-10-19</em>
+                    </td>
+                    <td>
+                        <strong id="max_count">10</strong>
+                        <em id="max_date">2020-10-19</em>
+                    </td>
+                    <td>
+                        <strong id="min_count">7</strong>
+                        <em id="min_date">2020-10-19</em>
+                     </td>
+                    <td>
+                        <strong id="total_pv">13</strong>
+                    </td>
+                    <td>
+                        <strong id="max_pv">10</strong>
+                        <em id="max_pv_date">2020-10-19 13시</em>
+                        </td>
+                    <td>
+                        <strong id="min_pv">1</strong>
+                        <em id="min_pv_date">2020-10-19 01시</em>
+                        </td>
+                    </tr>
+                </tbody>   
+            </table>
+            
+            <div id="chart-area" style="margin:20px -10px 20px -10px;"></div>
+            <script>
+                $.ajax({
+                    url :"<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=select_accessor&search_start_date=<?=$start_date?>&search_end_date=<?=date('Y-m-d');?>",
+                    dataType:"json",
+                    type:"post",
+                    success:function (data) {
+                        var result = data.rows;
+                        var visitor = [];
+                        var new_visitor = [];
+                        var re_visitor = [];
+                        var page_view = [];
+
+                        for (var i = 0; i<24; i++) {
+                            visitor[i] = result[i].dm_visit;
+                            new_visitor[i] = result[i].dm_new_visit;
+                            re_visitor[i] = result[i].dm_re_visit;
+                            page_view[i] = result[i].dm_page_view;
+                        }
+
+                        var container = document.getElementById('chart-area'),
+                            chart_data = {
+                                categories: ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'],
+                                series: [
+                                    {
+                                        name: '방문자수',
+                                        // data: [0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                                        data: visitor
+                                    },
+                                    {
+                                        name: '신규방문자수',
+                                        // data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                                        data: new_visitor
+
+                                    },
+                                    {
+                                        name: '재방문자수',
+                                        // data: [0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                                        data: re_visitor
+
+                                    },
+                                    {
+                                        name: '페이지뷰',
+                                        // data: [0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 10, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                                        data: page_view
+
+                                    }
+                                ]
+                            },
+                            options = {
+                                chart: {
+                                    width: widthSize, height: 400 /*,title: ''*/
+                                },
+                                yAxis: {
+                                    title: '',
+                                    min: 0
+                                },
+                                xAxis: {
+                                    title: '시간'
+                                },
+                                tooltip: {
+                                    suffix: ''/* ,grouped: true*/
+                                },
+                                series: {
+                                    showLabel: false, showDot: true
+                                },
+                                legend: {
+                                    showCheckbox: true, align: 'bottom'
+                                }
+                            }
+                        tui.chart.lineChart(container, chart_data, options);
+                    }
+                });
+
+        </script>
+            <table id="dg" class="easyui-datagrid" data-options="rownumbers:false,pagination:false, url:'<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=select_accessor&search_start_date=<?=$start_date?>&search_end_date=<?=date("Y-m-d");?>',method:'get', singleSelect:true,fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false"  fit="true" border="false" fit="true">
+                <thead>
+                <tr>
+                    <th data-options="field:'dm_time',width:80,align:'center'">시간대</th>
+                    <th data-options="field:'dm_visit',width:80,align:'center'">방문자수</th>
+                    <th data-options="field:'dm_new_visit',width:80,align:'center'">신규방문자수</th>
+                    <th data-options="field:'dm_re_visit',width:80,align:'center'">재방문자수</th>
+                    <th data-options="field:'dm_page_view',width:80,align:'center'">페이지뷰</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+<?
+	require('../../lib/page_bottom.php');
+?>

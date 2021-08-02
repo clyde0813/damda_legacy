@@ -1,0 +1,452 @@
+<script src="http://malsup.github.com/jquery.form.js"></script>
+<style>
+.contentWrap{float:inherit;width:inherit;padding:0;}
+.contentWrap{border:0;background-color:transparent;padding-top:0;padding-left:0;}
+.contentWrap > h2{display:none;}
+</style>
+<!-- 공감지표 -->
+<div class="survey_wrap">
+	<div class="survey_block vote_box">
+		<h3 class="survey_subtitle">공감지표 리스트</h3>
+		<ul class="vote_list" id="vote1">
+
+        </ul>
+		<!-- // 공감지표 -->
+		<!-- 이종목어때 -->
+		<h3 class="survey_subtitle">이종목어때 리스트</h3>
+		<ul class="vote_list2" id="vote2">
+
+		</ul>		
+		<!-- // 이종목어때 -->
+	</div>
+
+	<div class="survey_block survey_box">
+		<!-- 설문조사 -->
+		<h3 class="survey_subtitle">설문조사</h3>        
+        <div class="surveyWrap" id="survey">
+            <div class="box">
+                <h4><em>Q.</em> <span>아기가 밤마다 자다가 꼭 깨서 달래는데 너무 힘이 듭니다. 어떻게 해야 할까요?</span></h4>
+                <ul>
+                    <li>                
+                        <div class="graph">
+                            <p>
+                                <label><input type="radio" name="" id="" value="">모르겠다</label>
+                                <em><strong>30%</strong> (600명)</em>
+                            </p>
+                            <span style="width:39.34%"></span>                       
+                        </div>
+                    </li>
+                    <li>                
+                        <div class="graph">
+                            <p>
+                                <label><input type="radio" name="" id="" value="">모르겠다</label>
+                                <em><strong>70%</strong> (600명)</em>
+                            </p>
+                            <span style="width:70%"></span>                       
+                        </div>
+                    </li>
+                </ul>         
+                <p class="vote"><a href="#">참여하기</a></p>
+            </div><!--//box-->
+        </div><!--//surveyWrap-->
+        <!-- //설문조사 -->
+
+		<!-- 카테고리 영역 -->
+		<? if ($is_list_category) { ?>
+			<ul class="category">
+				<li class="<? if (!$cate) echo "on"?>"><a href="?contentId=<?=$contentId?>">전체</a></li>
+				<? foreach ($category_array as $value) { ?>
+					<li class='<? if ($value == $cate) echo "on"?>'><a href="?contentId=<?=$contentId?>&cate=<?=$value?>"><?=$value;?></a></li>
+				<? } ?>
+			</ul>
+		<? } ?>
+		<!-- 카테고리 영역 끝-->
+		<div class="searching">
+			<div id="total">
+				Total <strong class="tcol"><?=$BBS_PAGING['TOTAL_ROW_COUNT']?></strong> <span>개</span> <em>(<?=$BBS_PAGING['PAGE_INDEX']?>/<?=$BBS_PAGING['total_page']?> page)</em>
+				<? if($sType) { ?><a href="?contentId=<?=$contentId?>" class="btn_all">전체목록</a> <? } ?>
+			</div>
+            <div class="lineUp">
+                <input type="radio" id="last" name="order" value="last"
+                    <? if (!$orderKind) echo "checked"; if ($orderKind=='wr_datetime') echo "checked" ?> />
+                <label for="last">최신순</label>
+                <input type="radio" id="good" name="order" value="good"  <? if ($orderKind=='wr_good') echo "checked" ?> /><label for="good">추천순</label>
+            </div>
+		</div>
+		<table class="table_type_01">
+			<caption><?=$BBS_VAL['dm_subject']?> 게시글 리스트입니다.</caption>		
+			<tbody>
+				<!--- loop x 12 -->
+
+				<? if (count($BBS_DATAS) > 0) { ?>
+					<? foreach ($BBS_DATAS as $key => $value) { ?>
+						<tr>							
+							<td class="subject">
+                                 <p class="date"><?=$value['wr_name']?> <i>|</i> <?php echo date("y.m.d", strtotime($value['wr_datetime']));?></p>
+								<?php echo $value['wr_content']?>
+
+							</td>
+							<td class="editWrap">
+                                <ul class="edit">
+                                    <? if ($value['mb_id'] && ($value['mb_id'] == getSession("chk_dm_id")) || ($is_admin || $is_board_admin)) { ?>
+                                        <li><a href="javascript:;" class="btn_crud_small" onclick="delete_comment('<?=$value['wr_id']?>')">삭제</a></li>
+                                        <li><a href="javascript:;" class="btn_crud_small" onclick="modify_comment('<?=$value['wr_id']?>')">수정</a></li>
+                                    <? } ?>
+								</ul>
+								<ul class="recom">
+                                    <? if ($is_good) { ?>
+                                        <li><a href="javascript:void(0);" class="sympathy_btn good" data-id="<?=$value['wr_id']?>"> <i>공감 <?=number_format($value['good_count'])?></i></a></li>
+                                    <? } ?>
+
+                                    <? if ($is_nogood) { ?>
+                                        <li><a href="javascript:void(0);" class="sympathy_btn bad" data-id="<?=$value['wr_id']?>"> <i>비공감 <?=number_format($value['nogood_count'])?></i></a></li>
+                                    <? } ?>
+								</ul>
+                                
+
+							</td>
+							<td>
+								
+							</td>							
+						</tr>
+					<? } //endforeach ?>
+
+				<? } else { ?>
+					<tr>
+						<td class="empty_li" colspan="5">게시물이 없습니다.</td>
+					</tr>
+				<? } ?>
+				<!--- // loop x 12 -->
+			</tbody>
+		</table>
+		<div class="searching">
+			<fieldset id="search_box">
+				<h3>검색</h3>
+				<form name="search" method="get">
+					<input type="hidden" name="contentId" value="<?=$contentId?>">
+					<input type="hidden" name="cate" value="<?=$cate?>">
+					<select name="sType" class="">
+						<option value="wr_content" <? if($sType == "wr_content") echo "selected"?>>내용</option>
+						<option value="mb_id" <? if($sType == "mb_id") echo "selected"?>>아이디</option>
+					</select>
+					<label for="stx">검색어</label>
+					<input type="text" name="sValue" value="<?=$sValue?>" required id="stx" class="sch_input"
+						   maxlength="20" placeholder="검색어 입력">
+					<button type="submit" value="검색" class="sch_btn"><span>검색</span></button>
+				</form>
+			</fieldset>
+		</div>
+		<div class="paging">
+			<?=get_paging($BBS_PAGING['ROWS'], $BBS_PAGING['PAGE_INDEX'], $BBS_PAGING['total_page'], "?contentId=".$contentId."&sType=".$sType."&sValue=".$sValue."&sKind=".$sKind."&command=".$command."&wr_id=".$wr_id);?>
+		</div>
+
+		<div class="comment_form">
+			<h4>댓글쓰기</h4>
+			<form id="fm_writer" action="<?=$_VAR_URL_WEB_BOARD?>command.php" method="post">
+				<input type="hidden" name="contentId" value="<?=$contentId?>" />
+				<input type="hidden" name="command" id="command" value="write" />
+				<input type="hidden" name="txt_name" value="<?=getSession("chk_dm_name")?>" />
+				<input type="hidden" name="txt_subject" value="공감지표 글제목" />
+				<input type="hidden" name="mb_id" value="<?=getSession('chk_dm_id')?>" />
+				<input type="hidden" name="wr_id" id="wr_id" value="" />
+				<label>내용</label>
+				<textarea name="txt_content" id="comment_content" rows="5" <? if (!$is_write) echo "disabled"?>><? if (!$is_write) echo "회원만 글을 작성할 수 있습니다."?></textarea>
+				<div class="comment_btn_wrap">
+                    <? if ($is_write) { ?>
+					<button type="submit" class="btn_insert">등록</button>
+                    <? }?>
+				</div>				
+			</form>
+		</div>
+	</div>
+</div>
+<? include ('bbs_secret.html') ?>
+<script>
+    getSurvey();
+    getVote();
+
+    function getSurvey() {
+        $.ajax({
+            url :prgm_url+"survey.php",
+            data:"type=get_survey_list",
+            dataType:"json",
+            success : function (data) {
+                $("#survey").empty();
+                if (data) {
+                    $.each (data, function (key, value) {
+                        var answer = "";
+                        for (var i=0; i<value.dm_answer.length; i++) {
+                            var checek = "";
+                            if ((i+1) == value.select_answer) {
+                                checek = "checked";
+                            }
+                            answer +=
+                                "<li>" +
+                                    '<div class="graph">'+
+                                    '<p>'+
+                                        "<label><input type='radio' name='dm_answer"+value.dm_id+"' value='"+(i+1)+"' "+checek+" />"+value.dm_answer[i]+"</label>" +
+                                        '<em><strong>'+value.dm_answer_avg[i]+'%</strong>('+value.dm_answer_count[i]+'명)</em>'+
+                                    '</p>'+
+                                    '<span style="width:'+value.dm_answer_avg[i]+'%"></span>'+
+                                    '</div>'+
+                                "</li>";
+                        }
+
+                        $("#survey").append(
+                            '<div class="box">'+
+                                '<h4><em>Q.</em><span> '+value.dm_survey_question+'</span></h4>'+
+                            '<ul>'+
+                                answer+
+                            '</ul>'+
+                            '<p class="vote"><a href="#" class="survey_submit" data-id="'+value.dm_id+'">참여하기</a></p>'+
+                            '</div>'
+                        );
+                    });
+                } else {
+                    //없을때
+                    $("#survey").append(
+                        '<div>진행중인 설문조사가 없습니다.</div>'
+                    );
+                }
+            }
+        });
+    }
+
+    function getVote() {
+        $.ajax({
+            url :prgm_url+"vote.php",
+            data:"type=get_vote_list",
+            dataType:"json",
+            success : function (data) {
+                if (data.cate1.length > 0) {
+                    $("#vote1 ul").empty();
+                    $(data.cate1).each(function (key, value) {
+                        var vote1_checked = "";
+                        var vote2_checked = "";
+
+                        if (value.select_answer == 1) {
+                            vote1_checked = "checked";
+                        } else if (value.select_answer == 2) {
+                            vote2_checked = "checked";
+                        }
+                        $(".vote_list").append(
+                            '<li>'+
+                            '<div class="vote'+value.dm_id+'"><div class="titbox">'+
+                            '<h4>'+value.dm_vote_name+'</h4>'+
+                            '<em>총득표수 <i>'+value.total_count+'</i>명</em>'+
+                            '</div>'+
+                            '<div class="graph">'+
+                            '<span style="width:'+value.dm_vote1_percent+'%" class="down"></span>'+
+                            '</div>'+
+                            '<div class="data">'+
+                            '<p class="blue"><em>'+value.dm_vote1_percent+'% <i>('+value.dm_vote1_count+'명)</i></em>' +
+                                '<label><input type="radio" name="vote'+value.dm_id+'" value="1" '+vote1_checked+'>  '+value.dm_vote1+'</label>'+
+                            '</p>'+
+                            '<p class="red"><em><i>('+value.dm_vote2_count+'명)</i> '+value.dm_vote2_percent+'%</em>' +
+                                '<label><input type="radio" name="vote'+value.dm_id+'" value="2" '+vote2_checked+'>  '+value.dm_vote2+'</label>'+
+                            '</p>'+
+                            '</div></div>'+
+                            '<p class="vote"><a data-id="'+value.dm_id+'" class="vote_submit">투표하기</a></p>'+
+                            '</li>'
+                        );
+                    });
+                } else {
+                    $("#vote1 ul").empty();
+                    $("#vote1 ul").append('<li>진행중인 공감지표가 없습니다.</li>');
+                }
+
+                if (data.cate2.length > 0) {
+                    $("#vote2 ul").empty();
+                    $(data.cate2).each(function (key, value) {
+                        var vote1_checked = "";
+                        var vote2_checked = "";
+
+                        if (value.select_answer == 1) {
+                            vote1_checked = "checked";
+                        } else if (value.select_answer == 2) {
+                            vote2_checked = "checked";
+                        }
+                        $(".vote_list2").append(
+                            '<li>'+
+                            '<div class="vote'+value.dm_id+'"><div class="titbox">'+
+                            '<h4>'+value.dm_vote_name+'</h4>'+
+                            '<em>총득표수 <i>'+value.total_count+'</i>명</em>'+
+                            '</div>'+
+                            '<div class="graph">'+
+                            '<span style="width:'+value.dm_vote1_percent+'%" class="down"></span>'+
+                            '</div>'+
+                            '<div class="data">'+
+                            '<p class="blue"><em>'+value.dm_vote1_percent+'% <i>('+value.dm_vote1_count+'명)</i></em>' +
+                            '<label><input type="radio" name="vote'+value.dm_id+'" value="1" '+vote1_checked+'>  '+value.dm_vote1+'</label>'+
+                            '</p>'+
+                            '<p class="red"><em><i>('+value.dm_vote2_count+'명)</i> '+value.dm_vote2_percent+'%</em>' +
+                            '<label><input type="radio" name="vote'+value.dm_id+'" value="2" '+vote2_checked+'>  '+value.dm_vote2+'</label>'+
+                            '</p>'+
+                            '</div></div>'+
+                            '<p class="vote"><a data-id="'+value.dm_id+'" class="vote_submit">투표하기</a></p>'+
+                            '</li>'
+                        );
+                    });
+                } else {
+                    $("#vote2 ul").empty();
+                    $("#vote2 ul").append('<li>진행중인 이 종목 어때가 없습니다.</li>');
+                }
+            }
+        });
+    }
+
+    $(function () {
+        $(document).on('click', ".vote_submit", function () {
+            var id = $(this).data("id");
+            var vote = $("input[name='vote"+id+"']:checked").val();
+            if (vote != "" && vote != undefined) {
+                $.ajax({
+                    url: prgm_url + "vote.php",
+                    data: "type=set_vote&dm_id="+ id + "&vote_item="+vote,
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.result == 'success') {
+                            alert (data.notice);
+                            location.reload();
+                        } else {
+                            alert (data.notice);
+                            if (data.url) {
+                                location.href=data.url;
+                            }
+                        }
+                    }
+                });
+            } else {
+                alert ("항목을 선택해주세요");
+            }
+        });
+
+        $(document).on('click', ".survey_submit", function () {
+            var id = $(this).data("id");
+            var survey = $("input[name='dm_answer"+id+"']:checked").val();
+            console.log(survey);
+            if (survey != "" && survey != undefined) {
+                $.ajax({
+                    url: prgm_url + "survey.php",
+                    data: "type=set_survey&dm_id="+ id + "&survey_item="+survey,
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.result == 'success') {
+                            alert (data.notice);
+                            location.reload();
+                        } else {
+                            alert (data.notice);
+                            if (data.url) {
+                                location.href=data.url;
+                            }
+                        }
+                    }
+                });
+            } else {
+                alert ("설문조사 항목을 선택해주세요");
+            }
+        });
+
+        $('#fm_writer').ajaxForm({
+            async: true,
+            // dataType identifies the expected content type of the server response
+            dataType:  'json',
+            // success identifies the function to invoke when the server response
+            // has been received
+            success : function (data) {
+                if (data.result == 'success') {
+                    alert(data.notice);
+                    location.href='?contentId=<?=$contentId?>&page_no=<?=$page_num?>&sType=<?=$sType?>&sValue=<?=$sValue?>&cate=<?=$cate?>&sPhoto=<?=$sPhoto?>';
+                } else {
+                    alert("글 등록에 실패했습니다. 사유 ["+data.notice+"]");
+                }
+            }
+        });
+
+        $(document).on('click', "#survey li", function () {
+            var value = $(this).children("div").children("p").children("label").children("input").val();
+            var name = $(this).children("div").children("p").children("label").children("input").attr("name");
+            $("input:radio[name='"+name+"']:radio[value='"+value+"']").prop('checked', true);
+        });
+
+        $(".good").off().on('click', function () {
+            <? if (!getSession("chk_dm_id")) { ?>
+            alert ("로그인 후 가능합니다. 로그인 후 이용해주세요");
+            <? } else { ?>
+            var wr_id = $(this).data("id");
+            $.ajax({
+                url : "<?=$good_url?>"+'&wr_id='+wr_id,
+                dataType:"json",
+                type:"post",
+                success: function (data) {
+                    if (data.result == 'success') {
+                        alert(data.notice);
+                        location.reload();
+                    } else {
+                        alert("공감에 실패했습니다. 사유 ["+data.notice+"]");
+                    }
+                }
+            });
+            <? } ?>
+        });
+
+        $(".bad").off().on('click', function () {
+            <? if (!getSession("chk_dm_id")) { ?>
+            alert ("로그인 후 가능합니다. 로그인 후 이용해주세요");
+            <? } else { ?>
+            var wr_id = $(this).data("id");
+            $.ajax({
+                url : "<?=$nogood_url?>"+'&wr_id='+wr_id,
+                dataType:"json",
+                type:"post",
+                success: function (data) {
+                    if (data.result == 'success') {
+                        alert(data.notice);
+                        location.reload();
+                    } else {
+                        alert("공감에 실패했습니다. 사유 ["+data.notice+"]");
+                    }
+                }
+            });
+            <? } ?>
+        });
+    });
+
+    function modify_comment(wr_id) {
+        if (confirm("댓글을 수정하시겠습니까?")) {
+            $.ajax({
+                url : "<?=$_VAR_URL_WEB_BOARD.'command.php?command=get_write&contentId='.$contentId?>",
+                data : "wr_id="+wr_id+"&dm_table=<?=$BBS_VAL['dm_table']?>",
+                dataType :"json",
+                success: function (data) {
+                    if (data) {
+                        $("#comment_content").val(data.wr_content);
+                        $("#wr_id").val(data.wr_id);
+                        $("#comment_content").focus();
+                        $("#command").val('update');
+                    } else {
+                        alert ("정상적인 방법으로 이용해주세요");
+                    }
+                }
+            });
+        }
+    }
+
+    function delete_comment(wr_id) {
+        if (confirm('댓글을 삭제하시겠습니까?')) {
+            $.ajax({
+                url : "<?=$_VAR_URL_WEB_BOARD.'command.php?command=delete&contentId='.$contentId?>",
+                data : "wr_id="+wr_id+"&dm_table=<?=$BBS_VAL['dm_table']?>",
+                dataType :"json",
+                success: function (data) {
+                    if (data.result == 'success') {
+                        alert ("삭제했습니다");
+                        location.reload();
+                    } else {
+                        alert ("정상적인 방법으로 이용해주세요");
+                    }
+                }
+            });
+        }
+    }
+</script>

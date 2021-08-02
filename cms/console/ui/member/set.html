@@ -1,0 +1,598 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+    <script>
+        $(function () {
+
+            function fnSave() {
+                var url = "<?=$_VAR_PATH_BIZ?>app/mng_member_config.php?type=insert";
+                var join_type_array = new Array();
+
+                if(!$('input:radio[name=dm_is_member]').is(':checked'))
+                {
+                    $.messager.alert('','회원제 사용여부를 선택해주세요','warning');
+                    return;
+                }
+                
+                if(!$('input:radio[name=dm_is_adult]').is(':checked'))
+                {
+                    $.messager.alert('','성인인증 사용여부를 선택해주세요','warning');
+                    return;
+                }
+
+                $('.join_type:checked').each(function() {
+                    join_type_array.push(this.value);
+                });
+
+                if(join_type_array.length < 1 ){
+                    $.messager.alert('','최소한 1개 이상의 가입자유형을 선택하셔야 합니다.','warning');
+                    return false;
+                }
+
+                if($("#dm_use_member_txt_1").is(":checked")) {
+                    if($("#dm_member_txt_1_name").val() == "") {
+                        $.messager.alert('','추가 필드의 이름을 작성해주세요','warning');
+                        return false;
+                    }
+                }
+
+                if($("#dm_use_member_txt_2").is(":checked")) {
+                    if($("#dm_member_txt_2_name").val() == "") {
+                        $.messager.alert('','추가 필드의 이름을 작성해주세요','warning');
+                        return false;
+                    }
+                }
+
+                var form = $("#fm")[0];
+                var formData = new FormData(form);
+
+                $.ajax({
+                    url : url,
+                    data : formData,
+                    dataType: "json",
+                    type : "post",
+                    contentType: false,
+                    processData: false,
+                    success : function (data) {
+                        var icon = 'warning';
+                        if(data.result == "success") {
+                            $.messager.alert({title:'', msg:data.notice, fn:function () {
+                                    location.reload();
+                            }});
+                        }
+                    }
+                });
+            }
+
+            $("#fnSave").off().on('click', function () {
+                fnSave();
+            });
+
+            $("#dm_require_nick").off().on('click', function () {
+                $("#dm_use_nick").prop("checked", true);
+            });
+
+            $("#dm_use_nick").off().on('click', function () {
+                $("#dm_require_nick").attr("checked", false);
+            });
+
+            $("#dm_require_homepage").off().on('click', function () {
+                $("#dm_use_homepage").prop("checked", true);
+            });
+
+            $("#dm_use_homepage").off().on('click', function () {
+                $("#dm_require_homepage").attr("checked", false);
+            });
+
+            $("#dm_require_addr").off().on('click', function () {
+                $("#dm_use_addr").prop("checked", true);
+            });
+
+            $("#dm_use_addr").off().on('click', function () {
+                $("#dm_require_addr").attr("checked", false);
+            });
+
+            $("#dm_require_email").off().on('click', function () {
+                $("#dm_use_email").prop("checked", true);
+            });
+
+            $("#dm_use_email").off().on('click', function () {
+                $("#dm_require_email").attr("checked", false);
+            });
+
+            $("#dm_require_hp").off().on('click', function () {
+                $("#dm_use_hp").prop("checked", true);
+            });
+
+            $("#dm_use_hp").off().on('click', function () {
+                $("#dm_require_hp").attr("checked", false);
+            });
+
+            $("#dm_require_tel").off().on('click', function () {
+                $("#dm_use_tel").prop("checked", true);
+            });
+
+            $("#dm_use_tel").off().on('click', function () {
+                $("#dm_require_tel").attr("checked", false);
+            });
+
+            $("#dm_require_introduce").off().on('click', function () {
+                $("#dm_use_introduce").prop("checked", true);
+            });
+
+            $("#dm_use_introduce").off().on('click', function () {
+                $("#dm_require_introduce").attr("checked", false);
+            });
+
+            $("#dm_require_recom").off().on('click', function () {
+                $("#dm_use_recom").prop("checked", true);
+            });
+
+            $("#dm_use_recom").off().on('click', function () {
+                $("#dm_require_recom").attr("checked", false);
+            });
+
+            $("#dm_require_member_txt_1").off().on('click', function () {
+                $("#dm_use_member_txt_1").prop("checked", true);
+            });
+
+            $("#dm_use_member_txt_1").off().on('click', function () {
+                $("#dm_require_member_txt_1").attr("checked", false);
+            });
+
+            $("#dm_require_member_txt_2").off().on('click', function () {
+                $("#dm_use_member_txt_2").prop("checked", true);
+            });
+
+            $("#dm_use_member_txt_2").off().on('click', function () {
+                $("#dm_require_member_txt_2").attr("checked", false);
+            });
+
+            for (var i=0; i<=100; i++) {
+                $(".attend_count").append("<option value='"+i+"'>"+i+"회</option>");
+                $(".write_count").append("<option value='"+i+"'>"+i+"회</option>");
+                $(".comment_count").append("<option value='"+i+"'>"+i+"회</option>");
+            }
+        });
+
+        function selectedDg()
+        {
+            $.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>app/mng_member_config.php?type=select",
+                type : "POST",
+                cache : false,
+                async : true,
+                dataType : "json",
+                data : "",
+                success : function (data) {
+
+                    if(data.result == "success") {
+                        var rows = data.rows;
+                        var level_array = data.rows.level;
+                        var levelup_array = data.rows.levelup;
+                        var join_type = rows.dm_join_type;
+                        var certificate_type = rows.dm_certificate_type;
+                        join_type = join_type.split(",");
+                        certificate_type = certificate_type.split(",");
+
+                        $("#dm_id").val(rows.dm_id);
+                        $("#dm_member_txt_1_name").val(rows.dm_member_txt_1_name);
+                        $("#dm_member_txt_2_name").val(rows.dm_member_txt_2_name);
+                        $("#dm_level1_name").val(level_array[1]);
+                        $("#dm_level2_name").val(level_array[2]);
+                        $("#dm_level3_name").val(level_array[3]);
+                        $("#dm_level4_name").val(level_array[4]);
+                        $("#dm_level5_name").val(level_array[5]);
+                        $("#dm_level6_name").val(level_array[6]);
+                        $("#dm_level7_name").val(level_array[7]);
+                        $("#dm_level8_name").val(level_array[8]);
+                        $("#dm_level9_name").val(level_array[9]);
+
+                        if (levelup_array) {
+                            for (var i=0; i<levelup_array.length; i++) {
+                                var j = i+1;
+                                $("#dm_write_count"+j).val(levelup_array[i].dm_write_count);
+                                $("#dm_comment_count"+j).val(levelup_array[i].dm_comment_count);
+                                $("#dm_attend_count"+j).val(levelup_array[i].dm_attend_count);
+                                $("#dm_point"+j).val(levelup_array[i].dm_point);
+                                $("#dm_id_"+j).val(levelup_array[i].dm_id);
+                            }
+                        }
+
+                        if (rows.dm_is_member == 1) {
+                            $("#dm_use_member").prop("checked", true);
+                        } else {
+                            $("#dm_no_member").prop("checked", true);
+                        }
+
+                        if (rows.dm_is_adult == 1) {
+                            $("#dm_use_adult").prop("checked", true);
+                        } else {
+                            $("#dm_no_adult").prop("checked", true);
+                        }
+
+                        if (rows.dm_use_levelup == 1) {
+                            $("#dm_use_levelup1").prop("checked", true);
+                        } else {
+                            $("#dm_use_levelup2").prop("checked", true);
+                        }
+
+                        for (var i=1; i<=join_type.length; i++) {
+                            $("#dm_join_type"+i).prop("checked", true);
+                        }
+
+                        for (var i=1; i<=certificate_type.length; i++) {
+                            $("#dm_certificate_type"+i).prop("checked", true);
+                        }
+
+                        if (rows.dm_use_nick == 'y') {
+                            $("#dm_use_nick").prop("checked", true);
+                        }
+
+                        if (rows.dm_require_nick == 'y') {
+                            $("#dm_require_nick").prop("checked", true);
+                        }
+
+                        if (rows.dm_use_addr == 'y') {
+                            $("#dm_use_addr").prop("checked", true);
+                        }
+
+                        if (rows.dm_require_addr == 'y') {
+                            $("#dm_require_addr").prop("checked", true);
+                        }
+
+                        if (rows.dm_use_hp == 'y') {
+                            $("#dm_use_hp").prop("checked", true);
+                        }
+
+                        if (rows.dm_require_hp == 'y') {
+                            $("#dm_require_hp").prop("checked", true);
+                        }
+
+                        if (rows.dm_use_introduce == 'y') {
+                            $("#dm_use_introduce").prop("checked", true);
+                        }
+
+                        if (rows.dm_require_introduce == 'y') {
+                            $("#dm_require_introduce").prop("checked", true);
+                        }
+
+                        if (rows.dm_use_homepage == 'y') {
+                            $("#dm_use_homepage").prop("checked", true);
+                        }
+
+                        if (rows.dm_require_homepage == 'y') {
+                            $("#dm_require_homepage").prop("checked", true);
+                        }
+
+                        if (rows.dm_use_email == 'y') {
+                            $("#dm_use_email").prop("checked", true);
+                        }
+
+                        if (rows.dm_require_email == 'y') {
+                            $("#dm_require_email").prop("checked", true);
+                        }
+
+                        if (rows.dm_use_tel == 'y') {
+                            $("#dm_use_tel").prop("checked", true);
+                        }
+
+                        if (rows.dm_require_tel == 'y') {
+                            $("#dm_require_tel").prop("checked", true);
+                        }
+
+                        if (rows.dm_use_recom == 'y') {
+                            $("#dm_use_recom").prop("checked", true);
+                        }
+
+                        if (rows.dm_require_recom == 'y') {
+                            $("#dm_require_recom").prop("checked", true);
+                        }
+
+                        if (rows.dm_require_recom == 'y') {
+                            $("#dm_require_recom").prop("checked", true);
+                        }
+
+                        if (rows.dm_use_member_txt_1 == 'y') {
+                            $("#dm_use_member_txt_1").prop("checked", true);
+                        }
+
+                        if (rows.dm_require_member_txt_1 == 'y') {
+                            $("#dm_require_member_txt_1").prop("checked", true);
+                        }
+
+                        if (rows.dm_use_member_txt_2 == 'y') {
+                            $("#dm_use_member_txt_2").prop("checked", true);
+                        }
+
+                        if (rows.dm_require_member_txt_2 == 'y') {
+                            $("#dm_require_member_txt_2").prop("checked", true);
+                        }
+
+                    } else if(data.result == "fail") {
+                        $.messager.alert('이력없음','환경설정이 존재하지 않습니다.','warning');
+                    }
+                }, error:function(request,status,error) {
+                    alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                }
+            });
+        }
+        selectedDg();
+    </script>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false" class="title">
+        <h1><?=$current_page_info['dm_view_title']?></h1>
+        <div class="btnWrap">
+            <button id="fnSave">저장</button>
+        </div>
+    </div>
+
+    <div data-options="region:'center',border:false" valign="middle">
+        <div class="easyui-layout" fit="true" data-options="border:false">
+            <div data-options="region:'center', border:true">
+                <form id="fm" method="post">
+                    <input type="hidden" name="dm_id" value="" id="dm_id"/>
+                    <div class="page">
+                        <h3><span id="title">회원제 설정</span></h3>
+                        <dl>
+                            <dt>회원제 사용여부</dt>
+                            <dd>
+                                <label><input type="radio" name="dm_is_member" id="dm_use_member" value="1">사용함</label>
+                                <label><input type="radio" name="dm_is_member" id="dm_no_member" value="2">사용안함</label>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>성인인증 사용여부</dt>
+                            <dd>
+                                <label><input type="radio" name="dm_is_adult" id="dm_use_adult" value="1">사용함</label>
+                                <label><input type="radio" name="dm_is_adult" id="dm_no_adult" value="2">사용안함</label>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>가입자유형 설정</dt>
+                            <dd>
+                                <label><input type="checkbox" name="dm_join_type[]" id="dm_join_type1" value="1" class="join_type">일반회원</label>
+                                <label><input type="checkbox" name="dm_join_type[]" id="dm_join_type2" value="2" class="join_type">국내외국인회원</label>
+                                <label><input type="checkbox" name="dm_join_type[]" id="dm_join_type3" value="3" class="join_type">해외국인회원</label>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>가입인증 설정</dt>
+                            <dd>
+                                <label><input type="checkbox" name="dm_certificate_type[]" value="1" id="dm_certificate_type1" class="certificate_type">기본인증(생일+성별)</label>
+                                <label><input type="checkbox" name="dm_certificate_type[]" value="2" id="dm_certificate_type2" class="certificate_type">실명인증(아이핀,안심체크)</label>
+                                <span class="noty">사용하실 실명인증 모듈을 선택하십시오</span>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>회원등급업 사용유무</dt>
+                            <dd>
+                                <label><input type="radio" name="dm_use_levelup" id="dm_use_levelup1" value="1">사용함</label>
+                                <label><input type="radio" name="dm_use_levelup" id="dm_use_levelup2" value="2">사용안함</label>
+                            </dd>
+                        </dl>
+
+                        <h3>
+                            <span id="title">회원가입 항목 설정</span>
+                            <div class="Tooltip">
+                                <a class="icon">도움말</a>
+                                <div class="tip">
+                                    <div class="explain">
+                                        <a class="close">닫기</a>
+                                        <strong>도움말</strong>
+                                        - 필수사항이 체크되어있는 항목만 가입시 입력값으로 적용됩니다.<br>
+                                        - 사용사항이 체크되어있는 항목은 정보수정시 입력값으로 적용됩니다.<br>
+                                        - 최대 2개 입력받고자 하는 항목은 20byte 내외로 입력 가능하며, 입력형태는 최대 100byte 내외의 텍스트필드로만 가능합니다.
+                                    </div>
+                                </div>
+                            </div>
+                        </h3>
+                        <table class="tb2">
+                            <colgroup><col width="30%"><col span="2"><col width="30%"><col span="2"></colgroup>
+                            <thead>
+                            <tr>
+                                <th>항목</th>
+                                <th>사용</th>
+                                <th>필수</th>
+                                <th>항목</th>
+                                <th>사용</th>
+                                <th>필수</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <th>닉네임</th>
+                                <td><input name="dm_use_nick" type="checkbox" value="y" id="dm_use_nick"></td>
+                                <td><input name="dm_require_nick" type="checkbox" value="y" id="dm_require_nick"></td>
+                                <th>홈페이지</th>
+                                <td><input name="dm_use_homepage" type="checkbox" value="y" id="dm_use_homepage"></td>
+                                <td><input name="dm_require_homepage" type="checkbox" value="y" id="dm_require_homepage"></td>
+                            </tr>
+                            <tr>
+                                <th>주소</th>
+                                <td><input name="dm_use_addr" type="checkbox" value="y" id="dm_use_addr"></td>
+                                <td><input name="dm_require_addr" type="checkbox" value="y" id="dm_require_addr"></td>
+                                <th>이메일</th>
+                                <td><input name="dm_use_email" type="checkbox" value="y" id="dm_use_email"></td>
+                                <td><input name="dm_require_email" type="checkbox" value="y" id="dm_require_email"></td>
+                            </tr>
+                            <tr>
+                                <th>휴대폰번호</th>
+                                <td><input name="dm_use_hp" type="checkbox" value="y" id="dm_use_hp" ></td>
+                                <td><input name="dm_require_hp" type="checkbox" value="y" id="dm_require_hp" ></td>
+                                <th>전화번호</th>
+                                <td><input name="dm_use_tel" type="checkbox" value="y" id="dm_use_tel"></td>
+                                <td><input name="dm_require_tel" type="checkbox" value="y" id="dm_require_tel"></td>
+                            </tr>
+                            <tr>
+                                <th>자기소개</th>
+                                <td><input name="dm_use_introduce" type="checkbox" value="y" id="dm_use_introduce"></td>
+                                <td><input name="dm_require_introduce" type="checkbox" value="y" id="dm_require_introduce"></td>
+                                <th>추천인제도</th>
+                                <td><input name="dm_use_recom" type="checkbox" value="y" id="dm_use_recom"></td>
+                                <td><input name="dm_require_recom" type="checkbox" value="y" id="dm_require_recom"></td>
+                            </tr>
+                            <tr>
+                                <th><input name="dm_member_txt_1_name" type="text" value="" class="wd100" id="dm_member_txt_1_name"></th>
+                                <td><input name="dm_use_member_txt_1" type="checkbox" value="y" id="dm_use_member_txt_1"></td>
+                                <td><input name="dm_require_member_txt_1" type="checkbox" value="y" id="dm_require_member_txt_1"></td>
+                                <th><input name="dm_member_txt_2_name" type="text" class="wd100" value="" id="dm_member_txt_2_name"></th>
+                                <td><input name="dm_use_member_txt_2" type="checkbox" value="y" id="dm_use_member_txt_2"></td>
+                                <td><input name="dm_require_member_txt_2" type="checkbox" value="y" id="dm_require_member_txt_2"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                        <h3>회원등급설정
+                            <div class="Tooltip">
+                                <a class="icon">도움말</a>
+                                <div class="tip">
+                                    <div class="explain">
+                                        <strong>도움말</strong>
+                                        - 총 9등급까지 설정이 가능하며, 0등급은 비회원으로 수정하실 수 없습니다.<br>
+                                        - 9레벨이 최고등급이며, 0레벨이 최하등급입니다.<br>
+                                        - 회원 등급은 초기설정 이후 변경하지 않는 것을 권장합니다.<br>
+                                        <a class="close">닫기</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </h3>
+                        <table class="tb2">
+                            <thead>
+                            <tr>
+                                <th width="60">등급</th>
+                                <th>등급명</th>
+                                <th width="60">등급</th>
+                                <th>등급명</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <th>Lv.0</th>
+                                <td class="tl">비회원 <span class="noty">비회원 및 로그인을 하지 않은 상태 - 가장 낮은 등급</span></td>
+                                <th>Lv.5</th>
+                                <td class="tl"><input name="dm_level5_name" id="dm_level5_name" type="text" class="txt wd25" value=""></td>
+                            </tr>
+                            <tr>
+                                <th>Lv.1</th>
+                                <td class="tl"><input name="dm_level1_name" id="dm_level1_name" type="text" class="txt wd25" value=""> <span class="noty">초기회원가입시 자동으로 설정되는 등급</span></td>
+                                <th>Lv.6</th>
+                                <td class="tl"><input name="dm_level6_name" id="dm_level6_name" type="text" class="txt wd25" value=""></td>
+                            </tr>
+                            <tr>
+                                <th>Lv.2</th>
+                                <td class="tl"><input name="dm_level2_name" id="dm_level2_name" type="text" class="txt wd25" value=""></td>
+                                <th><!--Lv.7--></th>
+                                <td class="tl"><!--input name="dm_level7_name" id="dm_level7_name" type="text" class="txt wd45" value=""--></td>
+                            </tr>
+                            <tr>
+                                <th>Lv.3</th>
+                                <td class="tl"><input name="dm_level3_name" id="dm_level3_name" type="text" class="txt wd25" value=""></td>
+                                <th><!--Lv.8=--></th>
+                                <td class="tl"><!--input name="dm_level8_name" id="dm_level8_name" type="text" class="txt wd45" value=""--></td>
+                            </tr>
+                            <tr>
+                                <th>Lv.4</th>
+                                <td class="tl"><input name="dm_level4_name" id="dm_level4_name" type="text" class="txt wd25" value=""></td>
+                                <th><!--Lv.9--></th>
+                                <td class="tl"><!--input name="dm_level9_name" id="dm_level9_name" type="text" class="txt wd45" value=""><span class="noty">모든권한 부여 - 가장 높은 등급</span--></td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                        <h3>회원등급업 설정</h3>
+                        <table class="tb2">
+                            <thead>
+                            <tr>
+                                <th width="100">등급</th>
+                                <th>등급명</th>
+                                <th width="100">등급</th>
+                                <th>등급명</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <th>Lv.1 -> Lv.2</th>
+                                <td class="tl">
+                                    <input type="hidden" name="dm_id_1" id="dm_id_1" />
+                                    출석 : <select name="dm_attend_count1" id="dm_attend_count1" class="attend_count"></select>
+                                    게시글 : <select name="dm_write_count1" id="dm_write_count1" class="write_count"></select>
+                                    댓글 : <select name="dm_comment_count1" id="dm_comment_count1" class="comment_count"></select>
+                                    누적 포인트 : <input type="text" name="dm_point1" id="dm_point1" value="" class="wd15"/>
+                                </td>
+                                <th>Lv.5 -> Lv.6</th>
+                                <td class="tl">
+                                    <input type="hidden" name="dm_id_5" id="dm_id_5" />
+                                    출석 : <select name="dm_attend_count5" id="dm_attend_count5" class="attend_count"></select>
+                                    게시글 : <select name="dm_write_count5" id="dm_write_count5" class="write_count"></select>
+                                    댓글 : <select name="dm_comment_count5" id="dm_comment_count5" class="comment_count"></select>
+                                    누적 포인트 : <input type="text" name="dm_point5" id="dm_point5" value=""  class="wd15"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Lv.2 -> Lv.3</th>
+                                <td class="tl">
+                                    <input type="hidden" name="dm_id_2" id="dm_id_2" />
+                                    출석 : <select name="dm_attend_count2" id="dm_attend_count2" class="attend_count"></select>
+                                    게시글 : <select name="dm_write_count2" id="dm_write_count2" class="write_count"></select>
+                                    댓글 : <select name="dm_comment_count2" id="dm_comment_count2" class="comment_count"></select>
+                                    누적 포인트 : <input type="text" name="dm_point2" id="dm_point2" value=""  class="wd15"/>
+                                </td>
+                                <th>Lv.6 -> Lv.7</th>
+                                <td class="tl">
+                                    <input type="hidden" name="dm_id_6" id="dm_id_6" />
+                                    출석 : <select name="dm_attend_count6" id="dm_attend_count6" class="attend_count"></select>
+                                    게시글 : <select name="dm_write_count6" id="dm_write_count6" class="write_count"></select>
+                                    댓글 : <select name="dm_comment_count6" id="dm_comment_count6" class="comment_count"></select>
+                                    누적 포인트 : <input type="text" name="dm_point6" id="dm_point6" value=""  class="wd15"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Lv.3 -> Lv.4</th>
+                                <td class="tl">
+                                    <input type="hidden" name="dm_id_3" id="dm_id_3" />
+                                    출석 : <select name="dm_attend_count3" id="dm_attend_count3" class="attend_count"></select>
+                                    게시글 : <select name="dm_write_count3" id="dm_write_count3" class="write_count"></select>
+                                    댓글 : <select name="dm_comment_count3" id="dm_comment_count3" class="comment_count"></select>
+                                    누적 포인트 : <input type="text" name="dm_point3" id="dm_point3" value=""  class="wd15"/>
+                                </td>
+                                <th>Lv.7 -> Lv.8</th>
+                                <td class="tl">
+                                    <input type="hidden" name="dm_id_7" id="dm_id_7" />
+                                    출석 : <select name="dm_attend_count7" id="dm_attend_count7" class="attend_count"></select>
+                                    게시글 : <select name="dm_write_count7" id="dm_write_count7" class="write_count"></select>
+                                    댓글 : <select name="dm_comment_count7" id="dm_comment_count7" class="comment_count"></select>
+                                    누적 포인트 : <input type="text" name="dm_point7" id="dm_point7" value=""  class="wd15"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Lv.4 -> Lv.5</th>
+                                <td class="tl">
+                                    <input type="hidden" name="dm_id_4" id="dm_id_4" />
+                                    출석 : <select name="dm_attend_count4" id="dm_attend_count4" class="attend_count"></select>
+                                    게시글 : <select name="dm_write_count4" id="dm_write_count4" class="write_count"></select>
+                                    댓글 : <select name="dm_comment_count4" id="dm_comment_count4" class="comment_count"></select>
+                                    누적 포인트 : <input type="text" name="dm_point4" id="dm_point4" value=""  class="wd15"/>
+                                </td>
+                                <th>Lv.8 -> Lv.9</th>
+                                <td class="tl">
+                                    <input type="hidden" name="dm_id_8" id="dm_id_8" />
+                                    출석 : <select name="dm_attend_count8" id="dm_attend_count8" class="attend_count"></select>
+                                    게시글 : <select name="dm_write_count8" id="dm_write_count8" class="write_count"></select>
+                                    댓글 : <select name="dm_comment_count8" id="dm_comment_count8" class="comment_count"></select>
+                                    누적 포인트 : <input type="text" name="dm_point8" id="dm_point8" value=""  class="wd15"/>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?
+require('../../lib/page_bottom.php');
+?>

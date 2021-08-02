@@ -1,0 +1,191 @@
+<?
+require('../../lib/page_header.php');
+
+$dm_id = isset($_REQUEST['dm_id']) ? $_REQUEST['dm_id'] : "";
+?>
+<script LANGUAGE="JavaScript">
+    <!--
+    $(document).ready(function(){
+
+        function fnNew() {
+            $("#dm_kind").val('1');
+            $("#dm_point").val('');
+            $("#dm_memo").val('');
+            $("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+        }
+
+        function fnSave() {
+            var dm_memo = $("#dm_memo").val();
+            var dm_point = $("#dm_point").val();
+            var dm_mode = $("#dm_mode").val();
+            var url = "<?=$_VAR_PATH_BIZ?>app/mng_point.php?type="+dm_mode;
+
+            if (dm_mode != 'delete') {
+                if(dm_point == "")
+                {
+                    $.messager.alert('입력오류','포인트를 입력해주세요.','warning');
+                    return;
+                }
+                if(dm_memo == "")
+                {
+                    $.messager.alert('입력오류','사유를 입력해주세요.','warning');
+                    return;
+                }
+            }
+
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url : url,
+                data : formData,
+                dataType: "json",
+                type : "post",
+                contentType: false,
+                processData: false,
+                success : function (data) {
+                    var icon = 'warning';
+                    if(data.result == "success") {
+                        $('#dg').datagrid('reload');
+                        icon = 'info';
+                    }
+                    $.messager.alert('알림',data.notice,icon);
+                    closeDialog();
+                }
+            });
+        }
+
+        $("#stx").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+        $("#detail_search").off().on('click', function () {
+            $("#Dsearch").toggle();
+
+            var dl_count = $("#Dsearch dl").length;
+            dl_count = Math.ceil(dl_count / 2);
+            var margin_top = dl_count * $("#Dsearch dl").height();
+
+            if($("#Dsearch").is(":visible")) {
+                $(".Contents").css("margin-top", margin_top+"px");
+            } else {
+                $(".Contents").css("margin-top", "0px");
+            }
+        });
+
+        $("#fnNew").off().on('click', function () {
+            fnNew();
+        });
+
+        $("#fnClose").off().on('click', function () {
+            closeDialog();
+        });
+
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        function closeDialog()
+        {
+            $("#dlg").dialog('close');
+        }
+
+        closeDialog();
+    });
+
+    function formatDetail(value,row){
+        return '<a data-id="'+row.dm_id+'" class="btn bt08 open_form" target="_blank">수정</a> <a data-id="'+row.dm_id+'" class="btn private_delete" target="_blank">삭제</a>';
+    }
+    // -->
+</script>
+<script type="text/javascript" src="<?=$_VAR_PATH_JS?>easyui/datagrid-export/datagrid-export.js"></script>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$dm_id . " 님의 ". $current_page_info['dm_view_title']?></h1>
+            <div class="btnWrap">
+                <button id="fnNew" class="bt08">+ 포인트 지급/차감</button>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <table id="dg"
+               class="easyui-datagrid" fit="true" border="false"
+               data-options="pagePosition:'top',rownumbers:true,pagination:true,singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_point.php?type=select&dm_id=<?=$dm_id?>',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false" pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+            <thead>
+            <tr>
+                <th data-options="field:'ck',width:100,align:'center',checkbox:true,
+                editor:{
+                    type:'checkbox',
+                    options:{
+                        on:'Y',
+                        off:'N'
+                    }
+                }"></th>
+                <th data-options="field:'dm_id',width:150,align:'center'">아이디</th>
+                <th data-options="field:'dm_point_text',width:100,align:'center'">포인트</th>
+                <th data-options="field:'dm_kind_text',width:100,align:'center'">구분</th>
+                <th data-options="field:'dm_type_text',width:100,align:'center'">사용처</th>
+                <th data-options="field:'dm_remain_point_text',width:70,align:'center'">잔여포인트</th>
+                <th data-options="field:'dm_datetime',width:120,align:'center'">일자</th>
+                <th data-options="field:'dm_memo',width:120,align:'center'">사유</th>
+            </tr>
+            </thead>
+        </table>
+        <div id="dlg" class="easyui-dialog" style="width:600px; height: 700px;">
+            <form id="fm" method="post" novalidate>
+                <input type="hidden" name="dm_mode" id="dm_mode" value="insert"/>
+                <input type="hidden" name="dm_id" id="dm_id" value="<?=$dm_id?>"/>
+                <div class="page">
+                    <h3 id="dialog_title">포인트 관리</h3>
+                    <dl>
+                        <dt>지급할 회원</dt>
+                        <dd>
+                            <?=$dm_id?>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>구분</dt>
+                        <dd>
+                            <select name="dm_kind" id="dm_kind">
+                                <option value="0">차감</option>
+                                <option value="1">지급</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>포인트</dt>
+                        <dd>
+                            <input type="text" name="dm_point" id="dm_point" />
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>사유</dt>
+                        <dd>
+                            <input type="text" name="dm_memo" id="dm_memo" />
+                        </dd>
+                    </dl>
+                </div>
+                <div style="text-align: center;">
+                    <a href="javascript:void(0);" id="fnClose" class="easyui-linkbutton" style="width:120px;height:30px">취소</a>
+                    <a href="javascript:void(0);" id="fnSave" class="easyui-linkbutton" style="width:120px;height:30px">저장</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?
+require('../../lib/page_bottom.php');
+?>

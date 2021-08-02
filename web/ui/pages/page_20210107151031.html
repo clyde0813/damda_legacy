@@ -1,0 +1,30 @@
+<?
+if (!getSession("chk_dm_id")) {
+    alert("잘못된 접근입니다.", "?contentId=c13406bf526e9fee2bed34ab6f2125f6");
+    exit;
+}
+?>
+<style>
+.contentWrap{float:inherit;width:inherit;max-width: 1270px;}
+</style>
+<div id="Mypage">
+    <div class="mydata">
+        <dl>
+            <dt>아이디</dt>
+            <dd><?=$MEMBER['dm_id']?></dd>
+        </dl>  
+        <dl>
+            <dt>이름</dt>
+            <dd><?=$MEMBER['dm_name']?></dd>
+        </dl>
+        <dl>
+            <dt>회원분류</dt>
+            <dd><?=$GROUP['dm_group_name']?></dd>
+        </dl>
+        <dl>
+            <dt>레벨</dt>
+            <dd><strong class="poi"><?=$MEMBER['dm_level']?></strong> <span class="gr">(<?=$MEMBER['level_text']?>)</span></dd>
+        </dl>        
+    </div>
+</div>
+<? require ($_VAR_PROG_ROOT_PATH."mypage_point.php") ?>

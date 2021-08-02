@@ -1,0 +1,495 @@
+<?
+require('../../lib/page_header.php');
+
+$dm_id = isset($_REQUEST['dm_id']) ? trim($_REQUEST['dm_id']) : "";
+
+?>
+
+<script>
+    function selectedDg(rowIndex)
+    {
+        $('#dg').datagrid('selectRow',rowIndex);
+        var currentRow =$("#dg").datagrid("getSelected");
+        if (currentRow && currentRow.id != "Temp")
+        {
+            $("#dm_file_name").val(currentRow.text);
+            $("#dm_file_src").val(currentRow.dm_file_src);
+        }
+    }
+
+    function selectPage()
+    {
+        var dm_id = $("#chk_dm_id").val();
+        if (dm_id != "")
+        {
+            $.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>app/mng_page.php?type=select_page&dm_id="+dm_id,
+                type : "POST",
+                cache : false,
+                async : true,
+                dataType : "json",
+                data : "",
+                success : function (data) {
+                    if(data.result == "success") {
+                        setPageData(data.rows);
+
+                    } else if(data.result == "fail") {
+                        $.messager.alert('이력없음','페이지 정보가 존재하지 않습니다.','warning');
+                    }
+                }, error:function(request,status,error) {
+                    alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                }
+            });
+        } else {
+            $("#dm_mode").val('insert');
+            $("#fnRemove").hide();
+        }
+    }
+
+    function setPageData(row) {
+        $("#dm_uid").val(row.dm_uid);
+        $(".dm_uid").text(row.dm_uid);
+        $("input:radio[name='dm_page_type']:radio[value='"+row.dm_page_type+"']").prop('checked', true);
+        $("#dm_file_name").val(row.dm_file_name);
+        $("#dm_file_src").val(row.dm_file_src);
+        $("#dm_old_file_name").val(row.dm_file_name);
+        $("#dm_page_name").val(row.dm_page_name);
+        $("#dm_page_division").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1009&selected='+row.dm_page_division);
+        $("#dm_access_level").combobox('reload','<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1002&selected='+row.dm_access_level);
+        $("#dm_title").val(row.dm_title);
+        $("#title").text(row.dm_page_name + " 수정");
+        $("#dm_layout").combobox('setValue', row.dm_layout);
+        $("#dm_mode").val('update');
+        if (row.dm_page_type == 'BOARD') {
+            $(".border_menu").show();
+            $("#dm_board_id").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_board&selected='+row.dm_board_id);
+            $("#dm_board_row_count").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_board_list_count&selected='+row.dm_board_row_count);
+        } else if (row.dm_page_type == 'HISTORY') {
+            $(".history_menu").show();
+        } else if (row.dm_page_type == 'ORGANIZATION') {
+            $(".org_menu").show();
+        }  else if (row.dm_page_type == 'CERTIFICATE') {
+            $(".certi_menu").show();
+        }
+        if (row.dm_main_content == 1) {
+            $("#dm_main_content").checkbox({
+                checked:true
+            });
+        } else {
+            $("#dm_main_content").checkbox({
+                checked:false
+            });
+        }
+        $("#fnRemove").hide();
+    }
+
+    function fnNew() {
+        $("#dm_main_content").checkbox({
+            checked: false
+        });
+        $("#chk_dm_id").val('');
+        $(".dm_uid").text('');
+        $("#dm_page_name").val('');
+        $("#dm_page_division").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1009');
+        $("#dm_access_level").combobox('reload','<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1002');
+        $("#dm_file_name").val('');
+        $("input[name='dm_page_type']:checked").prop("checked", false);
+
+        $(".border_menu").hide();
+        $(".history_menu").hide();
+        $(".org_menu").hide();
+        $(".certi_menu").hide();
+        $("#dm_board_id").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_board');
+        $("#dm_board_row_count").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_board_list_count');
+
+        $("#dm_layout").combobox("setValue", '1');
+        $("#dm_file_src").val('');
+        $("#dm_title").val("");
+        $("#dg2").datagrid('reload', '<?=$_VAR_PATH_BIZ?>app/mng_page.php?type=select_history&dm_id=');
+        $("#dm_mode").val('insert');
+        $("#fnRemove").hide();
+    }
+
+    $(function () {
+        function fnSave() {
+            var dm_file_name = '';
+            var dm_page_name = $.trim($("#dm_page_name").val());
+            var dm_page_title = $.trim($("#dm_title").val());
+            var dm_file_src = $.trim($("#dm_file_src").val());
+            var dm_content_type = $.trim($("#dm_page_division").combobox('getValue'));
+            var dm_page_type = $.trim($("input[name='dm_page_type']:checked").val());
+            var dm_layout = $.trim($("#dm_layout").combobox('getValue'));
+            var dm_mode = $.trim($("#dm_mode").val());
+            var url = "<?=$_VAR_PATH_BIZ?>app/mng_page.php?type="+dm_mode;
+
+            if (dm_mode != 'update') {
+                if (dm_page_type == "HISTORY") {
+                    dm_file_name = $.trim($("#select_history").combobox('getValue'));
+                    dm_file_src = "<?=$_VAR_HISTORY_PATH?>/"+dm_file_name;
+                } else if (dm_page_type == "ORGANIZATION") {
+                    dm_file_name = $.trim($("#select_organization").combobox('getValue'));
+                    dm_file_src = "<?=$_VAR_ORGANIZATION_PATH?>/"+dm_file_name;
+                } else if (dm_page_type == "CERTIFICATE") {
+                    dm_file_name = $.trim($("#select_certificate").combobox('getValue'));
+                    dm_file_src = "<?=$_VAR_CERTIFICATE_PATH?>/"+dm_file_name;
+                }
+            }
+
+            $("#dm_file_name").val(dm_file_name);
+            $("#dm_file_src").val(dm_file_src);
+
+            if (dm_mode != 'delete') {
+                if(dm_page_name == "")
+                {
+                    $.messager.alert('입력오류','페이지 이름을 입력해주세요.','warning');
+                    return false;
+                }
+                if(dm_page_title == "")
+                {
+                    $.messager.alert('입력오류','페이지 타이틀을 입력해주세요.','warning');
+                    return false;
+                }
+                if(dm_page_type == "")
+                {
+                    $.messager.alert('입력오류','메뉴 구분을 선택해주세요.','warning');
+                    return false;
+                }
+                if(dm_layout == "")
+                {
+                    $.messager.alert('입력오류','레이아웃을 선택해주세요.','warning');
+                    return false;
+                }
+            }
+
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url : url,
+                data : formData,
+                dataType: "json",
+                type : "post",
+                contentType: false,
+                processData: false,
+                success : function (data) {
+
+                    var icon = 'warning';
+                    if(data.result == "success") {
+                        $('#dg').datagrid('reload');
+                        $('#dg1').datagrid('reload');
+                        $('#tt').tree('reload');
+                        $("#dm_mode").val(dm_mode);
+                        if (dm_mode == 'insert') {
+                            fnNew();
+                        } else if (dm_mode == 'update') {
+                            $("#chk_dm_id").val(data._return);
+                            $("#dg2").datagrid('reload', '<?=$_VAR_PATH_BIZ?>app/mng_page.php?type=select_history&dm_id='+data._return);
+                        } else {
+                            window.parent.closeTab();
+                        }
+                        icon = 'info';
+                    }
+                    $.messager.alert('알림',data.notice,icon);
+                }
+            });
+        }
+
+        function fnRemove() {
+            if (confirm("삭제하시겠습니까?")) {
+                if ($("#dm_id").val() == "") {
+                    alert("삭제할 항목을 선택해주세요");
+                    return false;
+                }
+                $("#dm_mode").val('delete');
+                fnSave();
+            }
+        }
+
+        selectPage();
+        var dm_id = $("#chk_dm_id").val();
+        $("#dg2").datagrid({
+            url:'<?=$_VAR_PATH_BIZ?>app/mng_page.php?type=select_history&dm_id='+dm_id,
+            rownumbers:true,singleSelect:true,method:'get',fitColumns:false,striped:false,selectOnCheck:false,checkOnSelect:false,
+            onLoadSuccess:function(){
+                $(this).datagrid('getPanel').find('.easyui-linkbutton').each(function(){
+                    $(this).linkbutton({
+
+                    });
+                });
+            }
+        });
+
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            fnRemove();
+        });
+
+        $("#fnNew").off().on('click', function () {
+            fnNew();
+        });
+
+        $("#dm_layout").combobox('setValue', 1);
+    });
+
+    function modifyPage()
+    {
+        var uWidth = 1024;
+        var uHeight = 768;
+        var option = "scrollbars=auto,toolbar=no,location=no,status=no,menubar=no,resizable=yes,titlebar=no,width="+uWidth+",height="+uHeight+",left=0,top=0";
+        window.open("<?=$_VAR_PATH_UI ?>page/page_popup.html?dm_id=<?=$dm_id?>", "member_detail",option);
+    }
+
+    function setSetting(dm_id) {
+        $.messager.confirm('경고', '정말 버전을 변경하시겠습니까?', function(r){
+            if (r){
+                $.ajax({
+                    url:'<?=$_VAR_PATH_BIZ ?>app/mng_page.php?dm_id='+dm_id+"&type=change_version",
+                    dataType:'json',
+                    success: function (data) {
+                        $("#dg2").datagrid('reload', '<?=$_VAR_PATH_BIZ?>app/mng_page.php?type=select_history&dm_id='+dm_id);
+                    }
+                });
+            }
+        });
+    }
+
+    function formatDetail(value,row){
+        var href = "javascript:setSetting('"+row.dm_id+"');";
+        return '<a href="'+href+'" class="btn">바로가기</a>';
+    }
+
+</script>
+
+<div class="easyui-layout" style="width:700px;height:350px;" fit="true">
+    <div data-options="region:'north', border:false" class="title">
+        <h1>페이지</h1>
+        <div class="btnWrap">
+            <button id="fnSave">저장</button>
+            <button id="fnNew" class="bt01">신규생성</button>
+            <button id="fnRemove" class="bt03">삭제</button>
+        </div>
+    </div>
+    <div data-options="region:'center',border:false" style="width:100%;height:260px;padding:0px" valign="middle">
+        <div class="easyui-layout" fit="true" data-options="border:false" style="border:solid 0px #f6c1bc;">
+            <div data-options="region:'center', border:true" style="width:100%;border:solid 0px #f6c1bc;padding:5px">
+                <form id="fm" novalidate method="post">
+                    <input type="hidden" name="dm_mode" id="dm_mode" />
+                    <div class="page">
+                        <h3><span id="title">신규페이지 등록</span> <a href="javascript:modifyPage();" class="btn">에디터</a></h3>
+                        <dl>
+                            <dt>메인페이지 사용</dt>
+                            <dd>
+                                <input type="checkbox" name="dm_main_content" value="1" class="easyui-checkbox" id="dm_main_content" />
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>파일명</dt>
+                            <dd>
+                                <input type="text" name="dm_file_name" id='dm_file_name' cstyle="width:300px" readonly placeholder="자동생성"/>
+                                <input type="hidden" name="chk_dm_id" id="chk_dm_id" value="<?=$dm_id?>"/>
+                                <input type="hidden" name="dm_file_src" id='dm_file_src' />
+                                <input type="hidden" name="dm_old_file_name" id='dm_old_file_name' />
+                                <input type="hidden" name="dm_uid" id='dm_uid' />
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>페이지 구분</dt>
+                            <dd>
+                                <select id="dm_page_division" name="dm_page_division" class="easyui-combobox"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1009',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'" ></select>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>페이지 이름</dt>
+                            <dd>
+                                <input type="text" name="dm_page_name" id="dm_page_name" style="width:300px" />
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>타이틀</dt>
+                            <dd>
+                                <input type="text" name="dm_title" id="dm_title" style="width:300px" />
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>메뉴 구분</dt>
+                            <dd>
+                                <label>페이지<input type="radio" name="dm_page_type" value="PAGE"/></label>
+                                <label>게시판<input type="radio" name="dm_page_type" value="BOARD"/></label>
+                                <label>연혁<input type="radio" name="dm_page_type" value="HISTORY"/></label>
+                                <label>조직도<input type="radio" name="dm_page_type" value="ORGANIZATION"/></label>
+                                <label>인증서<input type="radio" name="dm_page_type" value="CERTIFICATE"/></label>
+                                <label>로그인<input type="radio" name="dm_page_type" value="LOGIN"/></label>
+                                <label>회원가입<input type="radio" name="dm_page_type" value="MEMBER"/></label>
+                                <label>FAQ<input type="radio" name="dm_page_type" value="FAQ"/></label>
+                            </dd>
+                        </dl>
+                        <dl class="history_menu">
+                            <dt>연혁선택</dt>
+                            <dd>
+                                <select id="select_history" name="select_history" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_page_type&page_type=history',
+                                                method: 'get',
+                                                valueField: 'dm_select_value',
+                                                textField: 'dm_select_value'"></select>
+                            </dd>
+                        </dl>
+                        <dl class="org_menu">
+                            <dt>조직도 선택</dt>
+                            <dd>
+                                <select id="select_organization" name="select_organization" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_page_type&page_type=organization',
+                                                method: 'get',
+                                                valueField: 'dm_select_value',
+                                                textField: 'dm_select_value'"></select>
+                            </dd>
+                        </dl>
+                        <dl class="certi_menu">
+                            <dt>인증서</dt>
+                            <dd>
+                                <select id="select_certificate" name="select_certificate" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_page_type&page_type=certificate',
+                                                method: 'get',
+                                                valueField: 'dm_select_value',
+                                                textField: 'dm_select_value'"></select>
+                            </dd>
+                        </dl>
+                        <dl class="border_menu">
+                            <dt>게시판</dt>
+                            <dd>
+                                <select id="dm_board_id" name="dm_board_id" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_board',
+                                                method: 'get',
+                                                valueField: 'dm_id',
+                                                textField: 'dm_subject'"></select>
+                            </dd>
+                        </dl>
+                        <dl class="border_menu">
+                            <dt>리스트 출력 숫자</dt>
+                            <dd>
+                                <select id="dm_board_row_count" name="dm_board_row_count" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_board_list_count',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_text'">
+                                </select>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>레이아웃</dt>
+                            <dd>
+                                <select id='dm_layout' name="dm_layout" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/mng_layout.php?type=select',
+                                                method: 'get',
+                                                valueField: 'id',
+                                                textField: 'text'">
+                                </select>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>접근권한</dt>
+                            <dd>
+                                <select id='dm_access_level' name="dm_access_level" class="easyui-combobox" panelHeight="auto"
+                                        data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1002',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'"></select>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>UID</dt>
+                            <dd>
+                                <p class="dm_uid"></p>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dd>
+
+                            </dd>
+                        </dl>
+                    </div>
+                </form>
+            </div>
+            <div data-options="region:'south'" border="false" style="height:150px; width:100%;">
+                <table id="dg2"
+                       class="easyui-datagrid" fit="true" border="false"
+                       data-options="">
+                    <thead>
+                    <tr>
+                        <th data-options="field:'chk',width:100,align:'center',checkbox:true">-</th>
+                        <th data-options="field:'dm_version',width:100,align:'center'">버전</th>
+                        <th data-options="field:'dm_create_dt',width:150,align:'center'">생성일</th>
+                        <th data-options="field:'dm_create_id',width:100,align:'center'">아이디</th>
+                        <th data-options="field:'text',width:100,align:'center'">미리보기</th>
+                        <th data-options="field:'dm_status_text',width:100,align:'center'">상태</th>
+                        <th field ="detail" width = "100" formatter="formatDetail" align="center">적용</th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div style="display:none;">
+        <table id="dg" class="easyui-datagrid" data-options="rownumbers:true,pagination:true,singleSelect:true, url:'<?=$_VAR_PATH_BIZ?>app/select.php?type=select_page_table',method:'get',toolbar:'#tb',footer:'#ft',fitColumns:false,striped:true" pageList="[10,20,30,50,70,100]" pageSize="50">
+            <tr>
+                <th data-options="field:'id',width:200,align:'center'" width="100">파일명</th>
+                <th data-options="field:'text',width:200,align:'center'" width="100">파일명</th>
+                <th data-options="field:'dm_file_src',width:200,align:'center'" width="100">파일경로</th>
+            </tr>
+        </table>
+    </div>
+</div>
+<script>
+    $(document).ready(function(){
+        $(".border_menu").hide();
+        $(".history_menu").hide();
+        $(".org_menu").hide();
+        $(".certi_menu").hide();
+
+        $("input[name='dm_page_type']").off().on('click', function () {
+            var menu_type = $(this).val();
+            var bd_menu  = $(".border_menu");
+            var history_menu  = $(".history_menu");
+            var org_menu  = $(".org_menu");
+            var certi_menu  = $(".certi_menu");
+
+            if (menu_type == 'BOARD') {
+                bd_menu.show();
+                history_menu.hide();
+                org_menu.hide();
+                certi_menu.hide();
+            } else if (menu_type == "HISTORY") {
+                bd_menu.hide();
+                history_menu.show();
+                org_menu.hide();
+                certi_menu.hide();
+            } else if (menu_type == "ORGANIZATION") {
+                bd_menu.hide();
+                history_menu.hide();
+                org_menu.show();
+                certi_menu.hide();
+            } else if (menu_type == "CERTIFICATE") {
+                bd_menu.hide();
+                history_menu.hide();
+                org_menu.hide();
+                certi_menu.show();
+            } else {
+                bd_menu.hide();
+                history_menu.hide();
+                org_menu.hide();
+                certi_menu.hide();
+            }
+        })
+    });
+
+</script>
+
+<?
+require('../../lib/page_bottom.php');
+?>

@@ -1,0 +1,81 @@
+<style>
+    .contentWrap{border:0;background-color:transparent;padding-top:0;padding-left:0;}
+    .contentWrap > h2{display:none;}
+</style>
+<div class="visitMain">    
+    <div class="visitdata">  
+        <div class="titbox">
+            <h2>탐방자료</h2>
+            <a href="?contentId=43ec517d68b6edd3015b3edc9a11367b" class="mr">더보기 + </a>
+        </div>
+        <div id="owl_service2" class="owl-carousel pm-slide_responsive_service owl-loaded owl-drag">
+            <? latest('data', 'data','8', '80') ?>
+        </div>
+    </div>
+    <div class="visitRequest">
+        <div class="fl">
+            <div class="box">
+                <div class="titbox">
+                    <h2>탐방요청</h2>                    
+                </div><!--//titbox-->
+                <? latest('request', 'basic','10', '80') ?>                
+            </div><!--//box-->
+        </div><!--//fl-->
+        <div class="fr">
+            <div class="box">
+                <div class="titbox">
+                    <h2>탐방일정</h2>
+                    <a href="?contentId=1cc1d5a98d6d6c9156ff85736c981b03" class="mr">더보기 + </a>
+                </div><!--//titbox-->
+                <? latest('schedule', 'schedule','5', '80') ?> 
+            </div><!--//box-->
+        </div><!--//fr-->
+    </div><!--//visitRequest-->    
+    <div class="damdatv">
+        <div class="titbox">
+            <h2>담다TV</h2>
+            <a href="?contentId=9778d5d219c5080b9a6a17bef029331c" class="mr">더보기 + </a>
+        </div>
+        <? latest('damdatv', 'damdatv2','6', '80') ?>
+    </div><!--//damdatv-->    
+</div><!--//visitMain-->
+
+<script>
+    jQuery(function($) {
+		$('#owl_service2').owlCarousel({
+			margin: 10,					// 이미지 간격
+			loop: true,									// 무한 반복
+			center: false,								// 액티브 슬라이드 가운데 정렬
+			mouseDrag: true,							// 마우스 드레그 사용
+			touchDrag: true,							// 터치 드레그 사용
+			stagePadding: 0,							// 스테이지 여백 (좌우 슬라이드 노출)
+			nav: true,						// 방향 네비게이션
+			dots: true,						// 하단 네비게이션
+			dotsEach: false,							// 하단 네비게이션 (페이지별 출력,항목별 출력)
+			autoplay: true,								// 자동 재생
+			autoplayTimeout: 3000,						// 자동 재생 속도
+			smartSpeed: 500,							// 슬라이드 속도
+			responsiveRefreshRate: 0,					// 반응형 체크 시간
+			startPosition: 0,							// 시작 슬라이드 번호
+			autoplayHoverPause: false,					// 마우스 오버시 일시정지
+			responsiveClass: false,						// 반응형 class명 사용 (owl-reponsive-0)
+			navContainer: false,						// 방향 네비게이션 커스터마이징
+			dotsContainer: false,						// 하단 네비게이션 커스터마이징
+			responsive: {								// 반응형
+				0: {
+					items:2,		// 한 화면 출력수 (모바일)
+					slideBy:1	// 한번에 슬라이드 되는 수 (모바일)
+				},
+				768: {
+					items:3,		// 한 화면 출력수 (태블릿)
+					slideBy:1	// 한번에 슬라이드 되는 수 (태블릿)
+				},
+				1024: {
+					items:4,			// 한 화면 출력수 (PC)
+					slideBy:1		// 한번에 슬라이드 되는 수 (PC)
+				}
+			}
+		})
+	});	
+    
+</script>

@@ -1,0 +1,238 @@
+<?
+	require('../../lib/page_header.php');
+$start_date = date("Y-m-d", strtotime("- 7 day"))
+?>
+<script>
+    $(function () {
+        fnSetData();
+
+        function fnSetData() {
+            var search_start_date = $("#search_start_date").datebox('getValue');
+            var search_end_date = $("#search_end_date").datebox('getValue');
+
+            $.ajax({
+                url: "<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=all_age_member&search_start_date="+search_start_date+"&search_end_date="+search_end_date,
+                dataType: 'json',
+                type: 'post',
+                success: function (data) {
+                    if (data.age10) {
+                        $("#age10").text(data.age10);
+                        $("#age10_avg").text(data.age10_avg);
+                    }
+                    if (data.age20) {
+                        $("#age20").text(data.age20);
+                        $("#age20_avg").text(data.age20_avg);
+                    }
+                    if (data.age30) {
+                        $("#age30").text(data.age30);
+                        $("#age30_avg").text(data.age30_avg);
+                    }
+                    if (data.age40) {
+                        $("#age40").text(data.age40);
+                        $("#age40_avg").text(data.age40_avg);
+                    }
+                    if (data.age50) {
+                        $("#age50").text(data.age50);
+                        $("#age50_avg").text(data.age50_avg);
+                    }
+                    if (data.age60) {
+                        $("#age60").text(data.age60);
+                        $("#age60_avg").text(data.age60_avg);
+                    }
+                    if (data.age70) {
+                        $("#age70").text(data.age70);
+                        $("#age70_avg").text(data.age70_avg);
+                    }
+                    $("#total").text(data.total);
+                    $("#undefined_count").text(data.undefined_count);
+                    $("#undefined_avg").text(data.undefined_avg);
+                }
+            });
+
+            $.ajax({
+                url: "<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=all_age_member_chart&search_start_date="+search_start_date+"&search_end_date="+search_end_date,
+                dataType: 'json',
+                type: 'post',
+                success: function (data) {
+                    $("#chart-area").empty();
+                    var container = document.getElementById('chart-area'),
+                        chart_data = {
+                            categories: data.date,
+                            series: [
+                                {
+                                    name: '총 회원수',
+                                    data: data.total
+                                },
+                                {
+                                    name: '10대',
+                                    data: data.age10
+                                },
+                                {
+                                    name: '20대',
+                                    data: data.age20
+                                },
+                                {
+                                    name: '30대',
+                                    data: data.age30
+                                },
+                                {
+                                    name: '40대',
+                                    data: data.age40
+                                },
+                                {
+                                    name: '50대',
+                                    data: data.age50
+                                },
+                                {
+                                    name: '60대',
+                                    data: data.age60
+                                },
+                                {
+                                    name: '70대',
+                                    data: data.age70
+                                },
+                                {
+                                    name: '연령 미확인 회원수',
+                                    data: data.undefined_count
+                                }
+                            ]
+                        },
+                        options = {
+                            chart: {
+                                width: widthSize, height: 400 /*,title: ''*/
+                            },
+                            yAxis: {
+                                title: '',
+                                min: 0
+                            },
+                            xAxis: {
+                                title: ''
+                            },
+                            tooltip: {
+                                suffix: ''/*,grouped: true*/
+                            },
+                            series: {
+                                showLabel: false, showDot: false
+                            },
+                            legend: {
+                                showCheckbox: true, align: 'bottom'
+                            }
+                        }
+                    tui.chart.lineChart(container, chart_data, options);
+                }
+            });
+        }
+        $("#search_btn").off().on('click', function () {
+            fnSetData();
+            var search_start_date = $("#search_start_date").datebox('getValue');
+            var search_end_date = $("#search_end_date").datebox('getValue');
+            $('#dg').datagrid('load', {
+                    search_start_date : encodeURIComponent(search_start_date),
+                    search_end_date : encodeURIComponent(search_end_date),
+                    emptyMsg:'데이터가 없습니다.'
+                }
+            );
+        });
+    });
+</script>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1>전체회원분석</h1>
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>기간검색</strong></dt>
+                    <dd>
+                        <input type="text" class="easyui-datebox" id="search_start_date" value="<?=$start_date;?>" data-options="formatter:myformatter,parser:myparser"> ~
+                        <input type="text" class="easyui-datebox" id="search_end_date" value="<?=date("Y-m-d");?>" data-options="formatter:myformatter,parser:myparser">
+                        <a onclick="DateSearch.getMonthAgo()" class="btn">1개월</a>
+                        <a onclick="DateSearch.getThreeMonthAgo()" class="btn">3개월</a>
+                        <a onclick="DateSearch.getSixMonthAgo()" class="btn">6개월</a>
+                        <a onclick="DateSearch.getTwelveMonthAgo()" class="btn">12개월</a>
+                    </dd>
+                </dl>
+            </div>
+             <button class="btn bt00" id="search_btn">검색</button>
+             <button class="btn" onclick="allList()">초기화</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <?
+            require('all_tab.html');
+        ?>
+        
+        <div class="State">
+            <table class="tb">
+                <thead>
+                <tr>
+                    <th>총 회원수</th>
+                    <th>10대 회원</th>
+                    <th>20대 회원</th>
+                    <th>30대 회원</th>
+                    <th>40대 회원</th>
+                    <th>50대 회원</th>
+                    <th>60대 회원</th>
+                    <th>70대 회원</th>
+                    <th>연령 미확인</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>
+                        <strong id="total">0</strong>
+                    </td>
+                    <td>
+                        <strong id="age10">0</strong> <em id="age10_avg">0%</em>
+                    </td>
+                    <td>
+                        <strong id="age20">0</strong> <em id="age20_avg">0%</em>
+                    </td>
+                    <td>
+                        <strong id="age30">0</strong> <em id="age30_avg">0%</em>
+                    </td>
+                    <td>
+                        <strong id="age40">0</strong> <em id="age40_avg">0%</em>
+                    </td>
+                    <td>
+                        <strong id="age50">0</strong> <em id="age50_avg">0%</em>
+                    </td>
+                    <td>
+                        <strong id="age60">0</strong> <em id="age60_avg">0%</em>
+                    </td>
+                    <td>
+                        <strong id="age70">0</strong> <em id="age70_avg">0%</em>
+                    </td>
+                    <td>
+                        <strong id="undefined_count">0</strong> <em id="undefined_avg">0%</em>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            
+            <div id="chart-area" style="margin:20px -10px 20px -10px;"></div>
+
+            <table id="dg" class="easyui-datagrid" data-options="rownumbers:false,pagination:false, url:'<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=all_age_member_table&search_start_date=<?=$start_date?>&search_end_date=<?=date("Y-m-d");?>',method:'get', singleSelect:true,fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false"  fit="true" border="false" fit="true">
+                <thead>
+                <tr>
+                    <th data-options="field:'date',width:80,align:'center'">날짜</th>
+                    <th data-options="field:'total_count',width:80,align:'center'">총 회원수</th>
+                    <th data-options="field:'age10',width:80,align:'center'">10대 회원</th>
+                    <th data-options="field:'age20',width:80,align:'center'">20대 회원</th>
+                    <th data-options="field:'age30',width:80,align:'center'">30대 회원</th>
+                    <th data-options="field:'age40',width:80,align:'center'">40대 회원</th>
+                    <th data-options="field:'age50',width:80,align:'center'">50대 회원</th>
+                    <th data-options="field:'age60',width:80,align:'center'">60대 회원</th>
+                    <th data-options="field:'age70',width:80,align:'center'">70대 회원</th>
+                    <th data-options="field:'undefined_count',width:80,align:'center'">연령 미확인</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+<?
+	require('../../lib/page_bottom.php');
+?>

@@ -1,0 +1,15 @@
+<ul>
+    <? if (count($list['list']) > 0 ){ ?>
+        <? foreach ($list['list'] as $value) { ?>
+            <li>
+                <a href="<?=$value['view_href']?>">
+                    <p><?=$value['wr_subject']?></p>
+                    <span class="companydate">탐방일정 : <?php echo $value['dm_append_1']?> / <?php echo $value['dm_append_3']?>  [<?php echo $value['dm_append_6']?>] </span>
+                </a>
+                <span class="date"><?=date("Y-m-d", strtotime($value['wr_datetime']));?></span>
+            </li>
+        <? } ?>
+    <? } else { ?>
+        <li class="empty"><p>게시물이 없습니다.</p></li>
+    <? } ?>
+</ul>

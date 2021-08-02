@@ -1,0 +1,96 @@
+<?
+require('../../lib/page_header.php');
+?>
+<style>
+
+</style>
+
+<script>
+    $(function () {
+        $('#dg').datagrid({
+            columns:[[
+                {field:'ck',title:'', width:80, checkbox:true,
+                    formatter: function(value,row,index){
+                        return value;
+                    }
+                },
+                {field:'dm_datetime',title:'날짜', width:80,
+                    formatter: function(value,row,index){
+                        return value;
+                    }
+                },
+                {field:'dm_count',title:'방문자수', width:80,
+                    formatter: function(value,row,index){
+                        return value;
+                    }
+                },
+                {field:'progressbar',title:'그래프', width:80,
+                    formatter: function(value,row,index){
+                        return value;
+                    }
+                }
+            ]]
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개",
+           /* buttons:[{
+                text :"선택삭제",
+                id : 'del_btn',
+                handler:function(){
+                    alert('선택삭제버튼');
+                }
+            }]*/
+        });
+    });
+
+</script>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north'">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+            <div class="btnWrap">
+                <button class="bt08">+ 관리자등록</button>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'center'" class="Contents">
+        <div class="Srchbox">
+            <div>
+            <dl>
+                <dt><strong>통합검색</strong></dt>
+                <dd>
+                <select name="sfl" id="sfl">
+                    <option value="">통합검색</option>
+                    <option value="mb_id">아이디</option>
+                    <option value="mb_name">이름</option>
+                    <option value="mb_email">이메일</option>
+                </select>
+                <input type="text" name="stx" value="" id="stx">
+            </dd>
+        </dl>
+
+            </div>
+            <button type="submit" class="btn bt00">검색</button>
+                <button class="btn" onclick="location.reload();">초기화</button>
+        </div>
+
+        <table id="dg" class="easyui-datagrid"
+               data-options="pagePosition:'top',rownumbers:true,pagination:true, url:'<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=select_accessor&search_start_date=<?=$start_date?>&search_end_date=<?=date("Y-m-d");?>',method:'get', singleSelect:true,fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false" border="false" pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+        </table>
+    </div>
+    <div data-options="region:'south'">
+        <dl class="Tbottom">
+            <dd>
+                <button type="submit" class="btn" onclick="return submitForm(this.value);">선택삭제</button>
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<?
+require('../../lib/page_bottom.php');
+?>

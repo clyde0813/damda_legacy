@@ -1,0 +1,88 @@
+<? if (getSession("chk_dm_id")) {
+    goLink('/diam/web');
+}
+
+function generate_state()
+{
+    $mt = microtime();
+    $rand = mt_rand();
+    return md5($mt . $rand);
+}
+
+$naver_state = generate_state();   //-- 상태토큰 생성
+setSession("NaverState", $naver_state);
+$naver_URL = "";
+
+$naver_URL .= "https://nid.naver.com/oauth2.0/authorize?";
+$naver_URL .= "response_type=code";
+$naver_URL .= "&client_id=".$NAVER_KEY;
+$naver_URL .= "&redirect_uri=".urlencode($NAVER_RETURN_URL);
+$naver_URL .= "&state=".urlencode($naver_state);   //-- 상태토큰 전송
+
+$kakao_state = generate_state();   //-- 상태토큰 생성
+setSession("KakaoState", $kakao_state);
+$kakao_URL = "";
+
+$kakao_URL .= "https://kauth.kakao.com/oauth/authorize?";
+$kakao_URL .= "response_type=code";
+$kakao_URL .= "&client_id=".$KAKAO_KEY;
+$kakao_URL .= "&redirect_uri=".urlencode($KAKAO_RETURN_URL);
+$kakao_URL .= "&state=".urlencode($kakao_state);   //-- 상태토큰 전송
+
+?>
+
+<? include "mytop.html"; ?>
+<script>
+function snsLogin(url) {
+	document.domain = "damdaproject.co.kr";
+	window.open(url, 'kakaoLogin','width=0,height=0')
+}
+</script>
+<div id="LoginWrap">
+    <div class="Logobox">
+        <form id="fm" name="fm" autocomplete="off" action="" method="POST">
+            <h2><a href="/diam/web/"><img src="<?=$layout_path?>images/logo.jpg"></a></h2>
+            <div class="login-input-box">
+                <ul>
+                    <li>
+                        <label for="" class="blind">아이디</label>
+                        <input type="text" name="dm_mb_id" id="dm_mb_id" autocomplete="off" placeholder="아이디" maxlength="41" value="<? if($_COOKIE['userId']) echo $_COOKIE['userId'] ?>" class="glores-A-input-txt">
+                    </li>
+                    <li>
+                        <label for="" class="blind">비밀번호</label>
+                        <input type="password" name="dm_mb_password" id="dm_mb_password" placeholder="비밀번호" maxlength="20" class="glores-A-input-txt">
+                    </li>
+                </ul>
+               <button type="button" onclick="fnLogin();" class="glores-A-btn-login">로그인</button>
+            </div>            
+            <div class="login-check-box">
+                <span>
+                    <input type="checkbox" name="saveId" id="saveId" value="1" <? if($_COOKIE['userId']) echo "checked" ?>>
+                    <label for="saveId">아이디 저장</label>
+                </span>
+                <span>
+                    <input type="checkbox" name="autoLogin" id="autoLogin" value="1">
+                    <label for="autoLogin">자동 로그인</label>
+                </span>
+            </div>    
+            <div class="login-btn-box">
+                <a href="?contentId=1b94af05377c864b4e15bc14f2ab26a6">아이디 찾기</a>
+                <a href="?contentId=01ebf71f8e052407e0a939fe2387fec6">비밀번호 찾기</a>
+                <a href="?contentId=ed9412b7aa3eb07c21772f26d7678ab0">회원가입</a>
+            </div>       
+        </form>
+        <div class="snsLogin">
+            <!--<a href="<?php echo $kakao_URL?>" onclick="window.open(this.href, 'kakaoLogin','width=0,height=0');return false;" target="_blank" class="kakaotalk">카카오  로그인</a>
+            <a href="<?php echo $naver_URL?>" onclick="window.open(this.href, 'naverLogin','width=0,height=0');return false;" target="_blank" class="naver">네이버  로그인</a>-->
+			<!--<a href="javascript:;" onclick="snsLogin('<?php echo $kakao_URL?>')" class="kakaotalk">카카오  로그인</a>-->
+			<a href="javascript:alert('SNS 로그인은 현재 검수중입니다. 다른 로그인 방법을 이용해주세요.');" class="kakaotalk">카카오  로그인</a>
+			<a href="javascript:alert('SNS 로그인은 현재 검수중입니다. 다른 로그인 방법을 이용해주세요.');" class="naver">네이버  로그인</a>
+			<!--<a href="javascript:;" onclick="snsLogin('<?php echo $naver_URL?>')" class="naver">네이버  로그인</a>-->
+          
+<!--            <a href="#" class="facebook">페이스북 로그인</a>-->
+<!--            <a href="#" class="google">구글 로그인</a>-->
+<!--            <a href="#" class="twitter">트위터 로그인</a>-->
+        </div>
+      
+    </div><!--//Logobox-->
+</div>

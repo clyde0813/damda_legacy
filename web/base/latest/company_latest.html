@@ -1,0 +1,28 @@
+<ul>
+    <? if (count($list['list']) > 0) { ?>
+        <? foreach ($list['list'] as $value) { ?>
+        <li>
+            <a href="?command=view&contentId=<?=$list['pageInfo']['dm_uid']?>&wr_id=<?=$value['wr_id']?>&cate=<?=$value['ca_name']?>">
+                <?
+                $thumb = get_list_thumbnail($list['boardInfo']["dm_table"], $value['wr_id'], $list['boardInfo']['dm_gallery_width'], $list['boardInfo']['dm_gallery_height'], false, true, "center");
+                $thum = "";
+                if ($thumb['src']) {
+                    $thum = "<p class='thumb'><img src='".$thumb['src']."' alt='".$thumb['alt']."' /></p>";
+                } else {
+                    $thum = "<p class='thumb'><img src='".$_VAR_URL_WEB."common/image/noimg1.png'></p>";
+                }
+                echo $thum
+                ?>
+                <div class="box">
+                    <h3><?=$value['dm_append_1']?></h3>
+                    <span><?=$value['dm_append_12']?></span>
+                </div>
+            </a>
+        </li>
+        <? } ?>
+    <? } else { ?>
+        <li>
+            <p>게시물이 없습니다.</p>
+        </li>
+    <? } ?>
+</ul>

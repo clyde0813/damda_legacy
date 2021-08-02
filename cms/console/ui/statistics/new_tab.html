@@ -1,0 +1,7 @@
+<ul class="Tabs mt30">
+    <li<?php if(preg_match("/new_member_u/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a  onclick="location.href='/diam/cms/console/ui/statistics/new_member_u.html'">일별 신규회원 현황</a></li>
+    <li<?php if(preg_match("/new_hour/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a onclick="location.href='/diam/cms/console/ui/statistics/new_hour.html'">시간별 신규회원 현황</a></li>
+    <li<?php if(preg_match("/new_week/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a onclick="location.href='/diam/cms/console/ui/statistics/new_week.html'">요일별 신규회원 현황</a></li>
+    <li<?php if(preg_match("/new_month/", $_SERVER['REQUEST_URI'])) { echo ' class="on"'; } ?>><a onclick="location.href='/diam/cms/console/ui/statistics/new_month.html'">월별 신규회원 현황</a></li>
+</ul>
+<script>var widthSize = $('.Contents').width();</script>

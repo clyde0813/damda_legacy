@@ -1,0 +1,232 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+<script>
+    $(function () {
+        function fnRemove(){
+            var ids = [];
+            var dm_table = [];
+            var rows = $('#dg').datagrid('getChecked');
+
+            if (rows.length > 0) {
+                for(var i=0; i<rows.length; i++){
+                    ids.push(rows[i].wr_id);
+                    dm_table.push(rows[i].dm_table);
+                }
+
+                $.each(ids, function (index, value) {
+                        $.post('<?=$_VAR_PATH_BIZ?>app/mng_comment.php?type=delete',{wr_id:value, dm_table:dm_table[index]},function(result){
+                            if (result.success){
+                                console.log(result);
+                            }
+                        },'json')
+                    }
+
+                );
+                $('#dg').datagrid('reload');    // reload the user data
+            } else {
+                $.messager.alert('경고', "삭제할 항목을 선택해주세요", 'warning');
+            }
+        }
+
+        function doSearch() {
+            var search_type = $('#search_type').val();
+            var search_value = $('#stx').val();
+            var search_start_date = $("#search_start_date").datebox('getValue');
+            var search_end_date= $("#search_end_date").datebox('getValue');
+            var search_board = $("#search_board").combobox('getValue');
+
+            $('#dg').datagrid('load',
+                {
+                    search_type : encodeURIComponent(search_type),
+                    search_value : encodeURIComponent(search_value),
+                    search_start_date : encodeURIComponent(search_start_date),
+                    search_end_date : encodeURIComponent(search_end_date),
+                    search_board : encodeURIComponent(search_board),
+                })
+        }
+
+        $('#dg').datagrid({
+            onDblClickCell: function(index,field,value){
+                $('#dg').datagrid('selectRow',index);
+                var currentRow = $("#dg").datagrid("getSelected");
+                window.parent.addTab("<" + currentRow.wr_subject + "> 세부정보",'<?=$_VAR_PATH_UI?>write/write_view.html?wr_id='+currentRow.wr_id+'&dm_table='+currentRow.dm_table,true,'','');
+            },
+            emptyMsg:'데이터가 없습니다.'
+        });
+
+        $("#stx").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    fnRemove();
+                }
+            });
+        });
+
+        $("#search_btn").off().on('click', function () {
+            doSearch();
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+        $("#detail_search").off().on('click', function () {
+            $("#Dsearch").toggle();
+            var dl_count = $("#Dsearch dl").length;
+            dl_count = Math.ceil(dl_count / 2);
+            var margin_top = dl_count * $("#Dsearch dl").height();
+
+            if($("#Dsearch").is(":visible")) {
+                $(".Contents").css("margin-top", margin_top+"px");
+            } else {
+                $(".Contents").css("margin-top", "0px");
+            }
+        });
+
+        $(document).on('click', ".private_delete", function () {
+            var dm_id = $(this).data("id");
+            var dm_table = $(this).data("table");
+            $.messager.confirm("", "정말 삭제하시겠습니까?", function (r) {
+                if (r) {
+                    $.post('<?=$_VAR_PATH_BIZ?>app/mng_comment.php?type=delete',{wr_id:dm_id, dm_table:dm_table},function(result){
+                        if (result.result == 'success'){
+                            $('#dg').datagrid('reload');    // reload the user data
+                        }
+                    },'json');
+                }
+            });
+        });
+    });
+
+    function allList() {
+        $("#search_type").val('all');
+        $("#stx").val('');
+        var fullDate = DateSearch.makeFullDate(DateSearch.date.curYear, DateSearch.date.curMonth, DateSearch.date.curDate);
+        $("#search_start_date").datebox('setValue', fullDate);
+        $("#search_end_date").datebox('setValue', fullDate);
+        $("#search_board").combobox('reload');
+
+        $("#dg").datagrid('load', {
+            search_type: '',
+            search_value : '',
+            search_start_date : fullDate,
+            search_end_date : fullDate,
+            search_board : '',
+        });
+    }
+
+    
+    function formatDetail2(value,row){
+        if (row.dm_url == '') {
+            row.dm_url = "javascript:alert('페이지 정보가 없습니다.');";
+        } else {
+            row.dm_url = "window.open('"+row.dm_url+"')";
+        }
+        return '<a onclick="'+row.dm_url+'" class="btn">새창</a>';
+    }
+    
+    function formatDetail(value,row){
+        return '<a class="btn private_delete" data-id="'+row.wr_id+'" data-table="'+row.dm_table+'">삭제</a>';
+    }
+</script>
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/datagrid-detailview.js"></script>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>기간</strong></dt>
+                    <dd>
+                        <input type="text" class="easyui-datebox" id="search_start_date" value="<?=date("Y-m-d");?>" data-options="formatter:myformatter,parser:myparser"> ~
+                        <input type="text" class="easyui-datebox" id="search_end_date" value="<?=date("Y-m-d");?>" data-options="formatter:myformatter,parser:myparser">
+                        <a onclick="DateSearch.getToday();" class="btn">오늘</a>
+                        <a onclick="DateSearch.getThisWeek();" class="btn">이번주</a>
+                        <a onclick="DateSearch.getThisMonth();" class="btn">이번달</a>
+                        <a onclick="DateSearch.getNextSevenDays()" class="btn">1주일</a>
+                        <a onclick="DateSearch.getNextFiftheenDays()" class="btn">15일</a>
+                        <a onclick="DateSearch.getMonthAgo()" class="btn">1개월</a>
+                        <a onclick="DateSearch.getThreeMonthAgo()" class="btn">3개월</a>
+                        <a onclick="DateSearch.getSixMonthAgo()" class="btn">6개월</a>
+                        <a onclick="DateSearch.resetDate()" class="btn">전체</a>
+                    </dd>
+                </dl>
+                <article id="Dsearch">
+                    <dl>
+                        <dt><strong>게시판</strong></dt>
+                        <dd>
+                            <select id="search_board" name="search_board" class="easyui-combobox" panelHeight="auto" style="width:150px;height:30px;"
+                                    data-options="url: '<?=$_VAR_PATH_BIZ ?>app/mng_write.php?type=select_board&all=1',
+                                                method: 'get',
+                                                valueField: 'dm_table',
+                                                textField: 'dm_subject'">
+                            </select>
+                        </dd>
+                    </dl>
+                </article>
+                <dl>
+                    <dt><strong>통합검색</strong></dt>
+                    <dd>
+                        <select name="search_type" id="search_type">
+                            <option value="all">통합검색</option>
+                            <option value="wr_subject">제목</option>
+                            <option value="wr_name">작성자</option>
+                        </select>
+                        <input type="text" name="search_value" value="" id="stx">
+                    </dd>
+                </dl>
+            </div>
+            <button class="btn bt00" id="search_btn">검색</button>
+            <button class="btn" onclick="allList()">초기화</button>
+            <button class="btn bt07" id="detail_search">상세검색</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <table id="dg"
+               class="easyui-datagrid" fit="true" border="false"
+               data-options="pagePosition:'top',rownumbers:true,pagination:true,singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_comment.php?type=select&search_start_date=<?=date("Y-m-d")?>&search_end_date=<?=date("Y-m-d");?>',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false" pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+            <thead>
+            <tr>
+                <th data-options="field:'ck',width:100,align:'center',checkbox:true,
+                editor:{
+                    type:'checkbox',
+                    options:{
+                        on:'Y',
+                        off:'N'
+                    }
+                }">-</th>
+                <th data-options="field:'dm_subject',width:150,align:'center'">게시판명</th>
+                <th data-options="field:'wr_content',width:350,align:'center'">댓글내용</th>
+                <th field ="detail2" width ="50" formatter="formatDetail2" align="center">본문</th>
+                <th data-options="field:'wr_name',width:150,align:'center'">작성자</th>
+                <th data-options="field:'wr_datetime',width:120,align:'center'">등록일</th>
+                <th field ="detail" width = "50" formatter="formatDetail" align="center">관리</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+    <div data-options="region:'south'">
+        <dl class="Tbottom">
+            <dd>
+                <button class="btn" id="fnRemove">선택삭제</button>
+            </dd>
+        </dl>
+    </div>
+</div>
+<?
+require('../../lib/page_bottom.php');
+?>

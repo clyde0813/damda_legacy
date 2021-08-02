@@ -1,0 +1,10 @@
+﻿<?
+	require('../lib/frame_header.php');
+?>
+<FRAMESET rows="70,*" frameborder="0" border="0" marginwidth="0" marginheight="0">
+	<FRAME SRC="/jseng/common/frame_header.php" NAME="frame_head" scrolling="no" noresize>
+	<FRAME SRC="/jseng/common/frame_body.php" NAME="frame_body">
+</FRAMESET>
+<?
+	require('../lib/frame_bottom.php');
+?>

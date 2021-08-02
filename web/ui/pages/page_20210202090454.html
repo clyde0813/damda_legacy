@@ -1,0 +1,43 @@
+<?
+$resultArray = getSession("search_result");
+?>
+
+<div class="srhWrap">
+    <h3><strong>'<?=getSession("search_value")?>'</strong> 에 대한 검색 결과입니다.</h3>
+    <div>
+        <?
+        if (count($resultArray) > 0) {
+        foreach ($resultArray as $key=> $value) { ?>
+            <h4><strong><?=$key?></strong>에서 검색된 글</h4>
+            <table>
+                <colgroup><col width="10%"><col><col width="20%"><col width="10%"></colgroup>
+                <tr>
+                    <th>구분</th>
+                    <th>제목</th>
+                    <th>작성자</th>
+                    <th>작성일</th>
+                </tr>
+                <? foreach ($value as $key2 => $value2) {
+                    $content = $value2['subject_cont'];
+                    $type = "게시글";
+                    if ($value2['wr_is_comment']) {
+                        $content = $value2['content_cont'];
+                        $type = "댓글";
+                    }
+                    ?>
+                    <tr>
+                        <td class="tc divide"><?=$type ?></td>
+                        <td class="subject"><a href="<?=$value2['dm_url']?>"><?=$content ?></a></td>
+                        <td class="tc name"><?=$value2['name_cont'] .  " <em>(". $value2['dm_nick'].")</em>"?></td>
+                        <td class="tc date"><?=date("Y-m-d", strtotime($value2['wr_datetime']));?></td>
+                    </tr>
+                <? } ?>
+            </table>
+
+        <? }
+        } else {
+            echo "<p class='none'>검색된 게시물이 없습니다.</p>";
+        }
+        ?>
+    </div>
+</div>

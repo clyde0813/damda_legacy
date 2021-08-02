@@ -1,0 +1,257 @@
+<div class="comment">
+    <h3>댓글 목록</h3>
+    <ul class="comment_ul">
+        <?
+
+        if ($comment_count)
+        {
+            foreach ($list as $value) {
+                ?>
+                <li class="comment_li <? if ($value['depth']) { ?> reply <? } ?>" >
+                    <div class="comment_box">
+                        <div class="comment_writer_info">
+                            <ul class="left">
+                                <!-- <li><h4><?= $value['wr_name'] ?>님의 댓글</h4></li> -->
+                                <li id="wr_name<?= $value['wr_id'] ?>">
+									<? if ($value['depth']) { ?>
+                                        <i class="fas fa-reply fa-rotate-180"></i>
+                                    <? } ?>
+									<span class="sound">작성자</span>
+                                    <strong><?= $value['name'] ?></strong>
+								</li>
+                            </ul>
+							<ul class="right">
+                                <li><span class="sound">작성일</span> <i class="fas fa-clock"></i> <?= $value['datetime'] ?></li>
+                            </ul>
+						</div>
+						<div class="view_sympathy">
+							<div class="view_sympathy_box">
+								<? if ($is_good) { ?>
+									<a href="javascript:void(0);" class="sympathy_btn good" data-id="<?=$value['wr_id']?>">공감 <?=number_format($value['wr_good'])?></a>
+								<? } ?>
+
+								<? if ($is_nogood) { ?>
+									<a href="javascript:void(0);" class="sympathy_btn bad" data-id="<?=$value['wr_id']?>">비공감 <?=number_format($value['wr_nogood'])?></a>
+								<? } ?>
+							</div>
+						</div>
+                        <div class="comment_content" id="content_<?= $value['wr_id'] ?>">
+                            <p><?= $value['content'] ?></p>
+                        </div>
+
+                        <div class="btn_box">
+							<?
+                            if (($is_admin || $is_board_admin) || ($value['mb_id'] == $member_id)) { ?>
+                                <a class="btn_delete" style="cursor: pointer;" href="javascript:delete_comment('<?= $value['wr_id'] ?>','<?= $value['mb_id']?>', '<?=$member_id?>', '<?=$value['wr_option']?>');">삭제</a>
+                                <a class="btn_modify" style="cursor: pointer;" href="javascript:modify_comment('<?= $value['wr_id'] ?>','<?= $value['mb_id']?>', '<?=$member_id?>', '<?=$value['wr_option']?>');">수정</a>
+                            <? }
+                            if (($is_comment_write && !$value['is_comment_secret']) || ($value['mb_id'] == $member_id) || ($BBS_DATAS['mb_id'] == $member_id) || ($is_parent) || ($is_admin || $is_board_admin)) { ?>
+                                <a class="btn_write" style="cursor: pointer;" href="javascript:comment_reply('<?= $value['wr_id'] ?>')">댓글쓰기</a>
+                            <? } ?>
+                        </div>
+                        <div class="comment_reply_fm<?= $value['wr_id'] ?>"></div>
+                    </div>
+
+                </li>
+                <?
+            }
+        }
+        else
+        {
+            echo "<li class='none'>댓글이 없습니다.</li>";
+        }
+        ?>
+    </ul>
+</div>
+
+<? if ($use_comment) { ?>
+    <div class="comment_form" id="comment_form">
+        <h4>댓글쓰기</h4>
+        <form id="comment_fm">
+            <input type="hidden" name="command" value="comment" />
+            <input type="hidden" name="mode" value="" />
+            <input type="hidden" name="wr_id" value="" />
+            <input type="hidden" name="test" value="" />
+			<? if (!$BBS_VAL['dm_comment_level'] && !getSession('chk_dm_id')) { ?>
+                <dl class="comment_writer_form">
+                    <dt><label for="comment_name">이름</label></dt>
+                    <dd><input type="text" name="comment_name" id="comment_name" value="<?=getSession("chk_dm_name")?>"  placeholder="작성자명" /></dd>
+                    <dt><label for="comment_password">비밀번호</label></dt>
+                    <dd><input type="password" name="comment_password" id="comment_password" value="" placeholder="비밀번호" /></dd>
+                </dl>
+            <? } else { ?>
+                <? if ($BBS_VAL['dm_use_comment_secret']) {
+                    ?>
+                    <dl class="comment_writer_form">
+                        <input type="hidden" name="comment_name" value="<?=getSession("chk_dm_name")?>" />
+                        <dt><label for="comment_password">비밀번호</label></dt>
+                        <dd><input type="password" name="comment_password" id="comment_password" value="" placeholder="비밀번호" /></dd>
+                    </dl>
+                <?
+                    if ($BBS_VAL['dm_use_comment_secret']) {
+                        echo $comment_secret;
+                    }
+                } else { ?>
+                    <input type="hidden" name="comment_name" value="<?=getSession("chk_dm_name")?>" />
+                <? } ?>
+            <? } ?>
+            <label for="comment_content" class="sound">내용</label>
+            <textarea name="wr_comment" id="comment_content" rows="5" <? if (!$is_comment_write) { echo "disabled"; }?> placeholder="<? if ($is_comment_write) { echo "댓글 내용을 입력하세요"; } else { echo "댓글을 작성할 권한이 없습니다."; }?>"></textarea>
+            <? if ($is_comment_write) { ?>
+            <div class="comment_btn_wrap">
+                <a class="btn_write" style="cursor: pointer;" href="javascript:write_comment();">댓글작성</a>
+            </div>
+            <? } ?>
+        </form>
+    </div>
+<? } ?>
+
+
+<script>
+    comment_fm = $("#comment_form").html();
+    password_input = $(".comment_writer_form").html();
+
+    function removeBoard() {
+        if(confirm("정말 삭제하시겠습니까?")) {
+            $.ajax({
+                url :'<?=$delete_href?>',
+                type:'get',
+                dataType:'json',
+                success : function (data) {
+                    if (data.result == 'success') {
+                        alert(data.notice);
+                        location.href='<?=$_VAR_URL_WEB?>?contentId=<?=$contentId?>';
+                    } else {
+                        alert("글 삭제에 실패했습니다. 사유 ["+data.notice+"]");
+                    }
+                }
+            });
+        }
+    }
+
+    function write_comment() {
+
+        var chk_cont =  $("#comment_content");
+
+        <? if (!$BBS_VAL['dm_comment_level'] && !getSession('chk_dm_id')) { ?>
+			var chk_name =  $("#comment_name");
+			var chk_pass =  $("#comment_password");
+			
+			if($.trim(chk_name.val()) == ""){
+				alert ("이름을 입력해주세요");
+				chk_name.focus();
+				return false;
+			}
+			if($.trim(chk_pass.val()) == ""){
+				alert('비밀번호를 입력해 주십시오.');
+				chk_pass.focus();
+				return false;
+			}
+        <? } else { 
+			if ($BBS_VAL['dm_use_comment_secret']) {
+		?>
+			var chk_pass =  $("#comment_password");
+			if($.trim(chk_pass.val()) == ""){
+				alert('비밀번호를 입력해 주십시오.');
+				chk_pass.focus();
+				return false;
+			}
+		<? } } ?>
+
+        if($.trim(chk_cont.val()) == ""){
+            alert('댓글을 입력해 주십시오.');
+            chk_cont.focus();
+            return false;
+        }
+
+        var form_data = $("#comment_fm").serialize();
+
+        $.ajax({
+            url : '<?=$_VAR_URL_WEB_BOARD?>command.php',
+            dataType : 'json',
+            type : 'post',
+            data : form_data+'&contentId=<?=$contentId?>',
+            success : function (data) {
+                alert(data.notice);
+                if (data.result == 'success') {
+                    location.reload();
+                }
+            }
+        })
+    }
+
+    function modify_comment(wr_id, mb_id, member_id, wr_option) {
+        if (confirm("댓글을 수정하시겠습니까?")) {
+			var dm_comment_level = "<?=$BBS_VAL['dm_comment_level']?>";
+			var is_admin = "<?=$is_admin?>";
+			var is_board_admin = "<?=$is_board_admin?>";
+						
+			if (dm_comment_level == '0' && is_admin == '' && is_board_admin == '' && wr_option == 'secret') {
+				$("div.modal").show();
+				$("#com_wr_id").val(wr_id);
+				$("input[name='mode']").val('modify');
+			} else {
+				showComment(wr_id);
+			}
+
+            /*<? if (!$BBS_VAL['dm_comment_level'] && !$is_admin) { ?>
+            $("div.modal").show();
+            $("#com_wr_id").val(wr_id);
+            $("input[name='mode']").val('modify');
+            <? } else { ?>
+            showComment(wr_id);
+            <? } ?>*/
+        }
+    }
+
+    function delete_comment(wr_id, mb_id, member_id, wr_option) {
+        if (confirm('댓글을 삭제하시겠습니까?')) {
+			var dm_comment_level = "<?=$BBS_VAL['dm_comment_level']?>";
+			var is_admin = "<?=$is_admin?>";
+			var is_board_admin = "<?=$is_board_admin?>";
+						
+			if (dm_comment_level == '0' && is_admin == '' && is_board_admin == '' && wr_option == 'secret') {
+				$("div.modal").show();
+				$("#com_wr_id").val(wr_id);
+				$("input[name='mode']").val('delete');
+			} else {
+				delComment(wr_id);
+			}
+
+            /*<? if (!$BBS_VAL['dm_comment_level'] && !$is_admin) { ?>
+            $("div.modal").show();
+            $("#com_wr_id").val(wr_id);
+            $("input[name='mode']").val('delete');
+            <? } else { ?>
+            delComment(wr_id);
+            <? } ?>*/
+        }
+    }
+
+    function comment_reply(wr_id)
+    {
+        $("#comment_form").remove();
+        $("#comment_fm").remove();
+        $(".comment_reply_fm"+wr_id).addClass("comment_form").html(comment_fm);
+        $(".comment_reply_fm"+wr_id+" h4").text("댓글의 댓글 쓰기");
+        $(".comment_form input[name='mode']").val('1');
+        $.ajax({
+            url : '<?=$_VAR_URL_WEB_BOARD?>command.php',
+            dataType : 'json',
+            type : 'post',
+            data : 'command=set_view_token&wr_id='+wr_id,
+            success : function (data) {
+            }
+        });
+    }
+
+    $(function () {
+        /*$("#comment_secret").off().on('click', function () {
+            if ($(this).is(":checked")) {
+                $(".comment_writer_form").show();
+            } else {
+                $(".comment_writer_form").hide();
+            }
+        })*/
+    });
+</script>

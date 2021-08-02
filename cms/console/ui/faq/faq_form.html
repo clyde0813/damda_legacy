@@ -1,0 +1,169 @@
+<?
+require('../../lib/page_header.php');
+
+$dm_id = isset($_REQUEST['dm_id']) ? trim($_REQUEST['dm_id']) : "";
+
+?>
+    <script>
+        $(function () {
+            function fnSave() {
+                var dm_question = $.trim($("#dm_question").val());
+                var dm_answer = $.trim($("#dm_answer").val());
+                var dm_status = $.trim($("#dm_status").combobox('getValue'));
+                var dm_mode = $.trim($("#dm_mode").val());
+                var url = "<?=$_VAR_PATH_BIZ?>app/mng_faq.php?type="+dm_mode;
+
+                if (dm_mode != 'delete') {
+
+                    if(dm_question == "")
+                    {
+                        $.messager.alert('입력오류','질문을 입력해주세요.','warning');
+                        return false;
+                    }
+                    if(dm_answer == "")
+                    {
+                        $.messager.alert('입력오류','답변을 입력해주세요.','warning');
+                        return false;
+                    }
+                    if(dm_status == "")
+                    {
+                        $.messager.alert('입력오류','상태를 선택해주세요.','warning');
+                        return false;
+                    }
+                }
+
+                var form = $("#fm")[0];
+                var formData = new FormData(form);
+
+                $.ajax({
+                    url : "<?=$_VAR_PATH_BIZ?>app/mng_faq.php?type="+dm_mode,
+                    data : formData,
+                    dataType: "json",
+                    type : "post",
+                    contentType: false,
+                    processData: false,
+                    success : function (data) {
+
+                        var icon = 'warning';
+                        if(data.result == "success") {
+                            $('#dg').datagrid('reload');
+                            $('#dg1').datagrid('reload');
+                            $('#tt').tree('reload');
+                            $("#dm_mode").val('');
+                            if (dm_mode == 'update' || dm_mode == 'insert') {
+                                $("#chk_dm_id").val(data._return);
+                                selectPage();
+                            } else {
+                                window.parent.closeTab();
+                            }
+                            icon = 'info';
+                        }
+                        $.messager.alert('알림',data.notice,icon);
+                    }
+                });
+            }
+
+            function selectPage() {
+                var dm_id = $("#chk_dm_id").val();
+                if (dm_id != "")
+                {
+                    $.ajax({
+                        url : "<?=$_VAR_PATH_BIZ?>app/mng_faq.php?type=select_faq&dm_id="+dm_id,
+                        type : "POST",
+                        cache : false,
+                        async : true,
+                        dataType : "json",
+                        data : "",
+                        success : function (data) {
+                            if(data.result == "success") {
+                                fnSetData(data.rows);
+                            } else if(data.result == "fail") {
+                                $.messager.alert('이력없음','페이지 정보가 존재하지 않습니다.','warning');
+                            }
+                        }, error:function(request,status,error) {
+                            alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+                        }
+                    });
+                } else {
+                    $("#dm_mode").val('insert');
+                }
+            }
+
+            function fnSetData(row) {
+                $("#title").text("FAQ 수정");
+                $("#dm_id").val(row.dm_id);
+                $("#dm_mode").val('update');
+                $("#dm_question").val(row.dm_question);
+                $("#dm_answer").val(row.dm_answer);
+                $("#dm_status").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1001&selected='+row.dm_status);
+                $("#dm_order").numberspinner('setValue', row.dm_order);
+            }
+
+            selectPage();
+            var dm_id = $("#chk_dm_id").val();
+
+            $("#fnSave").off().on('click', function () {
+                fnSave();
+            });
+
+            $("#fnCancel").off().on('click', function () {
+                window.parent.closeTab();
+            });
+        });
+
+    </script>
+
+    <div class="easyui-layout" style="width:700px;height:350px;" fit="true">
+        <div data-options="region:'north', border:false" class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+            <div class="btnWrap">
+                <button id="fnSave">저장</button>
+                <button id="fnCancel" class="bt03">목록</button>
+            </div>
+        </div>
+        <div data-options="region:'center',border:false" style="width:100%;height:260px;padding:0px" valign="middle">
+            <div class="easyui-layout" fit="true" data-options="border:false" style="border:solid 0px #f6c1bc;">
+                <div data-options="region:'center', border:true" style="width:100%;border:solid 0px #f6c1bc;padding:5px">
+                    <form id="fm" novalidate method="post">
+                        <input type="hidden" name="dm_mode" id="dm_mode" value="insert" />
+                        <input type="hidden" name="chk_dm_id" id="chk_dm_id" value="<?=$dm_id?>"/>
+                        <input type="hidden" name="dm_id" id="dm_id" value=""/>
+                        <div class="page">
+                            <h3 id="title">FAQ 등록</h3>
+                            <dl>
+                                <dt>질문</dt>
+                                <dd>
+                                    <textarea name="dm_question" id="dm_question" rows="10" ></textarea>
+                                </dd>
+                            </dl>
+                            <dl>
+                                <dt>답변</dt>
+                                <dd>
+                                    <textarea name="dm_answer" id="dm_answer" rows="10"></textarea>
+                                </dd>
+                            </dl>
+                            <dl class="history_menu">
+                                <dt>상태</dt>
+                                <dd>
+                                    <select id="dm_status" name="dm_status" class="easyui-combobox" panelHeight="auto"
+                                            data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1001',
+                                                method: 'get',
+                                                valueField: 'dm_code_value',
+                                                textField: 'dm_code_name'"></select>
+                                </dd>
+                            </dl>
+                            <dl class="org_menu">
+                                <dt>정렬</dt>
+                                <dd>
+                                    <input type="text" name="dm_order" id="dm_order" value="" class="easyui-numberspinner" style="width:300px"/>
+                                </dd>
+                            </dl>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+<?
+require('../../lib/page_bottom.php');
+?>

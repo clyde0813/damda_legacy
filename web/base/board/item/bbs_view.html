@@ -1,0 +1,357 @@
+<!-- 카테고리 영역 -->
+<? if ($is_list_category) { ?>
+    <ul class="category">
+        <li class="<? if (!$cate) echo "on"?>"><a href="?contentId=<?=$contentId?>">전체</a></li>
+        <? foreach ($category_array as $value) { ?>
+            <li class='<? if ($value == $cate) echo "on"?>'><a href="?contentId=<?=$contentId?>&cate=<?=$value?>"><?=$value;?></a></li>
+        <? } ?>
+    </ul>
+<? } ?>
+<!-- 카테고리 영역 끝-->
+<div class="view Item">
+    <div class="companydate">
+        <?=$BBS_DATA['wr_subject']?>
+    </div><!--//companydate-->
+    <!--왼쪽 기업정보-->
+    <div class="companyInfo">
+        <div class="companyImg">
+        <? if ($is_file) { ?>
+            <? for ($i=0; $i<$BBS_VAL['dm_upload_count']; $i++) { ?>
+                <? if (is_file($_VAR_PATH_WEB_DATA.'file/'.$file_array[$i])) {
+                    $image_array = array("jpg", "jpeg", "gif", "png");
+                    $ext = explode(".", $file_array[$i]);
+                    $ext = end($ext);
+                    $ext = mb_strtolower($ext);
+                    if (in_array($ext, $image_array)) {
+                        echo "<img src='".$_VAR_URL_WEB_DATA."file/".$file_array[$i]."'>";
+                    }
+                 } ?>
+            <? } ?>
+        <? } ?>
+        </div>
+       <h3>기업정보</h3>
+       <dl>
+           <dt>회사명</dt>
+           <dd><?=$BBS_DATA['dm_append_1']?></dd>
+       </dl>
+       <dl>
+           <dt>사업분야</dt>
+           <dd><?=$BBS_DATA['dm_append_2']?></dd>
+       </dl>
+       <dl>
+           <dt>대표자명</dt>
+           <dd><?=$BBS_DATA['dm_append_3']?></dd>
+       </dl>
+       <dl>
+           <dt>소재지</dt>
+           <dd><?=$BBS_DATA['dm_append_4']?></dd>
+       </dl>
+       <dl>
+           <dt>설립일</dt>
+           <dd><?=$BBS_DATA['dm_append_5']?></dd>
+       </dl>
+       <dl>
+           <dt>홈페이지</dt>
+           <dd><a href="<?=$BBS_DATA['wr_homepage']?>" target="_blank"><?=$BBS_DATA['wr_homepage']?></a></dd>
+       </dl>
+       <dl>
+           <dt>기업형태 </dt>
+           <dd><?=$BBS_DATA['dm_append_7']?></dd>
+       </dl>
+       <dl>
+           <dt>자본금 </dt>
+           <dd><?=$BBS_DATA['dm_append_9']?></dd>
+       </dl>
+       <dl>
+           <dt>매출액</dt>
+           <dd><?=$BBS_DATA['dm_append_6']?></dd>
+       </dl>
+    </div><!--//companyInfo-->
+    <!--//왼쪽 기업정보-->
+    <div class="companyView">
+        <div class="companyViewBox">            
+            <div class="view_writer_info">
+                <ul class="left">
+                    <li>
+						<span class="sound">작성자</span>
+						<strong> 
+							<?
+								if ($BBS_VAL['dm_writer_type'] == 'name') {
+									echo $BBS_DATA['wr_name'];
+								} else if ($BBS_VAL['dm_writer_type'] == 'nick') {
+									echo $BBS_DATA['mb_nick'];
+								} else {
+									echo $BBS_DATA['mb_id'];
+								}	
+							?>	
+							<? if($is_use_view_level) { ?> (lv.<?=$BBS_DATA['level_text']?>) <? } ?>
+							<? if($is_ip_view) { ?> ( <?=$BBS_DATA['wr_ip']?> ) <? } ?>
+						</strong>
+					</li>
+                </ul>
+                <ul class="right">
+                    <li><span class="sound">댓글</span> <i class="fas fa-comment-dots"></i> <?=$comment_count?> 건</li>
+                    <li><span class="sound">조회</span> <i class="fas fa-eye"></i> <?=$BBS_DATA['wr_hit']?><span class="sound">회</span></li>
+                    <li><span class="sound">작성일</span> <i class="fas fa-clock"></i> <?=date("Y-m-d", strtotime($BBS_DATA['wr_datetime']))?></li>
+                </ul>
+            </div>      
+            
+            <h6>회사소개</h6>
+            <div class="view_contents">
+                <? echo $BBS_DATA['dm_append_15']; ?>
+            </div>
+            <h6>서비스 소개</h6>
+            <div class="view_contents">
+                <?
+                $pdf_html = "";
+                for ($i=0; $i<$BBS_VAL['dm_upload_count']; $i++) {
+                    if (is_file($_VAR_PATH_WEB_DATA.'file/'.$file_array[$i])) {
+                        $filename = explode(".", $file_ori_array[$i]);
+                        $extension = end($filename);
+                        if(strtolower($extension) == "pdf") {
+                            $pdf_html .= '<div id="pdf_viewr"><iframe src="/diam/web/js/pdfjs/web/viewer.html?file='.$_VAR_URL_WEB_DATA.'file/'.$file_array[$i].'"></iframe></div>';
+                        }
+                    }
+                }
+
+                if ($pdf_html) {
+                    echo $pdf_html;
+                    echo $BBS_DATA['wr_content'];
+                } else {
+                    echo $BBS_DATA['wr_content'];
+                }
+
+                ?>
+            </div>
+            <h6>투자 정보</h6>
+            <div class="invest">
+                <dl>
+                    <dt>희망투자단계</dt>
+                    <dd>
+                        <?
+                        if ($BBS_DATA['dm_append_13'] == 1) {
+                            echo "비공개";
+                        } else {
+                            echo $BBS_DATA['dm_append_10'];
+                        }
+                        ?>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>희망 투자유치금액</dt>
+                    <dd>
+                        <?
+                        if ($BBS_DATA['dm_append_13'] == 1) {
+                            echo "비공개";
+                        } else {
+                            echo $BBS_DATA['dm_append_11'];
+                        }
+                        ?>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>누적 투자금액</dt>
+                    <dd>
+                        <?
+                        if ($BBS_DATA['dm_append_13'] == 1) {
+                            echo "비공개";
+                        } else {
+                            echo $BBS_DATA['dm_append_12'];
+                        }
+                        ?>
+                    </dd>
+                </dl>         
+            </div>
+            
+            <div class="view_sympathy">
+                <div class="view_sympathy_box">
+                    <? if ($is_good) { ?>
+                        <a href="javascript:void(0);" class="sympathy_btn good" data-id="<?=$BBS_DATA['wr_id']?>">공감 <?=number_format($BBS_DATA['good_count'])?></a>
+                    <? } ?>
+
+                    <? if ($is_nogood) { ?>
+                        <a href="javascript:void(0);" class="sympathy_btn bad" data-id="<?=$BBS_DATA['wr_id']?>">비공감 <?=number_format($BBS_DATA['nogood_count'])?></a>
+                    <? } ?>
+                </div>
+            </div>
+            
+            
+
+            <? if ($is_link) { ?>
+                <dl class="view_link">
+                    <dt>링크</dt>
+                    <dd>
+                        <ul>
+                            <? for ($i=1; $i<=2; $i++) { ?>
+                                <? if ($BBS_DATA['wr_link'.$i]) { ?>
+                                    <li><a href="<?=$BBS_DATA['wr_link'.$i]?>" target="_blank"><i class="fa fa-link" aria-hidden="true"></i> <?=$BBS_DATA['wr_link'.$i]?></a></li>
+                                <? }?>
+                            <? } ?>
+                        </ul>
+                    </dd>
+                </dl>
+            <? } ?>
+
+            <? if ($is_file) { ?>
+                <dl class="view_file">
+                    <dt>첨부파일</dt>
+                    <dd>
+                        <ul>
+                            <? for ($i=0; $i<$BBS_VAL['dm_upload_count']; $i++) { ?>
+                                <? if (is_file($_VAR_PATH_WEB_DATA.'file/'.$file_array[$i])) { ?>
+                                    <li>
+                                        <img src="<?=$BBS_URL?>/images/file.png">
+                                        <a href="<?=$_VAR_URL_WEB_BOARD?>file_download.php?file_name=<?=urlencode($file_array[$i])?>&ori_file_name=<?=$file_ori_array[$i]?>" target="_blank"><?=$file_ori_array[$i]?></a>
+                                    </li>
+                                <? } ?>
+                            <? } ?>
+                        </ul>
+                    </dd>
+                </dl>
+            <? } ?>
+            <? if ($is_sns) { ?>
+                <div class="share_box">
+                    <ul class="share_list">
+                        <li>
+                            <a href="javascript:facebooxShare('<?=$current_url?>');" class="facebook">페이스북</a>
+                        </li>
+                        <li>
+                            <span onclick="naverShare('<?=$current_url?>', '<?=$CONFIG['dm_title']?>');">
+                            <script type="text/javascript" src="https://ssl.pstatic.net/share/js/naver_sharebutton.js"></script>
+                            <script type="text/javascript">
+                            new ShareNaver.makeButton({"type": "c"});
+                            </script>
+                            </span>
+                        </li>
+                        <li>
+                            <a href="javascript:twitterShare('<?=$current_url?>', '<?=$CONFIG['dm_title']?>');" class="twitter">트위터</a>
+                        </li>
+                    </ul>
+                </div>
+            <? } ?>
+            
+            
+    </div><!--//companyViewBox-->
+</div><!--//companyView-->
+    
+    
+    
+	<div class="view_btn">
+		<div class="view_btn_wrap">
+			<? if ($write_href) { ?>
+				<a href="<?=$write_href?>" class="btn_write">글쓰기</a>
+			<? } ?>
+			<?
+			if ($use_reply) {
+				if ($reply_href) {
+					echo '<a href="'.$reply_href.'" class="btn_write">글답변</a>';
+				}
+			}
+			?>
+			<? if ($modify_href) { ?>
+				<a href="<?=$modify_href?>" class="btn_write">글수정</a>
+			<? } ?>
+			<? if ($delete_href) { ?>
+				<a href="<?=$delete_script?>" class="btn_write">글삭제</a>
+			<? } ?>
+		</div>
+		<div class="view_btn_wrap02">
+			<ul>
+				<li><a href="?command=list&contentId=<?=$contentId?>&page_no=<?=$page_num?>&cate=<?=$cate?>" class="list_btn">목록</a></li>
+			</ul>
+		</div>
+	</div>
+
+    <?
+    if ($use_comment) {
+        include ('bbs_comment.html');
+    }
+    ?>
+    <? if ($is_prev) { ?>
+    <ul class="nb_ul">
+        <? if ($prev_href) { ?>
+            <li class="btn_prev"><span class="nb_tit"><i class="fa fa-chevron-up" aria-hidden="true"></i> 이전글</span><a href="<?=$prev_href?>"><?=$prev_wr_subject?></a><span class="nb_date"><?=$prev_wr_date?></span></li>
+        <? } else { ?>
+            <li class="btn_prev"><span class="nb_tit"><i class="fa fa-chevron-up" aria-hidden="true"></i> 이전글</span>이전 게시글이 존재하지 않습니다.</li>
+        <? } ?>
+
+        <? if ($next_href) { ?>
+            <li class="btn_next"><span class="nb_tit"><i class="fa fa-chevron-down" aria-hidden="true"></i> 다음글</span><a href="<?=$next_href?>"><?=$next_wr_subject?></a><span class="nb_date"><?=$next_wr_date?></span></li>
+        <? } else { ?>
+            <li class="btn_next"><span class="nb_tit"><i class="fa fa-chevron-down" aria-hidden="true"></i> 다음글</span> 이전 게시글이 존재하지 않습니다.</li>
+        <? } ?>
+    </ul>
+    <? } ?>
+</div>
+
+<? include ('bbs_secret.html') ?>
+
+<?
+if ($is_use_list) {
+    include ('bbs_view_list.html');
+}
+?>
+
+<script>
+    function removeBoard() {
+        if(confirm("정말 삭제하시겠습니까?")) {
+            $.ajax({
+                url :'<?=$delete_href?>',
+                type:'get',
+                dataType:'json',
+                success : function (data) {
+                    if (data.result == 'success') {
+                        alert(data.notice);
+                        location.href='<?=$_VAR_URL_WEB?>?contentId=<?=$contentId?>';
+                    } else {
+                        alert("글 삭제에 실패했습니다. 사유 ["+data.notice+"]");
+                    }
+                }
+            });
+        }
+    }
+
+    $(function () {
+        $(".good").off().on('click', function () {
+            <? if (!getSession("chk_dm_id")) { ?>
+                alert ("로그인 후 가능합니다. 로그인 후 이용해주세요");
+            <? } else { ?>
+            var wr_id = $(this).data("id");
+            $.ajax({
+                url : "<?=$good_url?>"+'&wr_id='+wr_id,
+                dataType:"json",
+                type:"post",
+                success: function (data) {
+                    if (data.result == 'success') {
+                        alert(data.notice);
+                        location.reload();
+                    } else {
+                        alert("공감에 실패했습니다. 사유 ["+data.notice+"]");
+                    }
+                }
+            });
+            <? } ?>
+        });
+
+        $(".bad").off().on('click', function () {
+            <? if (!getSession("chk_dm_id")) { ?>
+            alert ("로그인 후 가능합니다. 로그인 후 이용해주세요");
+            <? } else { ?>
+            var wr_id = $(this).data("id");
+            $.ajax({
+                url : "<?=$nogood_url?>"+'&wr_id='+wr_id,
+                dataType:"json",
+                type:"post",
+                success: function (data) {
+                    if (data.result == 'success') {
+                        alert(data.notice);
+                        location.reload();
+                    } else {
+                        alert("공감에 실패했습니다. 사유 ["+data.notice+"]");
+                    }
+                }
+            });
+            <? } ?>
+        });
+    });
+</script>

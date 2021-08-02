@@ -1,0 +1,241 @@
+<?
+require('../../lib/page_header.php');
+include "../../lib/smarteditor2/editor.lib.php";
+$db = new DBSQL();
+$db->DBconnect();
+$query = "SELECT * FROM dm_config WHERE dm_domain_id = '" . getSession("site_id") . "'";
+
+$db->ExecSql($query, "S");
+
+$row = $db->Fetch();
+
+$policy_html = editor_html('dm_policy_text', $row['dm_policy_text'], true);
+$policy_js = '';
+$policy_js .= get_editor_js('dm_policy_text', true);
+$policy_js .= chk_editor_js('dm_policy_text', true);
+
+$private_html = editor_html('dm_private_text', $row['dm_private_text'], true);
+$private_js = '';
+$private_js .= get_editor_js('dm_private_text', true);
+$private_js .= chk_editor_js('dm_private_text', true);
+
+$member_html = editor_html('dm_member_text', $row['dm_member_text'], true);
+$member_js = '';
+$member_js .= get_editor_js('dm_member_text', true);
+$member_js .= chk_editor_js('dm_member_text', true);
+
+$no_member_html = editor_html('dm_no_member_text', $row['dm_no_member_text'], true);
+$no_member_text_js = '';
+$no_member_text_js .= get_editor_js('dm_no_member_text', true);
+$no_member_text_js .= chk_editor_js('dm_no_member_text', true);
+
+$information_html = editor_html('dm_information_text', $row['dm_information_text'], true);
+$information_js = '';
+$information_js .= get_editor_js('dm_information_text', true);
+$information_js .= chk_editor_js('dm_information_text', true);
+
+$leave_html = editor_html('dm_leave_text', $row['dm_leave_text'], true);
+$leave_js = '';
+$leave_js .= get_editor_js('dm_leave_text', true);
+$leave_js .= chk_editor_js('dm_leave_text', true);
+
+?>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false" class="title">
+        <h1><?=$current_page_info['dm_view_title']?></h1>
+        <div class="btnWrap">
+            <button id="fnSave">저장</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <form id="fm" name="fm" enctype="multipart/form-data">
+            <input type="hidden" name="dm_id" value="<?= getSession('site_id'); ?>"/>
+            <input type="hidden" name="dm_mode" id='dm_mode' value="page_insert"/>
+            <!--        <ul class="Tabs">-->
+            <!--            <li class="on" id="tab_1"><a onclick="Chtab('tab',1,4);Ch_Class('tab_',1,4,'on');">이용약관</a></li>-->
+            <!--            <li id="tab_2"><a onclick="Chtab('tab',2,4);Ch_Class('tab_',2,4,'on');">개인정보 취급방침</a></li>-->
+            <!--            <li id="tab_3"><a onclick="Chtab('tab',3,4);Ch_Class('tab_',3,4,'on');">개인정보수집 안내</a></li>-->
+            <!--            <li id="tab_4"><a onclick="Chtab('tab',4,4);Ch_Class('tab_',4,4,'on');">이용/탈퇴안내</a></li>-->
+            <!--        </ul>-->
+            <div class="page" id="tab1">
+                <h3>이용약관 설정</h3>
+                <dl>
+                    <dt>사이트하단 출력</dt>
+                    <dd>
+                        <input name="dm_policy_use" type="radio" id="dm_policy_use" value="y"><label
+                                for="dm_policy_use">사용함</label> &nbsp;
+                        <input name="dm_policy_use" id="dm_policy_not_use" type="radio" value="n"><label
+                                for="dm_policy_not_use">사용안함</label> &nbsp;
+                        <em>'사용안함' 선택시 사이트하단 메뉴 노출 안됨</em>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>내용</dt>
+                    <dd><?= $policy_html ?></dd>
+                </dl>
+                <h3>개인정보취급방침 설정</h3>
+                <dl>
+                    <dt>사이트하단 출력</dt>
+                    <dd><input name="dm_private_use" type="radio" id="dm_private_use" value="y"><label for="dm_private_use">사용함</label> &nbsp;
+                        <input name="dm_private_use" type="radio" id="dm_private_not_use" value="n"><label for="dm_private_not_use">사용안함</label>
+                        <em>'사용안함' 선택시 사이트하단 메뉴 노출 안됨</em>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>내용</dt>
+                    <dd><?=$private_html?></dd>
+                </dl>
+
+                <h3>개인정보관리자 설정</h3>
+                <div class="half">
+                    <dl>
+                        <dt>담당자 이름</dt>
+                        <dd><input name="dm_private_name" id="dm_private_name" type="text"></dd>
+                    </dl>
+                    <dl>
+                        <dt>담당자 직책/부서</dt>
+                        <dd><input name="dm_private_group" id="dm_private_group" type="text"></dd>
+                    </dl>
+                    <dl>
+                        <dt>담당자 연락처</dt>
+                        <dd><input name="dm_private_tel" id="dm_private_tel" type="text"></dd>
+                    </dl>
+                    <dl>
+                        <dt>담당자 이메일</dt>
+                        <dd><input name="dm_private_email" id="dm_private_email" type="text"></dd>
+                    </dl>
+                </div>
+                <h3>회원 대상 동의항목 설정</h3>
+                <dl>
+                    <dt>내용</dt>
+                    <dd><?= $member_html ?></dd>
+                </dl>
+
+                <h3>비회원 대상 동의항목 설정</h3>
+                <dl>
+                    <dt>내용</dt>
+                    <dd><?= $no_member_html ?></dd>
+                </dl>
+
+                <h3>이용안내</h3>
+                <dl>
+                    <dt>사이트하단 출력</dt>
+                    <dd><input name="dm_information_use" id="dm_information_use" type="radio" value="y"><label for="dm_information_use">사용함</label> &nbsp;
+                        <input name="dm_information_use" id="dm_information_not_use" type="radio" value="n"><label for="dm_information_not_use">사용안함</label> &nbsp;
+                        <em>'사용안함' 선택시 사이트하단 메뉴 노출 안됨</em>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>내용</dt>
+                    <dd><?= $information_html ?></dd>
+                </dl>
+
+                <h3>탈퇴안내</h3>
+                <dl>
+                    <dt>내용</dt>
+                    <dd><?= $leave_html ?></dd>
+                </dl>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    $(function () {
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        function fnSave() {
+
+            <?php echo $editor_js; // 에디터 사용시 자바스크립트에서 내용을 폼필드로 넣어주며 내용이 입력되었는지 검사함   ?>
+            <?php echo $policy_js; // 에디터 사용시 자바스크립트에서 내용을 폼필드로 넣어주며 내용이 입력되었는지 검사함   ?>
+            <?php echo $member_js; // 에디터 사용시 자바스크립트에서 내용을 폼필드로 넣어주며 내용이 입력되었는지 검사함   ?>
+            <?php echo $no_member_text_js; // 에디터 사용시 자바스크립트에서 내용을 폼필드로 넣어주며 내용이 입력되었는지 검사함   ?>
+            <?php echo $information_js; // 에디터 사용시 자바스크립트에서 내용을 폼필드로 넣어주며 내용이 입력되었는지 검사함   ?>
+            <?php echo $leave_js; // 에디터 사용시 자바스크립트에서 내용을 폼필드로 넣어주며 내용이 입력되었는지 검사함   ?>
+            <?php echo $private_js; // 에디터 사용시 자바스크립트에서 내용을 폼필드로 넣어주며 내용이 입력되었는지 검사함   ?>
+
+            var mode = $("#dm_mode").val();
+            // var dm_site_name = $.trim($("#dm_site_name").textbox('getValue'));
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url: "<?=$_VAR_PATH_BIZ?>app/mng_setting.php?type=" + mode,
+                data: formData,
+                dataType: "json",
+                type: "post",
+                contentType: false,
+                processData: false,
+                success: function (data) {
+
+                    var icon = 'warning';
+                    if (data.result == "success") {
+                        icon = 'info';
+                    }
+                    $.messager.alert({title:'알림', msg:data.notice, fn:function (){
+                            location.reload();
+                    }});
+                }
+            });
+        }
+
+        function selectedDg() {
+            var dm_domain_id = '<?=getSession('site_id');?>';
+            if (dm_domain_id != "") {
+                $.ajax({
+                    url: "<?=$_VAR_PATH_BIZ?>app/mng_setting.php?type=select",
+                    type: "POST",
+                    cache: false,
+                    async: true,
+                    dataType: "json",
+                    data: "",
+                    success: function (data) {
+
+                        if (data.result == "success") {
+                            // $("#dm_private_text").val(data.row.dm_private_text);
+                            // $("#dm_policy_text").val(data.row.dm_policy_text);
+                            $("#dm_private_name").val(data.row.dm_private_name);
+                            $("#dm_private_group").val(data.row.dm_private_group);
+                            $("#dm_private_email").val(data.row.dm_private_email);
+                            $("#dm_private_tel").val(data.row.dm_private_tel);
+
+                            if (data.row.dm_policy_use == 'y') {
+                                $("#dm_policy_use").prop("checked", true);
+                            } else {
+                                $("#dm_policy_not_use").prop("checked", true);
+                            }
+
+                            if (data.row.dm_private_use == 'y') {
+                                $("#dm_private_use").prop("checked", true);
+                            } else {
+                                $("#dm_private_not_use").prop("checked", true);
+                            }
+
+                            if (data.row.dm_information_use == 'y') {
+                                $("#dm_information_use").prop("checked", true);
+                            } else {
+                                $("#dm_information_not_use").prop("checked", true);
+                            }
+
+
+                        } else if (data.result == "fail") {
+                            $.messager.alert('이력없음', '사이트 정보가 존재하지 않습니다.', 'warning');
+                        }
+                    }, error: function (request, status, error) {
+                        alert("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
+                    }
+                });
+            }
+        }
+
+        selectedDg();
+    });
+
+</script>
+
+
+<?
+require('../../lib/page_bottom.php');
+?>
+    

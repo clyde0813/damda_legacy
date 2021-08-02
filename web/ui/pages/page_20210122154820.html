@@ -1,0 +1,17 @@
+<?
+if (!getSession("chk_dm_id")) {
+    alert("잘못된 접근입니다.", "?contentId=c13406bf526e9fee2bed34ab6f2125f6");
+    exit;
+}
+?>
+<style>
+.contentWrap{float:inherit;width:inherit;max-width: 1240px;}
+</style>
+<div id="Mypage">
+    <div class="titbox">
+        <h3 class="mypage_subtitle"><strong class="poi"><?=getSession("chk_dm_id")?> (<?=$MEMBER['dm_nick']?>)</strong></h3>
+        <p class="etctxt">가로로 스크롤 할 수 있습니다.</p>
+    </div>    
+    
+    <? require ($_VAR_PROG_ROOT_PATH.'mypage_bank.php'); ?>
+</div>

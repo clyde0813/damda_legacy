@@ -1,0 +1,171 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+<script>
+    $(function () {
+        function fnRemove() {
+            var ids = [];
+            var rows = $('#dg').datagrid('getChecked');
+
+            if (rows.length > 0) {
+                for(var i=0; i<rows.length; i++){
+                    ids.push(rows[i].dm_id);
+                }
+
+                $.each(ids, function (index, value) {
+                        $.post('<?=$_VAR_PATH_BIZ?>app/mng_vote.php?type=delete_delete',{dm_id:value},function(result){
+                            if (result.success){
+                                console.log(result);
+                            }
+                        },'json')
+                    }
+
+                );
+                $('#dg').datagrid('reload');    // reload the user data
+            } else {
+                $.messager.alert('경고', "삭제할 항목을 선택해주세요", 'warning');
+            }
+        }
+
+        function doSearch() {
+            var search_type = $('#search_type').val();
+            var search_value = $('#stx').val();
+            var search_vote = $('#search_vote').val();
+
+            $('#dg').datagrid('load',
+                {
+                    search_type : encodeURIComponent(search_type),
+                    search_value : encodeURIComponent(search_value),
+                    search_vote : encodeURIComponent(search_vote)
+                })
+        }
+
+        $('#dg').datagrid({
+            emptyMsg:'데이터가 없습니다.'
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    fnRemove();
+                }
+            });
+        });
+
+        $("#search_btn").off().on('click', function () {
+            doSearch();
+        });
+
+        $("#stx").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+        $("#detail_search").off().on('click', function () {
+            $("#Dsearch").toggle();
+        });
+
+        $.ajax({
+            url :"<?=$_VAR_PATH_BIZ ?>app/mng_vote.php?type=select",
+            dataType:"json",
+            success : function (data) {
+                $("#search_vote").empty();
+                $("#search_vote").append("<option value='전체'>전체</option>");
+                $.each(data, function (key, value) {
+                    $("#search_vote").append("<option value='"+value.dm_id+"'>"+value.dm_vote_name+"</option>")
+                });
+            }
+        });
+    });
+
+    function allList() {
+        $("#search_type").val('all');
+        $("#stx").val('');
+        $("#search_vote").val('전체');
+        $("#dg").datagrid('load', {
+            search_type: '',
+            search_value : '',
+            search_vote : ''
+        });
+    }
+
+</script>
+
+<div class="easyui-layout" style="width:700px;height:350px;" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1><?=$current_page_info['dm_view_title']?></h1>
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>투표</strong></dt>
+                    <dd>
+                        <select id="search_vote" name="search_vote"></select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><strong>통합검색</strong></dt>
+                    <dd>
+                        <select name="search_type" id="search_type">
+                            <option value="all">통합검색</option>
+                            <option value="b.dm_vote_name">제목</option>
+                            <option value="b.dm_start_dt">시작일</option>
+                            <option value="b.dm_end_dt">종료일</option>
+                            <option value="b.dm_create_dt">등록일</option>
+                            <option value="a.mb_id">아이디</option>
+                        </select>
+                        <input type="text" name="search_value" value="" id="stx">
+                    </dd>
+                </dl>
+            </div>
+            <button class="btn bt00" id="search_btn">검색</button>
+            <button class="btn" onclick="allList()">초기화</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <table id="dg"
+               class="easyui-datagrid" fit="true" border="false"
+               data-options="pagePosition:'top',rownumbers:true,pagination:true, singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_vote.php?type=vote_detail',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false,footer:'#ft'"
+               pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+            <thead>
+            <tr>
+                <th data-options="field:'ck',width:100,align:'center',checkbox:true,
+            editor:{
+                type:'checkbox',
+                options:{
+                    on:'Y',
+                    off:'N'
+                }
+            }">-</th>
+                <th data-options="field:'dm_vote_name',width:200,align:'center'">투표제목</th>
+                <th data-options="field:'dm_category_text',width:200,align:'center'">카테고리</th>
+                <th data-options="field:'vote_text',width:200,align:'center'">투표항목</th>
+                <th data-options="field:'mb_id',width:200,align:'center'">아이디</th>
+                <th data-options="field:'dm_datetime',width:200,align:'center'">투표일</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+    <div data-options="region:'south'">
+        <dl class="Tbottom">
+            <dd>
+                <button class="btn" id="fnRemove">선택삭제</button>
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<?
+require('../../lib/page_bottom.php');
+?>

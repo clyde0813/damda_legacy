@@ -1,0 +1,369 @@
+<link rel="stylesheet" href="<?=$layout_path?>css/board.css">
+<script src="http://malsup.github.com/jquery.form.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<?
+if ($command=='write_form') {
+    $com = "write";
+} else if ($command == 'modify_form')
+{
+    $com = "update";
+
+} else if ($command == 'reply_form')
+{
+    $com = "reply";
+}
+
+$editor_html1 = editor_html('dm_append_15', $BBS_DATAS['dm_append_15'], true);
+$editor_js1 = '';
+$editor_js1 .= get_editor_js('dm_append_15', true);
+$editor_js1 .= chk_editor_js('dm_append_15', true);
+
+
+?>
+
+<form method="post" action="<?=$_VAR_URL_WEB_BOARD?>command.php" onsubmit="return regForm();" enctype="multipart/form-data" id="fm_writer">
+    <input type="hidden" name="wr_id" value="<?=$wr_id?>" />
+    <input type="hidden" name="command" value="<?=$com?>" />
+    <input type="hidden" name="contentId" value="<?=$contentId?>" />
+    <input type="hidden" name="mb_id" value="<?=getSession('chk_dm_id')?>" />
+
+
+    <? if ($is_admin || $is_board_admin) { ?>
+    <table class="table_type_02 mb20">
+        <caption><?=$BBS_VAL['dm_subject']?> 게시글 카테고리메인 등록</caption>
+		<colgroup>
+			<col width="20%"/>
+			<col width="*"/>
+		</colgroup>
+        <tr>
+            <th><label for="dm_append_14">상단 고정 여부</label></th>
+            <td>
+                <select name="dm_append_14" id="dm_append_14" class="wd30">
+                    <option>선택해주세요</option>
+                    <option value="1" <? if ($BBS_DATAS['dm_append_14'] == 1) echo "selected" ?>>고정</option>
+                    <option value="2" <? if ($BBS_DATAS['dm_append_14'] == 2) echo "selected" ?>>고정안함</option>
+                </select>
+                <p class="etc">*고정일 경우 카테고리 리스트 상단에 노출됩니다.</p>
+            </td>
+        </tr>
+        <tr>
+            <th><label for="dm_append_16">상단 고정시 순서</label></th>
+            <td>
+                <input type="text" name="dm_append_16" id="dm_append_16" value="<?=$BBS_DATAS['dm_append_16']?>" placeholder="숫자만 입력해주세요" class="wd30"/>
+                <p class="etc">*숫자 0에 가까울수록 먼저 노출됩니다.</p>
+            </td>
+        </tr>
+        <tr>
+            <th><label for="dm_append_17">상단 고정시 노출 기간</label></th>
+            <td>
+                <input type="text" name="dm_append_17" id="dm_append_17" value="<?=$BBS_DATAS['dm_append_17']?>" autocomplete="off" class="wd30" /> ~
+                <input type="text" name="dm_append_18" id="dm_append_18" value="<?=$BBS_DATAS['dm_append_18']?>" autocomplete="off" class="wd30" />
+                 <p class="etc">*기간을 입력하지 않으면 노출되지 않습니다.</p>
+            </td>           
+        </tr>
+    </table>
+    <? } else { ?>
+        <input type="hidden" name="dm_append_14" value="<?=$BBS_DATAS['dm_append_14']?>" />
+        <input type="hidden" name="dm_append_16" value="<?=$BBS_DATAS['dm_append_16']?>" />
+        <input type="hidden" name="dm_append_17" value="<?=$BBS_DATAS['dm_append_17']?>" />
+        <input type="hidden" name="dm_append_18" value="<?=$BBS_DATAS['dm_append_18']?>" />
+    <? } ?>
+    
+    
+    
+	<table class="table_type_02">
+		<caption><?=$BBS_VAL['dm_subject']?> 게시글 등록 테이블 입니다.</caption>
+		<colgroup>
+			<col width="20%"/>
+			<col width="*"/>
+		</colgroup>
+		<tbody>
+			<!-- 공지사항, 비밀글, html사용, 답변메일사용 -->
+			<?
+			if ($is_notice || $is_secret || $is_mail) {
+				$option = "<tr><th><label>옵션</label></th><td class='option'>";
+				$option_hidden = '';
+
+				if (!$BBS_DATAS['wr_reply']) {
+					// 공지사항
+					if($is_notice && $is_admin) {
+						$option .= '<input type="checkbox" id="notice" name="notice"  value="1" '.$notice_checked.'><label for="notice"> 공지</label>&nbsp;&nbsp;&nbsp;';
+					}
+				}
+				// 비밀글
+				if ($is_secret) {
+					$is_admin = false;
+					if ($is_admin || $is_secret==1) {
+						$option .= '<input type="checkbox" id="secret" name="secret" value="secret" '.$secret_checked.'><label for="secret"> 비밀글</label>&nbsp;&nbsp;&nbsp;';
+					} else if ($is_secret == 2) {
+						$option_hidden .= '<input type="hidden" name="secret" value="secret">';
+					}
+				}
+
+				// html 사용
+				if ($is_html) {
+					$option_hidden .= '<input type="hidden" value="html1" name="html">';
+				}
+
+				// 답변메일 받기
+				if ($is_mail) {
+					$option .= '<input type="checkbox" id="mail" name="mail"  value="mail" '.$recv_email_checked.'><label for="mail"> 답변메일받기</label>';
+				}
+
+				$option .= "</td></tr>";
+			}
+			echo $option_hidden;
+			?>
+			<!-- 공지사항, 비밀글, html사용, 답변메일사용 끝-->
+			<!-- 카테고리 -->
+			<? if ($is_category) { ?>
+				<tr>
+					<th><label for="ca_name">분류</label></th>
+					<td>
+						<select name="ca_name" id="ca_name">
+							<? foreach ($category_array as $value) { ?>
+								<option value="<?=$value?>" <? if ($value == $BBS_DATAS['ca_name']) echo "selected"?>><?=$value;?></option>
+							<? } ?>
+						</select>
+					</td>
+				</tr>
+			<? } ?>
+			<!-- 카테고리 영역 끝-->
+
+			<!-- 공지사항, 비밀글, html사용, 답변메일사용 옵션-->
+			<?=$option?>
+			<!-- 공지사항, 비밀글, html사용, 답변메일사용 옵션 -->
+			<? if ($is_name) { ?>
+				<tr class="name">
+					<th><label for="txt_name" class="sound_only">이름</label></th>
+					<td><input type="text" name="txt_name" value="<?=($command=='modify_form') ? $BBS_DATAS['wr_name'] : getSession('chk_dm_name')?>" id="txt_name" required placeholder="이름"></td>
+				</tr>
+			<? } else { ?>
+				<input type="hidden" name="txt_name" value="<?=getSession('chk_dm_name')?>" />
+			<? } ?>
+
+			<? if(!getSession("chk_dm_id")) { ?>
+				<tr>
+					<th><label for="txt_password" class="sound_only">비밀번호</label></th>
+					<td><input type="password" name="txt_password" value="" id="txt_password" placeholder="비밀번호" ></td>
+				</tr>
+			<? } else { ?>
+				<tr style="display:none;" id="txt_password_dl">
+					<th><label for="txt_password" class="sound_only">비밀번호</label></th>
+					<td><input type="password" name="txt_password" value="" id="txt_password" placeholder="비밀번호" ></td>
+				</tr>
+			<? } ?>
+            <tr>
+                <th><label for="dm_append_1">회사명</label></th>
+                <td><input type="text" id="dm_append_1" name="dm_append_1" value='<?=$BBS_DATAS['dm_append_1']?>'/></td>
+            </tr>
+            <tr>
+                <th><label for="dm_append_2">사업분야</label></th>
+                <td><input type="text" id="dm_append_2" name="dm_append_2" value='<?=$BBS_DATAS['dm_append_2']?>'/></td>
+            </tr>
+            <tr>
+                <th><label for="dm_append_3">대표자명</label></th>
+                <td><input type="text" id="dm_append_3" name="dm_append_3" value='<?=$BBS_DATAS['dm_append_3']?>'/></td>
+            </tr>
+            <tr>
+                <th><label for="dm_append_4">소재지</label></th>
+                <td><input type="text" id="dm_append_4" name="dm_append_4" value='<?=$BBS_DATAS['dm_append_4']?>'/></td>
+            </tr>
+            <tr>
+                <th><label for="dm_append_5">설립일</label></th>
+                <td><input type="text" id="dm_append_5" name="dm_append_5" value='<?=$BBS_DATAS['dm_append_5']?>'/></td>
+            </tr>
+            <tr>
+                <th><label for="dm_append_6">홈페이지</label></th>
+                <td><input type="text" id="txt_homepage" name="txt_homepage" value='<?=$BBS_DATAS['wr_homepage']?>' autocomplete="off"/></td>
+            </tr>
+            <tr>
+                <th><label for="dm_append_7">기업형태</label></th>
+                <td><input type="text" id="dm_append_7" name="dm_append_7" value='<?=$BBS_DATAS['dm_append_7']?>'/></td>
+            </tr>
+            <tr>
+                <th><label for="dm_append_9">자본금</label></th>
+                <td><input type="text" id="dm_append_9" name="dm_append_9" value='<?=$BBS_DATAS['dm_append_9']?>'/></td>
+            </tr>
+            <tr>
+                <th><label for="dm_append_8">매출액</label></th>
+                <td><input type="text" id="dm_append_6" name="dm_append_6" value='<?=$BBS_DATAS['dm_append_6']?>'/></td>
+            </tr>
+            <tr>
+            <th><label for="dm_append_13">*투자정보 노출 여부</label></th>
+            <td>
+                <select name="dm_append_13" id="dm_append_13" class="wd50">
+                    <option>노출 여부 선택</option>
+                    <option value="1" <? if ($BBS_DATAS['dm_append_13'] == 1) echo "selected" ?>>비공개</option>
+                    <option value="2" <? if ($BBS_DATAS['dm_append_13'] == 2) echo "selected" ?>>공개</option>
+                </select>
+                <p class="etc">*공개일경우 회원 모두 노출됩니다.</p>
+            </td>
+            </tr>
+            <tr>
+                <th><label for="dm_append_10">(*투자정보) 희망 투자 단계</label></th>
+                <td><input type="text" id="dm_append_10" name="dm_append_10" value='<?=$BBS_DATAS['dm_append_10']?>'/></td>
+            </tr>
+            <tr>
+                <th><label for="dm_append_11">(*투자정보) 희망 투자유치 금액</label></th>
+                <td><input type="text" id="dm_append_11" name="dm_append_11" value='<?=$BBS_DATAS['dm_append_11']?>'/></td>
+            </tr>
+            <tr>
+                <th><label for="dm_append_12">(*투자정보) 누적 투자 금액</label></th>
+                <td><input type="text" id="dm_append_12" name="dm_append_12" value='<?=$BBS_DATAS['dm_append_12']?>'/></td>
+            </tr>
+
+            <tr>
+                <th><label for="txt_subject">제목</label></th>
+                <td><input type="text" id="txt_subject" name="txt_subject" value='<?=$BBS_DATAS['wr_subject']?>'/></td>
+            </tr>
+            <tr>
+				<th><label for="txt_content">회사소개 </label></th>
+				<td>
+                    <?=$editor_html1?>
+                </td>
+			</tr>
+            <tr>
+				<th><label for="txt_content">서비스소개</label></th>
+				<td><?=$editor_html?></td>
+				<!--            <dd><textarea rows="10" style="width:98%;" id="txt_content" name="txt_content">--><?//=$BBS_DATAS['wr_content']?><!--</textarea></dd>-->
+			</tr>
+
+			<?php for ($i=1; $is_link && $i<=2; $i++) { ?>
+				<tr>
+					<th><label for="txt_link<?php echo $i ?>"><i class="fa fa-link" aria-hidden="true"></i> 링크  #<?php echo $i ?></label></th>
+					<td><input type="text" name="txt_link<?php echo $i ?>" value="<?=$BBS_DATAS['wr_link'.$i]?>" id="txt_link<?php echo $i ?>" class="frm_input full_input" size="50"></td>
+				</tr>
+			<?php } ?>
+
+			<?
+			for ($i=0; $is_file && $i<$BBS_VAL['dm_upload_count']; $i++) { ?>
+				<tr>
+					<th><label for="">회사이미지</label></th>
+					<td>
+						<div class="filebox">
+							<input class="upload-name" value="파일선택" disabled="disabled">
+							<label for="ex_filename[<?=$i+1?>]">업로드</label>
+							<input type="file" id="ex_filename[<?=$i+1?>]" class="upload-hidden" name="ex_filename[<?=$i+1?>]">
+
+							<? if (is_file($_VAR_PATH_WEB_DATA.'file/'.$file_array[$i])) { ?>
+								<span><label>삭제 <input type="checkbox" name="del_file[<?=$i+1?>]" value="1"/></label></span>
+								<span><a href="<?=$_VAR_URL_WEB_DATA?>file/<?=$file_array[$i]?>" target="_blank"><?=$ori_file_array[$i]?></a></span>
+							<? } ?>
+						</div>
+					</td>
+				</tr>
+			<? } ?>
+        </tbody>
+	</table>
+    <?php if ($is_use_captcha) { //자동등록방지  ?>
+		<div class="write_capcha">
+			<?php echo $captcha_html ?>
+		</div>
+	<?php } ?>
+	<div class="write_btn_wrap">
+        <a href="?command=list&contentId=<?=$contentId?>&page_no=<?=$page_num?>&cate=<?=$cate?>" class="btn_cancle">취소</a>
+        <input type="submit" class="btn_submit" value="확인" style="cursor: pointer;">
+    </div>
+</form>
+
+<script>
+
+    $(document).ready(function(){
+        var fileTarget = $('.filebox .upload-hidden'); fileTarget.on('change', function(){// 값이 변경되면
+            if(window.FileReader){ // modern browser
+                var filename = $(this)[0].files[0].name;
+            } else { // old IE
+                var filename = $(this).val().split('/').pop().split('\\').pop(); // 파일명만 추출
+            }
+
+            // 추출한 파일명 삽입
+            $(this).siblings('.upload-name').val(filename);
+
+        });
+
+        $('#fm_writer').ajaxForm({
+            async: true,
+            // dataType identifies the expected content type of the server response
+            dataType:  'json',
+            // success identifies the function to invoke when the server response
+            // has been received
+            success : function (data) {
+                if (data.result == 'success') {
+                    alert(data.notice);
+                    location.href='?contentId=<?=$contentId?>&page_no=<?=$page_num?>&sType=<?=$sType?>&sValue=<?=$sValue?>&cate=<?=$cate?>&sPhoto=<?=$sPhoto?>';
+                } else {
+                    alert("글 등록에 실패했습니다. 사유 ["+data.notice+"]");
+                }
+            }
+        });
+
+        $("#secret").off().on('change', function () {
+            if ($(this).is(":checked")) {
+                $("#txt_password_dl").show();
+            } else {
+                $("#txt_password_dl").hide();
+            }
+        });
+    });
+
+    function regForm() {
+        <? if($command != 'reply_form') { ?>
+        if ($("#secret").is(":checked")) {
+            if($("#txt_password").val() == "") {
+                alert('비밀번호를 입력해주세요');
+                return false;
+            }
+        }
+        <? } ?>
+
+        <? if (!getSession('chk_dm_id')) { ?>
+        if($("#txt_password").val() == "") {
+            alert('비밀번호를 입력해주세요');
+            return false;
+        }
+        <? } ?>
+        <?php echo $editor_js; // 에디터 사용시 자바스크립트에서 내용을 폼필드로 넣어주며 내용이 입력되었는지 검사함   ?>
+        <?php echo $captcha_js; // 캡챠 사용시 자바스크립트에서 입력된 캡챠를 검사함  ?>
+        <?php echo $editor_js1; // 캡챠 사용시 자바스크립트에서 입력된 캡챠를 검사함  ?>
+    }
+
+    $("#dm_append_17").datepicker({
+        dateFormat: "yy-mm-dd", // 텍스트 필드에 입력되는 날짜 형식.
+        dayNamesMin: ['월', '화', '수', '목', '금', '토', '일'], // 요일의 한글 형식.
+        monthNames: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+        monthNamesShort: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+        nextText: '다음 달',
+        prevText: '이전 달',
+        showButtonPanel: true, // 캘린더 하단에 버튼 패널을 표시한다.
+        currentText: '오늘 날짜' , // 오늘 날짜로 이동하는 버튼 패널
+        closeText: '닫기',  // 닫기 버튼 패널
+        onClose: function( selectedDate ) {
+            //시작일(startDate) datepicker가 닫힐때
+            //종료일(endDate)의 선택할수있는 최소 날짜(minDate)를 선택한 시작일로 지정
+            $("#dm_append_17").datepicker( "option", "minDate", selectedDate );
+        }
+    });
+
+    $.datepicker.setDefaults($.datepicker.regional['ko']);
+
+    $("#dm_append_18").datepicker({
+        dateFormat: "yy-mm-dd", // 텍스트 필드에 입력되는 날짜 형식.
+        dayNamesMin: ['월', '화', '수', '목', '금', '토', '일'], // 요일의 한글 형식.
+        monthNames: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+        monthNamesShort: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+        nextText: '다음 달',
+        prevText: '이전 달',
+        showButtonPanel: true, // 캘린더 하단에 버튼 패널을 표시한다.
+        currentText: '오늘 날짜' , // 오늘 날짜로 이동하는 버튼 패널
+        closeText: '닫기',  // 닫기 버튼 패널
+        onClose: function( selectedDate ) {
+            //시작일(startDate) datepicker가 닫힐때
+            //종료일(endDate)의 선택할수있는 최소 날짜(minDate)를 선택한 시작일로 지정
+        }
+    });
+
+
+
+</script>

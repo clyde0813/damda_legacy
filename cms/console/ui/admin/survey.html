@@ -1,0 +1,450 @@
+<?
+require('../../lib/page_header.php');
+?>
+
+<script>
+    $(function () {
+        function fnNew() {
+            $("#dm_id").val('');
+            $("#dm_survey_name").val('');
+            $("#dm_survey_question").val('');
+            $(".answer").remove();
+            $("#dm_answer_0").val('');
+            $("#dm_start_dt").datebox('setValue', '');
+            $("#dm_end_dt").datebox('setValue', '');
+            $("#dm_status").combobox('reload', '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1001');
+            $("#dm_mode").val('insert');
+        }
+
+        function fnSave() {
+            var dm_survey_name = $("#dm_survey_name").val();
+            var dm_start_dt = $("#dm_start_dt").datebox('getValue');
+            var dm_end_dt = $("#dm_end_dt").datebox('getValue');
+            var dm_survey_question = $("#dm_survey_question").val();
+
+            var dm_mode = $("#dm_mode").val();
+            var url = "<?=$_VAR_PATH_BIZ?>app/mng_survey.php?type="+dm_mode;
+
+            if (dm_mode != 'delete') {
+                if(dm_survey_name == "")
+                {
+                    $.messager.alert('입력오류','설문조사 제목을 입력해주세요.','warning');
+                    return;
+                }
+                if(dm_start_dt == "")
+                {
+                    $.messager.alert('입력오류','노출 시작일을 입력해주세요.','warning');
+                    return;
+                }
+                if(dm_end_dt == "")
+                {
+                    $.messager.alert('입력오류','노출 종료일을 입력해주세요.','warning');
+                    return;
+                }
+                if(dm_survey_question == "")
+                {
+                    $.messager.alert('입력오류','질문을 입력해주세요.','warning');
+                    return;
+                }
+                if (dm_start_dt > dm_end_dt) {
+                    $.messager.alert('입력오류','시작일이 종료일보다 빠를 수 없습니다','warning');
+                    return;
+                }
+            }
+
+            var mode = $("#dm_mode").val();
+            // var dm_site_name = $.trim($("#dm_site_name").textbox('getValue'));
+            var form = $("#fm")[0];
+            var formData = new FormData(form);
+
+            $.ajax({
+                url : url,
+                data : formData,
+                dataType: "json",
+                type : "post",
+                contentType: false,
+                processData: false,
+                success : function (data) {
+                    var icon = 'warning';
+                    if(data.result == "success") {
+                        $('#dg').datagrid('reload');
+                        $("#dm_mode").val('');
+                        fnNew();
+                        icon = 'info';
+                    }
+                    $.messager.alert('알림',data.notice,icon);
+                    closeDialog();
+                }
+            });
+        }
+
+        function fnRemove() {
+            var ids = [];
+            var rows = $('#dg').datagrid('getChecked');
+
+            if (rows.length > 0) {
+                for(var i=0; i<rows.length; i++){
+                    ids.push(rows[i].dm_id);
+                }
+
+                $.each(ids, function (index, value) {
+                        $.post('<?=$_VAR_PATH_BIZ?>app/mng_survey.php?type=delete',{dm_id:value},function(result){
+                            if (result.success){
+                                console.log(result);
+                            }
+                        },'json')
+                    }
+
+                );
+                $('#dg').datagrid('reload');    // reload the user data
+            } else {
+                $.messager.alert('경고', "삭제할 항목을 선택해주세요", 'warning');
+            }
+        }
+
+        function doSearch() {
+            var search_type = $('#search_type').val();
+            var search_value = $('#stx').val();
+            var search_status = $('#search_status').combobox('getValue');
+
+            $('#dg').datagrid('load',
+                {
+                    search_type : encodeURIComponent(search_type),
+                    search_value : encodeURIComponent(search_value),
+                    search_status : encodeURIComponent(search_status)
+                })
+        }
+
+        function closeDialog()
+        {
+            $("#dlg").dialog('close');
+        }
+
+        function closeDialog1()
+        {
+            $("#dlg1").dialog('close');
+        }
+
+        $('#dg').datagrid({
+            onDblClickCell : function(rowIndex, field, value) {
+                selectedDg(rowIndex);
+            },
+            emptyMsg:'데이터가 없습니다.'
+        });
+
+        closeDialog();
+        closeDialog1();
+
+        $("#fnNew").off().on('click', function () {
+            $("#dialog_title").text("설문조사 등록");
+            $("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+            fnNew();
+        });
+
+        $("#fnClose").off().on('click', function () {
+            closeDialog();
+        });
+
+        $("#fnClose1").off().on('click', function () {
+            closeDialog1();
+        });
+
+        $("#fnSave").off().on('click', function () {
+            fnSave();
+        });
+
+        $("#fnRemove").off().on('click', function () {
+            $.messager.confirm('경고', '정말로 삭제하시겠습니까?', function (r) {
+                if (r) {
+                    fnRemove();
+                }
+            });
+        });
+
+        $("#search_btn").off().on('click', function () {
+            doSearch();
+        });
+
+        $("#stx").keypress(function(e){
+            if(e.keyCode === 13){
+                e.preventDefault();
+                doSearch();
+            }
+        });
+
+        var pager = $('#dg').datagrid('getPager');
+        pager.pagination ({
+            showPageList: true,
+            layout:['info','sep','first','prev','links','next','last','list'],
+            displayMsg : "검색 <strong>{to}</strong> 개 / 전체 <strong>{total}</strong> 개"
+        });
+
+        $("#detail_search").off().on('click', function () {
+            $("#Dsearch").toggle();
+        });
+
+        $("#plus_answer").off().on('click', function () {
+            var answer_count = $("input.answer").length + 1;
+            if (answer_count > 9) {
+                $.messager.alert('경고', "답변은 최대 10개까지 가능합니다.", 'warning');
+                return false;
+            }
+
+            $(this).parent().append(
+                "<input type='text' name='dm_answer_"+answer_count+"' id='dm_answer_"+answer_count+"' value='' class='wd50 answer' style='margin-top:5px;' /> <br class='answer'>"
+            );
+        });
+
+        $(document).on('click', ".open_form", function () {
+            var currentRow = $('#dg').datagrid('getSelected');
+            $(".dm_survey_name").text(currentRow.dm_survey_name);
+            $(".dm_survey_question").text(currentRow.dm_survey_question);
+            $(".answer_dd").empty();
+            for (var i =0; i<currentRow.dm_answer.length; i++) {
+                $(".answer_dd").append(
+                    '<p>'+(i+1)+' '+currentRow.dm_answer[i]+' 득표수 : '+eval("currentRow.dm_answer"+(i+1)+"_count")+' 건</p>'
+                );
+            }
+            $("#survey_total").text(currentRow.survey_total+"건");
+            $("#dlg1").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+        });
+		
+		$(document).on('click', ".private_modify", function () {
+			
+			var currentRow = $('#dg').datagrid('getSelected');
+			$("#dm_id").val(currentRow.dm_id);
+            $("#dm_survey_name").val(currentRow.dm_survey_name);
+            $("#dm_survey_question").val(currentRow.dm_survey_question);
+            $("#dm_answer_0").val(currentRow.dm_answer[0]);
+            $(".answer").remove();
+            $.each(currentRow.dm_answer, function (key, value) {
+                if (key != 0) {
+                    $("#answer_dd").append(
+                        "<input type='text' name='dm_answer_"+key+"' id='dm_answer_"+key+"' value='"+value+"' class='wd50 answer' style='margin-top:5px;' /> <br class='answer'>"
+                    );
+                }
+            });
+            $("#dm_start_dt").datebox('setValue', currentRow.dm_start_dt);
+            $("#dm_end_dt").datebox('setValue', currentRow.dm_end_dt);
+            $("#dm_status").combobox('setValue', currentRow.dm_status);
+            $("#dm_mode").val('insert');
+			
+			$("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+		});
+
+		$(document).on('click', ".private_delete", function () {
+			$.messager.confirm("", "정말 삭제하시겠습니까?", function (r) {
+				if (r) {
+					var currentRow = $('#dg').datagrid('getSelected');
+						$.post('<?=$_VAR_PATH_BIZ?>app/mng_survey.php?type=delete',{dm_id:currentRow.dm_id},function(result){
+							if (result.result == "success"){
+								//console.log(result);
+								$('#dg').datagrid('reload');
+							}
+						},'json')
+					//$('#dg').datagrid('reload');    // reload the user data
+				}
+			});
+        });
+    });
+
+    function selectedDg(rowIndex)
+    {
+        $('#dg').datagrid('selectRow',rowIndex);
+        var currentRow =$("#dg").datagrid("getSelected");
+        if (currentRow)
+        {
+
+            $("#dm_id").val(currentRow.dm_id);
+            $("#dm_survey_name").val(currentRow.dm_survey_name);
+            $("#dm_survey_question").val(currentRow.dm_survey_question);
+            $("#dm_start_dt").datebox('setValue', currentRow.dm_start_dt);
+            $("#dm_end_dt").datebox('setValue', currentRow.dm_end_dt);
+            $("#dm_status").combobox('setValue', currentRow.dm_status);
+            $("#dm_answer_0").val(currentRow.dm_answer[0]);
+            $(".answer").remove();
+            $.each(currentRow.dm_answer, function (key, value) {
+                if (key != 0) {
+                    $("#answer_dd").append(
+                        "<input type='text' name='dm_answer_"+key+"' id='dm_answer_"+key+"' value='"+value+"' class='wd50 answer' style='margin-top:5px;' /> <br class='answer'>"
+                    );
+                }
+            });
+            $("#dm_mode").val("update");
+            $("#dialog_title").text("설문조사 수정");
+            $("#dlg").dialog({
+                title : "&nbsp;&nbsp;"
+            }).dialog('open');
+        }
+    }
+
+    function allList() {
+        $("#search_type").val('all');
+        $("#stx").val('');
+        $("#search_status").combobox('reload');
+        $("#dg").datagrid('load', {
+            search_type: '',
+            search_value : '',
+            search_status : ''
+        });
+    }
+
+    function formatDetail(value,row){
+        return '<a data-id="'+row.dm_id+'" class="btn bt08 open_form" >설문결과보기</a> <a class="btn private_modify">수정</a> <a data-id="'+row.dm_id+'" class="btn private_delete" target="_blank">삭제</a>';
+    }
+</script>
+
+<div class="easyui-layout" style="width:700px;height:350px;" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1>설문조사</h1>
+            <div class="btnWrap">
+                <button id="fnNew" class="bt01">신규생성</button>
+            </div>
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>상태</strong></dt>
+                    <dd>
+                        <select id="search_status" name="search_status" class="easyui-combobox" panelHeight="auto"
+                                data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&search=1&group=1001',
+                                                    method: 'get',
+                                                    valueField: 'dm_code_value',
+                                                    textField: 'dm_code_name',
+                                                    editable:false">
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><strong>통합검색</strong></dt>
+                    <dd>
+                        <select name="search_type" id="search_type">
+                            <option value="all">통합검색</option>
+                            <option value="dm_survey_name">제목</option>
+                            <option value="dm_start_dt">시작일</option>
+                            <option value="dm_end_dt">종료일</option>
+                            <option value="dm_create_dt">등록일</option>
+                        </select>
+                        <input type="text" name="search_value" value="" id="stx">
+                    </dd>
+                </dl>
+            </div>
+            <button class="btn bt00" id="search_btn">검색</button>
+            <button class="btn" onclick="allList()">초기화</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <table id="dg"
+               class="easyui-datagrid" fit="true" border="false"
+               data-options="pagePosition:'top',rownumbers:true,pagination:true, singleSelect:true,url:'<?=$_VAR_PATH_BIZ?>app/mng_survey.php?type=select',method:'get',fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false,footer:'#ft'"
+               pageList="[10,20,30,50,70,100]" pageSize="50" fit="true">
+            <thead>
+            <tr>
+                <th data-options="field:'ck',width:100,align:'center',checkbox:true,
+            editor:{
+                type:'checkbox',
+                options:{
+                    on:'Y',
+                    off:'N'
+                }
+            }">-</th>
+                <th data-options="field:'dm_survey_name',width:80,align:'center'">설문조사명</th>
+                <th data-options="field:'dm_survey_question',width:200,align:'center'">질문</th>
+                <th data-options="field:'dm_start_dt',width:100,align:'center'">시작일</th>
+                <th data-options="field:'dm_end_dt',width:100,align:'center'">종료일</th>
+                <th data-options="field:'dm_create_dt',width:100,align:'center'">등록일</th>
+                <th data-options="field:'dm_status_text',width:80,align:'center'">상태</th>
+                <th field ="detail" width = "150" formatter="formatDetail" align="center">관리</th>
+            </tr>
+            </thead>
+        </table>
+        <div id="dlg" class="easyui-dialog" style="width:600px; height: 700px;">
+            <form id="fm" method="post" novalidate>
+                <input type="hidden" name="dm_mode" id="dm_mode" value="insert"/>
+                <input type="hidden" name="dm_id" value="" id="dm_id" />
+                <div class="page">
+                    <h3 id="dialog_title">설문조사 등록</h3>
+                    <dl>
+                        <dt>설문조사명</dt>
+                        <dd><input type="text" name="dm_survey_name" id="dm_survey_name" /></dd>
+                    </dl>
+                    <dl>
+                        <dt>질문</dt>
+                        <dd><input type="text" name="dm_survey_question" id="dm_survey_question" /></dd>
+                    </dl>
+                    <dl>
+                        <dt>답변</dt>
+                        <dd id="answer_dd">
+                            <input type="text" name="dm_answer_0" id="dm_answer_0" class="wd50"/>
+                            <a id="plus_answer" style="cursor: pointer;" class="btn">답변 추가</a>
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>노출 기간</dt>
+                        <dd>
+                            <input type="text" name="dm_start_dt" id="dm_start_dt" class="easyui-datebox wd15" data-options="formatter:myformatter,parser:myparser" /> ~
+                            <input type="text" name="dm_end_dt" id="dm_end_dt" class="easyui-datebox wd15" data-options="formatter:myformatter,parser:myparser"  />
+                        </dd>
+                    </dl>
+                    <dl>
+                        <dt>상태</dt>
+                        <dd>
+                            <select id="dm_status" name="dm_status" class="easyui-combobox" panelHeight="auto"
+                                    data-options="url: '<?=$_VAR_PATH_BIZ ?>app/select.php?type=select_code&group=1001',
+                                                    method: 'get',
+                                                    valueField: 'dm_code_value',
+                                                    textField: 'dm_code_name'" ></select>
+                        </dd>
+                    </dl>
+                </div>
+                <div style="text-align: center;">
+                    <a href="javascript:void(0);" id="fnClose" class="easyui-linkbutton" style="width:120px;height:30px">취소</a>
+                    <a href="javascript:void(0);" id="fnSave" class="easyui-linkbutton" style="width:120px;height:30px">저장</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="dlg1" class="easyui-dialog" style="width:600px; height: 700px;">
+        <div class="page">
+            <h3>설문조사 내역</h3>
+            <dl>
+                <dt>설문조사명</dt>
+                <dd class="dm_survey_name"></dd>
+            </dl>
+            <dl>
+                <dt>질문</dt>
+                <dd class="dm_survey_question"></dd>
+            </dl>
+            <dl>
+                <dt>답변</dt>
+                <dd class="answer_dd">
+                </dd>
+            </dl>
+            <dl>
+                <dt>총 득표수</dt>
+                <dd id="survey_total"></dd>
+            </dl>
+        </div>
+        <div style="text-align: center;">
+            <a href="javascript:void(0);" id="fnClose1" class="easyui-linkbutton" style="width:120px;height:30px">취소</a>
+        </div>
+    </div>
+	<div data-options="region:'south'">
+        <dl class="Tbottom">
+            <dd>
+                <button class="btn" id="fnRemove">선택삭제</button>
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<?
+require('../../lib/page_bottom.php');
+?>

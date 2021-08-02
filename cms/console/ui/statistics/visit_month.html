@@ -1,0 +1,188 @@
+<?
+	require('../../lib/page_header.php');
+$start_date = date("Y-m", strtotime('- 1 month'));
+?>
+<script>
+    $(function () {
+        fnSetData();
+
+        function fnSetData() {
+            var search_start_date = $("#search_start_date").datebox('getValue');
+            var search_end_date = $("#search_end_date").datebox('getValue');
+
+            $.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=month_accessor&search_start_date="+search_start_date+"&search_end_date="+search_end_date,
+                dataType:'json',
+                success : function (data) {
+                    $("#max_count").text(data.max_count);
+                    $("#max_date").text(data.max_date);
+                    $("#max_pv_count").text(data.max_pv_count);
+                    $("#max_pv_date").text(data.max_pv_date);
+                    $("#min_count").text(data.min_count);
+                    $("#min_date").text(data.min_date);
+                    $("#min_pv_count").text(data.min_pv_count);
+                    $("#min_pv_date").text(data.min_pv_date);
+                    $("#minus_count").text(data.minus_count);
+                    $("#minus_pv").text(data.minus_pv);
+                }
+            });
+
+            $.ajax({
+                url : "<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=month_accessor_chart&search_start_date="+search_start_date+"&search_end_date="+search_end_date,
+                dataType:'json',
+                success : function (data) {
+                    $("#chart-area").empty();
+                    var container = document.getElementById('chart-area'),
+                        data_chart = {
+                            categories: data.date,
+                            series: [
+                                {
+                                    name: '방문자수',
+                                    data: data.visitor,
+                                },
+                                {
+                                    name: '방문횟수',
+                                    data: data.visit_count
+
+                                },
+                                {
+                                    name: '신규방문자수',
+                                    data: data.new_count
+
+                                },
+                                {
+                                    name: '재방문자수',
+                                    data: data.re_count
+
+                                },
+                                {
+                                    name: '방문당PV',
+                                    data: data.pv
+                                }
+                            ]
+                        },
+                        options = {
+                            chart: {
+                                width: widthSize, height: 400 /*,title: ''*/
+                            },
+                            yAxis: {
+                                title: '',
+                                min: 0
+                            },
+                            xAxis: {
+                                title: ''
+                            },
+                            tooltip: {
+                                suffix: ''/*,grouped: true*/
+                            },
+                            series: {
+                                showLabel: false, showDot: false
+                            },
+                            legend: {
+                                showCheckbox: true, align: 'bottom'
+                            }
+                        }
+                    tui.chart.lineChart(container, data_chart, options);
+                }
+            });
+        }
+
+        $("#search_btn").off().on('click', function () {
+            fnSetData();
+            var search_start_date = $("#search_start_date").datebox('getValue');
+            var search_end_date = $("#search_end_date").datebox('getValue');
+            $('#dg').datagrid('load', {
+                    search_start_date : encodeURIComponent(search_start_date),
+                    search_end_date : encodeURIComponent(search_end_date),
+                    emptyMsg:'데이터가 없습니다.'
+                }
+            );
+        });
+    })
+</script>
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north', border:false">
+        <div class="title">
+            <h1>방문자분석</h1>
+        </div>
+        <div class="Srchbox">
+            <div>
+                <dl>
+                    <dt><strong>기간검색</strong></dt>
+                    <dd>
+                        <input type="text" class="easyui-datebox" id="search_start_date" value="<?=$start_date."-01"?>" data-options="formatter:myformatter,parser:myparser"> ~
+                        <input type="text" class="easyui-datebox" id="search_end_date" value="<?=date("Y-m");?>" data-options="formatter:myformatter,parser:myparser">
+                        <a onclick="DateSearch.getMonthAgo()" class="btn">1개월</a>
+                        <a onclick="DateSearch.getThreeMonthAgo()" class="btn">3개월</a>
+                        <a onclick="DateSearch.getSixMonthAgo()" class="btn">6개월</a>
+                        <a onclick="DateSearch.getTwelveMonthAgo()" class="btn">12개월</a>
+                    </dd>
+                </dl>
+            </div>
+             <button class="btn bt00" id="search_btn">검색</button>
+             <button class="btn" onclick="allList()">초기화</button>
+        </div>
+    </div>
+    <div data-options="region:'center', border:false" class="Contents">
+        <?
+            require('visitor_tab.html');
+        ?>
+        
+        <div class="State">
+            <table class="tb">
+                <thead>
+                    <tr>
+                        <th>최대 방문자수</th>
+                        <th>최소 방문자수</th>
+                        <th>최대 페이지뷰</th>
+                        <th>최소 페이지뷰</th>
+                        <th>최소·최대 편차</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                    <td>
+                        <strong id="max_count">10</strong>
+                        <em id="max_date">2020-10</em>
+                    </td>
+                    <td>
+                        <strong id="min_count">7</strong>
+                        <em id="min_date">2020-10</em>
+                     </td>
+                    <td>
+                        <strong id="max_pv_count">13</strong>
+                        <em id="max_pv_date">2020-10</em>
+                    </td>
+                    <td>
+                        <strong id="min_pv_count">10</strong>
+                        <em id="min_pv_date">2020-10</em>
+                    </td>
+                    <td>
+                        <dl><dt>방문자수</dt><dd><strong id="minus_count">7</strong></dd></dl>
+                        <dl><dt>페이지뷰</dt><dd><strong id="minus_pv">37</strong></dd></dl>
+                    </td>
+                    </tr>
+                </tbody>   
+            </table>
+            
+            <div id="chart-area" style="margin:20px -10px 20px -10px;"></div>
+
+            <table id="dg" class="easyui-datagrid" data-options="rownumbers:false,pagination:false, url:'<?=$_VAR_PATH_BIZ?>app/mng_statistics.php?type=month_accessor_table&search_start_date=<?=$start_date?>&search_end_date=<?=date('Y-m-d');?>',method:'get', singleSelect:true,fitColumns:true,striped:false,selectOnCheck:false,checkOnSelect:false"  fit="true" border="false" fit="true">
+                <thead>
+                <tr>
+                    <th data-options="field:'dm_date',width:80,align:'center'">월</th>
+                    <th data-options="field:'dm_visitor',width:80,align:'center'">방문자수</th>
+                    <th data-options="field:'visit_count',width:80,align:'center'">방문횟수</th>
+                    <th data-options="field:'new_count',width:80,align:'center'">신규방문자수</th>
+                    <th data-options="field:'re_count',width:80,align:'center'">재방문자수</th>
+                    <th data-options="field:'pv',width:80,align:'center'">방문당 PV</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+<?
+	require('../../lib/page_bottom.php');
+?>

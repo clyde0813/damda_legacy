@@ -1,0 +1,228 @@
+<style>
+    .contentWrap > h2{display:none;}    
+</style>
+<div class="MdamdaNew">
+    <h2>담다뉴스</h2>
+    <? latest('damnews', 'damnews','3', '200') ?>
+</div>
+<?php
+
+$url_news = "https://finance.naver.com/news";
+
+$curl = curl_init();
+curl_setopt_array($curl, array(
+  CURLOPT_URL => $url_news,
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => "",
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 0,
+  CURLOPT_FOLLOWLOCATION => true,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => "GET",
+));
+$response = curl_exec($curl);
+curl_close($curl);
+$response_news = iconv("EUC-KR", "UTF-8", $response);
+
+$start_word = "<div class=\"main_news\">";
+$news = selectData($response_news, $start_word, "</ul>", $out);
+$newsLists = explode("<li>", $news);
+
+foreach($newsLists as $key=>$data)
+{
+	if(strlen($data) > 200 && 9 > $key)
+	{
+		$newsList = $data;
+		$link = selectData($newsList, "<a href=\"", "\" title=", $out);
+		$subject = strip_tags(selectData($newsList, ">", "</a>", $out));
+		$press = selectData($newsList, "<em>", "</em>", $out);
+		
+		$list['list'][$key]["link"] = $link;
+		$list['list'][$key]["wr_subject"] = $subject;
+		$list['list'][$key]["press"] = $press;
+		//exit();
+	}
+	
+}
+
+?>
+<div class="financeNew">   
+    <h2>증권뉴스</h2>
+    <div class="main_news">
+        <h4><strong>TODAY</strong> NEWS</h4>
+        <ul>
+			<? foreach ($list['list'] as $value) { ?>
+            <!--loop * 6 -->
+            <li>
+                <a href="https://finance.naver.com<?=$value['link']?>" target="_blank"><?=$value['wr_subject']?></a>
+                <em><?=$value['press']?></em>
+            </li>
+           
+			<?}?>
+        </ul>
+    </div><!--//main_news-->
+<?
+$start_word = "<div class=\"main_summary clearfix\">";
+$news = selectData($response_news, $start_word, "<div class=\"pressWrap\">", $out);
+$MainNews = explode("<div class=\"summary_block\">", $news);
+
+foreach($MainNews as $MainKey=>$MainData)
+{
+	$firstContent = selectData($MainData, "<div class=\"firstArticle\">", "</div>", 0);
+
+	$fLink = selectData($firstContent, "<a href=\"", "\" onClick=\"", 0, $fout);
+	$fImage = selectData($firstContent, "<img src=\"", "\" alt=", $fout, $fout);
+	$fSubject = selectData($firstContent, ", event)\">", "</a>", $fout, $fout);
+
+	$mFirst[$MainKey]["link"] = $fLink;
+	$mFirst[$MainKey]["wr_subject"] = $fSubject;
+	$mFirst[$MainKey]["wr_image"] = $fImage;
+
+
+	//echo $fLink."<br>";
+	//echo $fImage."<br>";
+	//echo $fSubject."<br>";
+
+	//echo $firstContent."<br>";
+	$newsLists = explode("<li>", $MainData);
+
+	foreach($newsLists as $key=>$data)
+	{
+		if(strlen($data) > 200 && 9 > $key && 0 < $key)
+		{
+			$newsList = $data;
+			$link = selectData($newsList, "<a href=\"", "\" title=", 0);
+			$subject = strip_tags(selectData($newsList, ">", "</a>", $out));
+			$press = selectData($newsList, "<em>", "</em>", $out);
+			
+			$mlist[$MainKey][$key]["link"] = $link;
+			$mlist[$MainKey][$key]["wr_subject"] = $subject;
+			$mlist[$MainKey][$key]["press"] = $press;
+		}
+	}
+	
+}
+//var_dump($mlist);
+//exit();
+?>
+    <div class="summary_block">
+        <h4><em>시황</em>·전망</h4>    
+        <div class="firstArticle">
+            <a href="https://finance.naver.com<?=$mFirst[1]['link']?>" target="_blank">
+                <img src="<?=$mFirst[1]['wr_image']?>" alt="" onerror="this.src='https://ssl.pstatic.net/static/nfinance/2017/02/27/thumb_72x48.gif'">
+            </a>
+            <p class="caption">
+                <a href="https://finance.naver.com<?=$mFirst[1]['link']?>" target="_blank"><?=$mFirst[1]['wr_subject']?></a>
+            </p>
+       </div><!--//firstArticle-->
+        <ul>
+			<? foreach ($mlist[1] as $value) { ?>
+            <!--loop * 6 -->
+            <li>
+                <a href="https://finance.naver.com<?=$value['link']?>" target="_blank"><?=$value['wr_subject']?></a>
+            </li>
+           
+			<?}?>
+		</ul>
+    </div><!--//summary_block-->    
+    <div class="summary_block">
+        <h4><em>기업·종목</em>분석</h4>    
+        <div class="firstArticle">
+            <a href="https://finance.naver.com<?=$mFirst[2]['link']?>" target="_blank">
+                <img src="<?=$mFirst[2]['wr_image']?>" alt="" onerror="this.src='https://ssl.pstatic.net/static/nfinance/2017/02/27/thumb_72x48.gif'">
+            </a>
+            <p class="caption">
+                <a href="https://finance.naver.com<?=$mFirst[2]['link']?>" target="_blank"><?=$mFirst[2]['wr_subject']?></a>
+            </p>
+       </div><!--//firstArticle-->
+        <ul>						
+            <? foreach ($mlist[2] as $value) { ?>
+            <!--loop * 6 -->
+            <li>
+                <a href="https://finance.naver.com<?=$value['link']?>" target="_blank"><?=$value['wr_subject']?></a>
+            </li>
+           
+			<?}?>
+		</ul>
+    </div><!--//summary_block-->   
+    <div class="summary_block">
+        <h4><em>해외</em> 증시</h4>    
+        <div class="firstArticle">
+            <a href="https://finance.naver.com<?=$mFirst[3]['link']?>" target="_blank">
+                <img src="<?=$mFirst[3]['wr_image']?>" alt="" onerror="this.src='https://ssl.pstatic.net/static/nfinance/2017/02/27/thumb_72x48.gif'">
+            </a>
+            <p class="caption">
+                <a href="https://finance.naver.com<?=$mFirst[3]['link']?>" target="_blank"><?=$mFirst[3]['wr_subject']?></a>
+            </p>
+       </div><!--//firstArticle-->
+        <ul>						
+            <? foreach ($mlist[3] as $value) { ?>
+            <!--loop * 6 -->
+            <li>
+                <a href="https://finance.naver.com<?=$value['link']?>" target="_blank"><?=$value['wr_subject']?></a>
+            </li>
+           
+			<?}?>
+		</ul>
+    </div><!--//summary_block--> 
+     <div class="summary_block">
+        <h4><em>채권</em>·선물</h4>    
+        <div class="firstArticle">
+            <a href="https://finance.naver.com<?=$mFirst[4]['link']?>" target="_blank">
+                <img src="<?=$mFirst[4]['wr_image']?>" alt="" onerror="this.src='https://ssl.pstatic.net/static/nfinance/2017/02/27/thumb_72x48.gif'">
+            </a>
+            <p class="caption">
+                <a href="https://finance.naver.com<?=$mFirst[4]['link']?>" target="_blank"><?=$mFirst[4]['wr_subject']?></a>
+            </p>
+       </div><!--//firstArticle-->
+        <ul>						
+            <? foreach ($mlist[4] as $value) { ?>
+            <!--loop * 6 -->
+            <li>
+                <a href="https://finance.naver.com<?=$value['link']?>" target="_blank"><?=$value['wr_subject']?></a>
+            </li>
+           
+			<?}?>
+		</ul>
+    </div><!--//summary_block--> 
+    <div class="summary_block">
+        <h4><em>공시</em>·메모</h4>    
+        <div class="firstArticle">
+            <a href="https://finance.naver.com<?=$mFirst[5]['link']?>" target="_blank">
+                <img src="<?=$mFirst[5]['wr_image']?>" alt="" onerror="this.src='https://ssl.pstatic.net/static/nfinance/2017/02/27/thumb_72x48.gif'">
+            </a>
+            <p class="caption">
+                <a href="https://finance.naver.com<?=$mFirst[5]['link']?>" target="_blank"><?=$mFirst[5]['wr_subject']?></a>
+            </p>
+       </div><!--//firstArticle-->
+        <ul>						
+            <? foreach ($mlist[5] as $value) { ?>
+            <!--loop * 6 -->
+            <li>
+                <a href="https://finance.naver.com<?=$value['link']?>" target="_blank"><?=$value['wr_subject']?></a>
+            </li>
+           
+			<?}?>
+		</ul>
+    </div><!--//summary_block--> 
+    <div class="summary_block">
+        <h4><em>환율</em></h4>    
+        <div class="firstArticle">
+            <a href="https://finance.naver.com<?=$mFirst[6]['link']?>" target="_blank">
+                <img src="<?=$mFirst[6]['wr_image']?>" alt="" onerror="this.src='https://ssl.pstatic.net/static/nfinance/2017/02/27/thumb_72x48.gif'">
+            </a>
+            <p class="caption">
+                <a href="https://finance.naver.com<?=$mFirst[6]['link']?>" target="_blank"><?=$mFirst[6]['wr_subject']?></a>
+            </p>
+       </div><!--//firstArticle-->
+        <ul>						
+            <? foreach ($mlist[6] as $value) { ?>
+            <!--loop * 6 -->
+            <li>
+                <a href="https://finance.naver.com<?=$value['link']?>" target="_blank"><?=$value['wr_subject']?></a>
+            </li>
+           
+			<?}?>
+		</ul>
+    </div><!--//summary_block--> 
+</div>    
