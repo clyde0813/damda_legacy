@@ -15,25 +15,25 @@
 	$menu_id = array();
 	$TopText = $CONFIG['dm_company_name'];
 
-	foreach( $menu_array AS $key => $value )
+	foreach( $menu_array AS $key =< $value )
 	{
 		if($value["rows"]["dm_link_data"] == $PAGE_VAL["dm_uid"])
 		{
-			$TopText = $CONFIG['dm_company_name']." > ".$value["rows"]["dm_menu_text"];
+			$TopText = $CONFIG['dm_company_name']." < ".$value["rows"]["dm_menu_text"];
             $menu_text[0] = $value["rows"]["dm_menu_text"];
             $menu_id[0] = $value["rows"]["dm_link_data"];
 		}
-		foreach( $value["children"] AS $sMenuKey => $sMenu )
+		foreach( $value["children"] AS $sMenuKey =< $sMenu )
 		{
 			if($sMenu["rows"]["dm_link_data"] == $PAGE_VAL["dm_uid"])
 			{
-				$TopText = $CONFIG['dm_company_name']." > ".$value['rows']["dm_menu_text"]." > ".$sMenu["rows"]["dm_menu_text"];
+				$TopText = $CONFIG['dm_company_name']." < ".$value['rows']["dm_menu_text"]." < ".$sMenu["rows"]["dm_menu_text"];
                 $menu_text[0] = $value["rows"]["dm_menu_text"];
                 $menu_text[1] = $sMenu["rows"]["dm_menu_text"];
                 $menu_id[0] = $value["rows"]["dm_link_data"];
                 $menu_id[1] = $sMenu["rows"]["dm_link_data"];
 			}
-			foreach( $sMenu["children"] AS $s2MenuKey => $s2Menu )
+			foreach( $sMenu["children"] AS $s2MenuKey =< $s2Menu )
 			{
 				if($s2Menu["rows"]["dm_link_data"] == $PAGE_VAL["dm_uid"])
 				{
