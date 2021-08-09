@@ -179,7 +179,7 @@
 
 		require($layout_bottom);
 
-        $ip = $_SERVER['REMOTE_ADDR'];
+        $ip = $_SERVER['REMOTE_ADDER'];
         $url = $_SERVER['HTTP_REFERER'];
         $agent = $_SERVER["HTTP_USER_AGENT"];
         $code = 'common';
@@ -229,6 +229,6 @@
             echo "<script>openPopup('$link_data','','$dm_id','$dm_popup_left','$dm_popup_top','$dm_popup_width','$dm_popup_height','$dm_popup_type','false', '$dm_content_type', '$dm_popup_page', '$dm_popup_expired', '$dm_link', '$dm_link_type');</script>";
             //echo "<script>$('#result').load('$link_data');</script>";
         }
-        insert_visit_orgin();
+        insert_visit_origin();
 	}
 ?>
