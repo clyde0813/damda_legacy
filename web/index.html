@@ -1,10 +1,10 @@
-<?
+<?php
 //@ini_set("display_errors", 'On');
 //@error_reporting(E_ALL);
 	require('./lib/lib.php');
     autoLogin()
 ?>
-<?
+<?php
 
 	$layout = $LAYOUT_VAL["dm_layout_type"];
 	$page = $PAGE_VAL["dm_file_src"];
@@ -205,7 +205,7 @@
 	}
 ?>
 
-<?
+<?php
 	if($PAGE_VAL["dm_main_content"] == "1")
 	{
 		//$Query = "SELECT * FROM dm_popup popup INNER JOIN dm_pages page ON (popup.dm_popup_page = page.dm_uid) WHERE popup.dm_start_dt <= NOW() AND popup.dm_end_dt >= NOW() AND popup.dm_status ='1'";
