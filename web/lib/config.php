@@ -118,11 +118,11 @@ $admin_email = $CONFIG['dm_ceo_email'];
 
 $KAKAO_KEY = $CONFIG['dm_kakao_client_id'];
 $KAKAO_SECRET_KEY = $CONFIG['dm_kakao_client_secret'];
-$KAKAO_RETURN_URL = "http://damdaproject.co.kr/diam/web/base/login/kakaologin.php";
+$KAKAO_RETURN_URL = "http://192.168.0.48/diam/web/base/login/kakaologin.php";
 
 $NAVER_KEY = $CONFIG['dm_naver_client_id'];
 $NAVER_SECRET_KEY = $CONFIG['dm_naver_client_secret'];
-$NAVER_RETURN_URL = "http://damdaproject.co.kr/diam/web/base/login/naverlogin.php";
+$NAVER_RETURN_URL = "http://192.168.0.48/diam/web/base/login/naverlogin.php";
 
 // 세션변수 세팅
 $member_level = getSession('chk_dm_level');

@@ -2,7 +2,7 @@
 $contentId = isset($_REQUEST['contentId']) ? $_REQUEST['contentId'] : "";
 
 if ($contentId == "") {
-    $Query = "select * from dm_pages where dm_main_content = '1' and dm_status = '1'";
+    $Query = "select * from dm_pages where dm_main_content = 1 and dm_status = '1'";
 } else {
     $Query = "select * from dm_pages where dm_uid='" . $contentId . "' and dm_status = '1'";
 }
