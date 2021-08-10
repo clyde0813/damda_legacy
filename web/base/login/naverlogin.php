@@ -1,5 +1,5 @@
 <script>
-document.domain = "192.168.0.48";
+document.domain = "http://192.168.0.48/";
 </script>
 <?php
 /**
