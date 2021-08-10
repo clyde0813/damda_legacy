@@ -1,5 +1,5 @@
 <script>
-document.domain = "damdaproject.co.kr";
+document.domain = "http://192.168.0.48/";
 </script>
 <?php
 /**
